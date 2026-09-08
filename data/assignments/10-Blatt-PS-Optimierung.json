@@ -1,0 +1,84 @@
+{
+ "source": "10-Blatt-PS-Optimierung.pdf",
+ "blatt_nummer": 10,
+ "besprechungstermin": "26/27 . 5 . 2026",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": "Differenzierbarkeit reeller konvexer Funktionen",
+   "text": "Differenzierbarkeit reeller konvexer Funktionen. Wir zeigen, dass\nkonvexe Funktionen fast überall differenzierbar sind, genauer\na) Es sei f : R →R konvex und r, s, t ∈R mit r < s < t. Zeigen Sie, dass\nf′\n+(r) ≤f′\n−(s) ≤f′\n+(s) ≤f′\n−(t)\ngilt, wobei f′\n±(s) die einseitigen Ableitungen von f in s bezeichnen.\nb) Schließen Sie aus (a), dass es für eine konvexe Funktion f : R →R eine abzählbare\nMenge S ⊂R gibt, sodass f auf R\\S differenzierbar ist.",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Es sei f : R →R konvex und r, s, t ∈R mit r < s < t. Zeigen Sie, dass\nf′\n+(r) ≤f′\n−(s) ≤f′\n+(s) ≤f′\n−(t)\ngilt, wobei f′\n±(s) die einseitigen Ableitungen von f in s bezeichnen."
+    },
+    {
+     "label": "b",
+     "text": "Schließen Sie aus (a), dass es für eine konvexe Funktion f : R →R eine abzählbare\nMenge S ⊂R gibt, sodass f auf R\\S differenzierbar ist."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": "Differenzierbarkeit konvexer Funktionen",
+   "text": "Differenzierbarkeit konvexer Funktionen. Es sei Ω⊂Rn eine offene\nkonvexe Menge und f : Ω→R eine konvexe Funktion.\na) Zeigen Sie, dass f genau dann in x ∈Rn differenzierbar ist, wenn es n-linear\nunabhängige Richtungen u1, . . . , un ∈Sn−1 gibt für die Richungsableitung ∂uif(x)\nexistiert.\nb) Zeigen Sie, dass die Funktion R2 n →R, (x, u) 7→∂+\nu f(x) halbstetig von oben ist,\nd.h. lim sup(x,v)→(ξ,u) ∂+\nv f(x) ≤∂+\nu f(ξ).\nc) Verwenden Sie den Satz von Fubini-Tonelli, um zu zeigen, dass für fixes u ∈Rn\ndie Menge\nHk,u := {x ∈Rn | ∂+\nu f(x) −∂+\n−uf(x) ≥1\nk}\neine abgeschlossene Nullmenge mit leerem Inneren ist.\nd) Schließen Sie aus (a) und (c), dass f außerhalb einer Nullmenge, deren Komple-\nment eine dichte Gδ-Menge ist, differenzierbar ist. (Eine Menge ist Gδ, falls sie\nabzählbarer Durchschnitt offener Mengen ist.)",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Zeigen Sie, dass f genau dann in x ∈Rn differenzierbar ist, wenn es n-linear\nunabhängige Richtungen u1, . . . , un ∈Sn−1 gibt für die Richungsableitung ∂uif(x)\nexistiert."
+    },
+    {
+     "label": "b",
+     "text": "Zeigen Sie, dass die Funktion R2 n →R, (x, u) 7→∂+\nu f(x) halbstetig von oben ist,\nd.h. lim sup(x,v)→(ξ,u) ∂+\nv f(x) ≤∂+\nu f(ξ)."
+    },
+    {
+     "label": "c",
+     "text": "Verwenden Sie den Satz von Fubini-Tonelli, um zu zeigen, dass für fixes u ∈Rn\ndie Menge\nHk,u := {x ∈Rn | ∂+\nu f(x) −∂+\n−uf(x) ≥1\nk}\neine abgeschlossene Nullmenge mit leerem Inneren ist."
+    },
+    {
+     "label": "d",
+     "text": "Schließen Sie aus (a) und (c), dass f außerhalb einer Nullmenge, deren Komple-\nment eine dichte Gδ-Menge ist, differenzierbar ist. (Eine Menge ist Gδ, falls sie\nabzählbarer Durchschnitt offener Mengen ist.)"
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Wiederholung zu Folgen",
+   "text": "Wiederholung zu Folgen. Es sei (ak)k∈N eine Folge in Rn.\na) Es sei n = 1. Zeigen Sie, dass limk→∞(ak−ak+1) = 0, falls (ak)k∈N monoton fallend\nund nach unten beschränkt ist.\nb) Zeigen Sie, dass eine beschränkte Folge (ak)k∈N genau dann konvergiert, wenn Sie\nnur einen Häufungspunkt besitzt.",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Es sei n = 1. Zeigen Sie, dass limk→∞(ak−ak+1) = 0, falls (ak)k∈N monoton fallend\nund nach unten beschränkt ist."
+    },
+    {
+     "label": "b",
+     "text": "Zeigen Sie, dass eine beschränkte Folge (ak)k∈N genau dann konvergiert, wenn Sie\nnur einen Häufungspunkt besitzt."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Gradientenverfahren mit Liniensuche",
+   "text": "Gradientenverfahren mit Liniensuche. Was kann schon schiefge-\nhen?\na) Zeigen Sie, dass f : R →R, x 7→ex eine nach unten beschränkte konvexe Funktion\nist, für die Algorithmus 4.1.1 eine Folge ohne Häufungspunkte erzeugt. Besitzt f\nstationäre Punkte?\nb) Zeigen Sie, dass f : R →R, x 7→(x −1) x (x + 1) stationäre Punkte hat, aber\nAlgorithmus 4.1.1 mit x0 = −2 eine Folge ohne Häufungspunkte erzeugt.\nc) Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist.\nSeite 1 von 1",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Zeigen Sie, dass f : R →R, x 7→ex eine nach unten beschränkte konvexe Funktion\nist, für die Algorithmus 4.1.1 eine Folge ohne Häufungspunkte erzeugt. Besitzt f\nstationäre Punkte?"
+    },
+    {
+     "label": "b",
+     "text": "Zeigen Sie, dass f : R →R, x 7→(x −1) x (x + 1) stationäre Punkte hat, aber\nAlgorithmus 4.1.1 mit x0 = −2 eine Folge ohne Häufungspunkte erzeugt."
+    },
+    {
+     "label": "c",
+     "text": "Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist.\nSeite 1 von 1"
+    }
+   ],
+   "references_skript": null
+  }
+ ]
+}

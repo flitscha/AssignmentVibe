@@ -1,0 +1,71 @@
+{
+ "source": "A06.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 14. November 2024",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "(i) Zeigen Sie, dass der einzige Ringhomomorphismus von Q nach Q sowie von R\nnach R jeweils die Identität ist.\n(ii) Bestimmen Sie alle Ringhomomorphismen φ: C →C mit φ( R ) ⊆R .",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Zeigen Sie, dass der einzige Ringhomomorphismus von Q nach Q sowie von R\nnach R jeweils die Identität ist."
+    },
+    {
+     "label": "ii",
+     "text": "Bestimmen Sie alle Ringhomomorphismen φ: C →C mit φ( R ) ⊆R ."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": "Sei R ein Ring und I, J ◁R Ideale",
+   "text": "Sei R ein Ring und I, J ◁R Ideale. Zeigen Sie:\n(i) I ∩J ist ein Ideal in R. Es ist das größte Ideal, das in I und J enthalten\nist.\n(ii) I + J := {a + b | a ∈I, b ∈J} ist ein Ideal in R. Es ist das kleinste Ideal,\ndas I und J enthält.\n(iii) I · J := {Pn\ni=1 aibi | n ∈N , ai ∈I, bi ∈J} ist ein Ideal in R. Es gilt\nI · J ⊆I ∩J,\naber im Allgemeinen keine Gleichheit.\n(iv) (I : J) := {a ∈R | ∀b ∈J : ab ∈I} ist ein Ideal in R. Es gilt I ⊆((I · J) : J).",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "I ∩J ist ein Ideal in R. Es ist das größte Ideal, das in I und J enthalten\nist."
+    },
+    {
+     "label": "ii",
+     "text": "I + J := {a + b | a ∈I, b ∈J} ist ein Ideal in R. Es ist das kleinste Ideal,\ndas I und J enthält."
+    },
+    {
+     "label": "iii",
+     "text": "I · J := {Pn\ni=1 aibi | n ∈N , ai ∈I, bi ∈J} ist ein Ideal in R. Es gilt\nI · J ⊆I ∩J,\naber im Allgemeinen keine Gleichheit."
+    },
+    {
+     "label": "iv",
+     "text": "(I : J) := {a ∈R | ∀b ∈J : ab ∈I} ist ein Ideal in R. Es gilt I ⊆((I · J) : J)."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "(i) Sei R ein Ring und M ⊆R",
+   "text": "(i) Sei R ein Ring und M ⊆R. Zeigen Sie dass\n\\\nM⊆I◁R\nI =\n( n\nX\ni=1\naimibi | n ∈N, ai, bi ∈R, mi ∈M\n)\ngilt und es sich dabei um das kleinste Ideal in R handelt, welches M enthält.\n(ii) Sei Λ eine beliebige Indexmenge und (Iλ)λ∈Λ eine Kette (bezüglich Inklusion)\nvon Idealen in R. Zeigen Sie, dass dann auch\n[\nλ∈Λ\nIλ\nein Ideal in R ist.",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Sei R ein Ring und M ⊆R. Zeigen Sie dass\n\\\nM⊆I◁R\nI =\n( n\nX\ni=1\naimibi | n ∈N, ai, bi ∈R, mi ∈M\n)\ngilt und es sich dabei um das kleinste Ideal in R handelt, welches M enthält."
+    },
+    {
+     "label": "ii",
+     "text": "Sei Λ eine beliebige Indexmenge und (Iλ)λ∈Λ eine Kette (bezüglich Inklusion)\nvon Idealen in R. Zeigen Sie, dass dann auch\n[\nλ∈Λ\nIλ\nein Ideal in R ist."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": null,
+   "text": "Zeigen Sie dass im Ring Z[i] Division mit Rest existiert, es also für a, b ∈Z[i] immer\nc, r ∈Z[i] gibt mit\nb = ca + r\nund |r| < |a| (der Betrag ist hier der bekannte Betrag von komplexen Zahlen).\nHinweis: Sie können die Aufgabe geometrisch lösen.\n1",
+   "subparts": [],
+   "references_skript": null
+  }
+ ]
+}

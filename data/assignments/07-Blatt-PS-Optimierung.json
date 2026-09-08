@@ -1,0 +1,82 @@
+{
+ "source": "07-Blatt-PS-Optimierung.pdf",
+ "blatt_nummer": 7,
+ "besprechungstermin": "5/6 . 5 . 2026",
+ "num_aufgaben": 5,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Lösen Sie Programmieraufgabe (2.8) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.8"
+   ]
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Finden Sie eine Lösung des linearen Programms in Aufgabe (2.9) vom\nSkriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.9"
+   ]
+  },
+  {
+   "number": 3,
+   "title": "Konvexität von Funktionen und des Epigraphs",
+   "text": "Konvexität von Funktionen und des Epigraphs. Es sei Ω⊂Rn eine\nkonvexe Menge und f : Ω→R eine Funktion.\na) Zeigen Sie:\nf ist konvex\n⇔\nepi(f) ist konvexe Menge\nb) Zeigen Sie, dass epi(f) genau dann abgeschlossen in Ω× R ist, wenn f untenhalbs-\ntetig ist, d.h. wenn\nf(x) ≤lim inf\ny→x f(y)\nfür alle x ∈Ω.",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Zeigen Sie:\nf ist konvex\n⇔\nepi(f) ist konvexe Menge"
+    },
+    {
+     "label": "b",
+     "text": "Zeigen Sie, dass epi(f) genau dann abgeschlossen in Ω× R ist, wenn f untenhalbs-\ntetig ist, d.h. wenn\nf(x) ≤lim inf\ny→x f(y)\nfür alle x ∈Ω."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Konvexe Funktionen",
+   "text": "Konvexe Funktionen.\na) Zeigen Sie, dass die euklidische Norm die folgende Eigenschaft hat:\n∥λ x + (1 −λ) y∥< λ ∥x∥+ (1 −λ) ∥y∥\nfür x̸ = y mit ∥x∥= ∥y∥und λ ∈(0, 1) gilt.\nb) Geben Sie ein Beispiel einer Norm auf Rn an, welche die Eigenschaft aus (a) nicht\nhat.\nc) Es sei A ∈Matn,n(R) symmetrisch und positive definite. Zeigen Sie, dass\nRn →R, x 7→xT A x\nkonvex ist. Kann man die Eigenschaften von A noch abschwächen?\nd) Zeigen Sie, dass f : [0, 1] →R, x 7→−√x eine konvexe Funktion ist. Besitzt f im\nNullpunkt einen Subgradienten?",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Zeigen Sie, dass die euklidische Norm die folgende Eigenschaft hat:\n∥λ x + (1 −λ) y∥< λ ∥x∥+ (1 −λ) ∥y∥\nfür x̸ = y mit ∥x∥= ∥y∥und λ ∈(0, 1) gilt."
+    },
+    {
+     "label": "b",
+     "text": "Geben Sie ein Beispiel einer Norm auf Rn an, welche die Eigenschaft aus (a) nicht\nhat."
+    },
+    {
+     "label": "c",
+     "text": "Es sei A ∈Matn,n(R) symmetrisch und positive definite. Zeigen Sie, dass\nRn →R, x 7→xT A x\nkonvex ist. Kann man die Eigenschaften von A noch abschwächen?"
+    },
+    {
+     "label": "d",
+     "text": "Zeigen Sie, dass f : [0, 1] →R, x 7→−√x eine konvexe Funktion ist. Besitzt f im\nNullpunkt einen Subgradienten?"
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 5,
+   "title": "Konvexe Funktionen und Richtungsableitung",
+   "text": "Konvexe Funktionen und Richtungsableitung. Es sei Ω⊂Rn eine\noffene konvexe Menge und f : Ω→R eine konvexe Funktion. Wir zeigen, dass f in allen\nPunkten von Ωeinseitige Richtungsableitungen besitzt. Sei dazu x ∈Ωund u ∈Rn mit\n∥u∥= 1.\na) Sei ε > 0 klein genug, sodass x ± ε u ∈Ωgilt. Zeigen Sie, dass die Funktion\n(−ε, ε)\\{0} →R,\nt 7→f(x + tu) −f(x)\nt\nmonoton wachsend und beschränkt ist.\nb) Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.\nSeite 1 von 1",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Sei ε > 0 klein genug, sodass x ± ε u ∈Ωgilt. Zeigen Sie, dass die Funktion\n(−ε, ε)\\{0} →R,\nt 7→f(x + tu) −f(x)\nt\nmonoton wachsend und beschränkt ist."
+    },
+    {
+     "label": "b",
+     "text": "Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.\nSeite 1 von 1"
+    }
+   ],
+   "references_skript": null
+  }
+ ]
+}

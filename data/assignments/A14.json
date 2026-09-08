@@ -1,0 +1,45 @@
+{
+ "source": "A14.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 30. Jänner 2025",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": "Sei k = F2(t) mit einer Variablen t",
+   "text": "Sei k = F2(t) mit einer Variablen t. Zeigen Sie, dass\np := x2 −t ∈k[x]\nirreduzibel, der Körper K := k[x]/(p) der Zerfällungskörper von p, aber die Er-\nweiterung k ⊆K nicht separabel ist.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Zeigen Sie, dass jede Körpererweiterung vom Grad 2 normal ist.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Sei p ∈k[x] ein Polynom vom Grad d und K sein Zerfällungskörperüber k",
+   "text": "Sei p ∈k[x] ein Polynom vom Grad d und K sein Zerfällungskörperüber k. Zeigen\nSie:\n(i) Es gibt stets einen injektiven Gruppenhomomorphismus Aut(K, k) ,→Sd.\n(ii) Finden Sie ein Beispiel für ein irreduzibles Polynom p ∈k[x], für das der\nHomomorphismus aus (i) nicht surjektiv ist.",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Es gibt stets einen injektiven Gruppenhomomorphismus Aut(K, k) ,→Sd."
+    },
+    {
+     "label": "ii",
+     "text": "Finden Sie ein Beispiel für ein irreduzibles Polynom p ∈k[x], für das der\nHomomorphismus aus (i) nicht surjektiv ist."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Sei K der Zerfällungskörper von p = x3 −2über Q",
+   "text": "Sei K der Zerfällungskörper von p = x3 −2über Q. Bestimmen Sie Aut(K, Q) so\nexplizit wie möglich.\n1",
+   "subparts": [],
+   "references_skript": null
+  }
+ ]
+}

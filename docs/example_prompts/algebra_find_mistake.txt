@@ -1,0 +1,362 @@
+Use-Case: 🔍 Find mistake
+
+In meiner Teilloesung unten ist (vermutlich) ein Fehler. Finde ihn und erklaere, warum es ein Fehler ist - ohne die Aufgabe komplett neu zu loesen.
+
+# Kontext: Algebra I
+Aufgabenblatt None, Besprechung: Di. 21. November 2024
+
+# Aufgabe 1
+Bestimmen Sie alle ganzzahligen Lösungen des folgenden Systems linearer Kon-
+gruenzen:
+x ≡1 mod 3
+x ≡2 mod 7
+x ≡3 mod 4.
+
+# Relevante Definitionen/Saetze aus dem Skriptum
+(automatisch per Keyword-Ueberschneidung ausgewaehlt - bei Bedarf ignorieren)
+
+Beispiel 1.2.1 (i):
+In k gelte 1 + 1̸ = 0 und sei p = x2 + ax + b ∈k[x]. Dann sind
+die Nullstellen von p gerade
+λ1,2 = −a ±
+√
+a2 −4b
+2
+.
+Ersetzt man nämlich zunächst x durch x −a/2, erhält man
+q(x) = p
+
+x −a
+2
+
+= x2 + b −a2
+4
+und die Nullstellen von q sind offensichtlich γ1,2 = ±
+q
+a2
+4 −b. Daraus erhält
+man für p die Nullstellen λ1,2 = γ1,2 −a
+2.
+(ii) In k gelte 1 + 1̸ = 0 und 1 + 1 + 1̸ = 0. Sei p = x3 + ax + b ∈k[x] (einen
+quadratischenTermkannmanwiederdurcheineTranslationeinfachloswerden).
+Dann besitzt das Polynom p die folgende Nullstelle:
+γ1 =
+3
+v
+u
+u
+t−b
+2 +
+sb
+2
+2
++
+a
+3
+3
++
+3
+v
+u
+u
+t−b
+2 −
+sb
+2
+2
++
+a
+3
+3
+.
+Das ist die sogenannte Cardanische Formel.
+(iii) Auch für Polynome vom Grad 4 gibt es noch eine Lösungsformel, welche die
+Nullstellen anhand von +, −, ·, / und (höheren) Wurzeln aus den Koeffizienten
+von p berechnet. Das sind die Formeln von Ferrari.
+△
+
+4
+KAPITEL 1. EINLEITUNG UND MOTIVATION
+Problem 1.2.2 (Lösung polynomialer Gleichungen mit Radikalen). GibteseineFor-
+mel, die nur mit +, −, ·, / und höheren Wurzeln die Nullstellen jedes Polynoms vom Grad
+5 (oder höher) aus seinen Koeffizienten berechnet?
+Für welche Polynome entstehen die Nullstellen überhaupt auf solche Weise aus den Koeffi-
+zienten?
+△
+Auch hier kommt wieder ein Körper ins Spiel. Sei etwa p ∈Q[x] gegeben. Dann
+zerfällt p über C vollständig in Linearfaktoren:
+p = (x −α1)(x −α2) · · · (x −αd)
+mit α1, . . . , αd ∈C. Sei nun K der kleinste Körper zwischen Q und C, der al-
+le Nullstellen α1, . . . , αd enthält. Wir nennen ihn den Zerfällungskörper von p. Ob
+man die αi wie oben aus den Koeffizienten von p berechnen kann, spiegelt sich
+nun in einer (relativ komplizierten) Eigenschaft dieses Körpers wieder. Um diese
+zu überprüfen, übersetzt man sie gewöhnlich in eine Eigenschaft von Gruppen,
+anhanddersogenanntenGaloistheorie.DortlässtsichdieEigenschaftdannbesser
+entscheiden und man kommt zu einer Lösung des Nullstellenproblems.
+1.3
+Lineare Diophantische Gleichungen
+In der linearen Algebra betrachtet man lineare Gleichungssysteme über Körpern.
+Ganz anders wird die Frage, wenn man sich für solche Systeme über Ringen in-
+teressiert. Ein System linearer diophantischer Gleichungen ist von der Gestalt
+Ax = b
+mit A ∈Matm,n(Z) und b ∈Zm. Es sollen nun alle Lösungen x ∈Zn gefunden
+werden. Der klassische Gauß-Algorithmus funktioniert dabei nicht ohne weite-
+res, da man dabei durch Einträge der Matrix teilen muss, was in Z im Allgemei-
+nen nicht möglich ist. Bringt man die Matrix dagegen über Q auf Dreiecksge-
+stalt, ist im Allgemeinen überhaupt nicht klar, wie man alle ganzzahligen Lösun-
+gen ablesen kann. Man muss die Teorie der linearen Algebra also nochmal neu
+entwicklen, diesmal für Ringe. Das führt zur sogenannten Modultheorie.
+Alle genannten Probleme werden wir im Lauf der Vorlesung betrachten und teil-
+weise lösen können. Dabei sind nur wenige Vorkenntnisse aus der linearen Alge-
+bra nötig. Außer gewissen grundlegenden Konzepten der Mathematik benötigen
+
+1.3. LINEARE DIOPHANTISCHE GLEICHUNGEN
+5
+wir den Begriff des Vektorraums, der Basis und der Dimension. Außerdem ver-
+wenden wir die komplexen Zahlen und einige ihrer Eigenschaften. Alle anderen
+Konzepte und Ergebnisse werden im Skript eingeführt.
+Die Inhalte der Vorlesung werden auch in vielen Lehrbüchern der Algebra behan-
+delt. Im Anhang finden Sie dazu eine (unvollständige) Liste.
+Ich danke den bisherigen Hörern dieser Vorlesung und zwei meiner Kollegen für
+viele Hinweise auf Fehler und Verbesserungen im ursprünglichen Skript; ganz
+besonders Martin Berger, Tom Drescher, Tobias Olsacher und Florian und Lu-
+kasWillmann.TrotzdemkanndasSkriptnatürlichimmernochFehlerbeinhalten
+und ich bin für Hinweise auf diese sehr dankbar.
+
+
+Kapitel 2
+Gruppen
+EinederwichtigstenalgebraischenStrukturenistdieGruppe.ObwohlderBegriff
+aus der linearen Algebra bekannt ist, führen wir ihn hier nochmal neu ein, um
+danntiefereErgebnissederGruppentheoriezubeweisen.InZusammenhangmit
+der Galoistheorie ermöglicht uns das später starke Aussagen über Körper.
+2.1
+Grundlagen
+
+Beispiel 3.1.12:
+In einer Wohngemeinschaft leben drei Personen, die in regel-
+mäßigenAbständenmorgensduschenmöchten.DieWGhatzwarzweiDuschen,
+aberebenkeinedrei.PersonAduschtnunanTag1unddannimmeralledreiTage.
+Person B duscht einen Tag später, also am Tag 2, und dann nur alle 7 Tage. Per-
+son C schließlich duscht am dritten Tag und dann alle 4 Tage. Solange höchstens
+zwei Personen gleichzeitig morgens duschen wollen, geht alles in Ordnung. Pro-
+blematisch wird es nur, wenn alle 3 Personen gleichzeitig duschen möchten. Nun
+ist die Frage, ob dieser Fall wirklich eintritt, und wenn ja, wann zum ersten Mal.
+Wenn nach x Tagen dieser Fall eintritt, dann hat x die Gestalt
+x = 1 + 3k
+x = 2 + 7m
+x = 3 + 4n,
+mit positiven ganzen Zahl k, m, n. Anders formuliert fragen wir uns also, ob es
+eine positive Zahl x gibt mit
+x ≡1 mod 3
+x ≡2 mod 7
+x ≡3 mod 4.
+Wir wollen also gerade ein System linearer Kongruenzen in Z lösen. Die dabei
+auftretenden Ideale sind I1 = (3), I2 = (7), I3 = (4). Man überprüft, dass
+die Voraussetzungen aus dem chinesischen Restsatz erfüllt sind. Also gibt es in
+der Tat irgendwann ein Duschproblem und man kann wie im Beweis des chine-
+sischen Restsatzes auch genau bestimmen, wann (Aufgabe 30).
+△
+
+Beispiel 5.2.4:
+Wir wollen herausfinden, für welche Werte a, b, c ∈Z das folgen-
+de Gleichungssystem ganzzahlige Lösungen besitzt, und diese bestimmen:
+4x −11y −2z = a
+5x + 13y + 4z = b
+−10x + 23y + 8z = c.
+Dazu betrachten wir die Koeffizientenmatrix
+A =
+
+
+4
+−11
+−2
+5
+13
+4
+−10
+23
+8
+
+
+und verwenden den Algorithmus zur Bestimmung der Smith-Normalform. Die
+Matrix E aus dem ersten Schritt des Algorithmus der SNF lautet
+E1 =
+
+
+−1
+1
+0
+−5
+4
+0
+0
+0
+1
+
+
+
+5.2. LINEARE GLEICHUNGEN UND MODULN ÜBER HAUPTIDEALRINGEN115
+und wir erhalten
+E1A =
+
+
+1
+24
+6
+0
+107
+26
+−10
+23
+8
+
+.
+Wirkönnennunerfreulicherweisedirektallesunterundrechtsder1eliminieren:
+
+
+1
+0
+0
+0
+107
+26
+0
+263
+68
+
+.
+Wir rechnen nun mit dem unteren rechten 2 × 2-Block weiter. Wir erhalten
+E2 =
+
+
+1
+0
+0
+0
+59
+−24
+0
+−263
+107
+
+
+sowie
+E2 ·
+
+
+1
+0
+0
+0
+107
+26
+0
+263
+68
+
+=
+
+
+1
+0
+0
+0
+1
+−98
+0
+0
+438
+
+.
+Nun eliminieren wir noch die −98 und erhalten als Smith-Normalform
+
+
+1
+0
+0
+0
+1
+0
+0
+0
+438
+
+.
+Wenn wir die jeweiligen Zeilen- und Spaltenoperationen noch an der Einheits-
+matrix ausführen, erhalten wir als Basiswechselmatrizen
+S =
+
+
+−1
+1
+0
+−55
+−4
+−24
+245
+18
+107
+
+und T =
+
+
+1
+−24
+−2358
+0
+1
+98
+0
+0
+1
+
+.
+Statt des ursprünglichen Systems lösen wir nun also das System
+
+
+1
+0
+0
+0
+1
+0
+0
+0
+438
+
+
+
+
+x
+y
+z
+
+= S
+
+
+a
+b
+c
+
+=
+
+
+−a + b
+−55a −4b −24c
+245a + 18b + 107c
+
+.
+Somit hat das System genau dann eine Lösung, wenn 438 ein Teiler von 245a +
+18b + 107c ist, die Lösung lautet dann
+(x, y, z) = (−a + b, −55a −4b −24c, (245a + 18b + 107c)/438).
+
+116
+KAPITEL 5. MODULN
+DurchAnwendungvonT darauferhältmandieeindeutigeLösungdesursprüng-
+lichen Systems:
+(x, y, z) = 1/438·(12a+42b−18c, −80a+12b−26c, 245a+18b+107c).
+△
+
+# Meine bisherige Teilloesung
+x=1 mod 3 und x=3 mod 4 ergibt zusammen x=9 mod 12 (CRT fuer 3 und 4, da teilerfremd). Jetzt noch x=2 mod 7 kombinieren: ich setze x=9+12k und loese 9+12k=2 mod 7, also 12k=-7=0 mod 7, also k=0 mod 7 (da 12=5 mod 7 und 5 invertierbar). Also x=9 mod 84 als einzige Loesung.

@@ -1,0 +1,45 @@
+{
+ "source": "A10.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 12. Dezember 2024",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Zeigen Sie, dass die beiden folgenden Polynome irreduzibel im jeweiligen Polynom-\nring sind:\nx2 −2\n√\n2x + 3 ∈R[x]\nx4 −2x2 + 9 ∈Q[x].",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": "Bestimmen Sie alle irreduziblen Polynome in C[x] und in R[x]",
+   "text": "Bestimmen Sie alle irreduziblen Polynome in C[x] und in R[x]. Ist der Grad aller\nirreduziblen Polynome in Q[x] beschränkt?",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Sei R ein faktorieller Ring und p ∈R[x] ein primitives Polynom",
+   "text": "Sei R ein faktorieller Ring und p ∈R[x] ein primitives Polynom. Sei weiter a ∈R\nPrimelement, das den Leitkoeffizienten von p nicht teilt. Setze R := R/(a) und sei\np ∈R[x] das Polynom das durch Reduktion der Koeffizienten von p modulo (a)\nentsteht. Zeigen Sie: ist p in R[x] irreduzibel, so auch p in R[x].",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Sei R ein kommutativer Ring und ∂",
+   "text": "Sei R ein kommutativer Ring und ∂: R[x] →R[x] die formale Ableitungsabbildung\n(d.h. ∂(Pd\ni=0 cixi) := Pd\ni=1 icixi−1). Zeigen Sie für p, q ∈R[x] und r ∈R die\nfolgenden Aussagen:\n(i) ∂(p + q) = ∂(p) + ∂(q), ∂(rp) = r∂(p).\n(ii) ∂(pq) = p∂(q) + q∂(p).\n1",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "∂(p + q) = ∂(p) + ∂(q), ∂(rp) = r∂(p)."
+    },
+    {
+     "label": "ii",
+     "text": "∂(pq) = p∂(q) + q∂(p).\n1"
+    }
+   ],
+   "references_skript": null
+  }
+ ]
+}

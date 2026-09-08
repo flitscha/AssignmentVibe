@@ -1,0 +1,49 @@
+{
+ "source": "A01.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 10. Oktober 2024",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": "Finden Sie alle komplexen Lösungen der folgenden Gleichungen",
+   "text": "Finden Sie alle komplexen Lösungen der folgenden Gleichungen:\nz6 = −1, z4 = −5i, 2z2 −5z + 2 = 0.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "(i) Zeigen Sie, dass es für n ⩾1 genau n verschiedene komplexe Lösungen der\nGleichung\nzn = 1\ngibt (diese Lösungen heißen n-te Einheitswurzeln). Geben Sie diese Einheitswurzeln\nin Polarkoordinaten an und veranschaulichen Sie sich ihre Lage in der komplexen\nZahlenebene.\n(ii) Zeigen Sie, dass es für n ⩾1 immer eine n-te Einheitswurzel gibt, durch deren\nPotenzen man alle anderen n-ten Einheitswurzeln erhält (eine solche Einheitswurzel\nheißt primitive n-te Einheitswurzel).\n(iii) Finden Sie ein Kriterium um zu entscheiden, welche n-te Einheitswurzel eine\nprimitive n-te Einheitswurzel ist.",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Zeigen Sie, dass es für n ⩾1 genau n verschiedene komplexe Lösungen der\nGleichung\nzn = 1\ngibt (diese Lösungen heißen n-te Einheitswurzeln). Geben Sie diese Einheitswurzeln\nin Polarkoordinaten an und veranschaulichen Sie sich ihre Lage in der komplexen\nZahlenebene."
+    },
+    {
+     "label": "ii",
+     "text": "Zeigen Sie, dass es für n ⩾1 immer eine n-te Einheitswurzel gibt, durch deren\nPotenzen man alle anderen n-ten Einheitswurzeln erhält (eine solche Einheitswurzel\nheißt primitive n-te Einheitswurzel)."
+    },
+    {
+     "label": "iii",
+     "text": "Finden Sie ein Kriterium um zu entscheiden, welche n-te Einheitswurzel eine\nprimitive n-te Einheitswurzel ist."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Beweisen Sie Satz 1.1.2",
+   "text": "Beweisen Sie Satz 1.1.2.\nHinweis zum Ziehen von Wurzeln:\nbei welchen Konstruktionsschritten entstehen die Koordinaten der neuen\nPunkte durch Lösen von quadratischen Gleichungen?",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Auf dem offenen Intervall I = (−1, 1) ⊆R definieren wir folgende Verknüpfung",
+   "text": "Auf dem offenen Intervall I = (−1, 1) ⊆R definieren wir folgende Verknüpfung:\na ∗b := a + b\n1 + ab.\nZeigen Sie, dass es sich bei ∗wirklich um eine Verknüpfung auf I handelt, und dass\nI damit zu einer abelschen Gruppe wird.\n1",
+   "subparts": [],
+   "references_skript": null
+  }
+ ]
+}

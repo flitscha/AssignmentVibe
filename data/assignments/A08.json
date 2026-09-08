@@ -1,0 +1,71 @@
+{
+ "source": "A08.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 28. November 2024",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Bestimmen Sie sämtliche Ideale in Z/18Z und entscheiden Sie, welche davon Prim-\nideale sind.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": "Sei I ein Ideal in einem kommutativen Ring R und π",
+   "text": "Sei I ein Ideal in einem kommutativen Ring R und π: R →R/I die kanonische\nProjektion. Zeigen Sie:\n(i) Die Vorschrift J 7→π−1(J) liefert eine Bijektion zwischen der Menge der\nIdeale in R/I und der Menge der Ideale in R, die I enthalten.\n(ii) Unter der Bijektion aus (i) entsprechen sich Primideale.",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Die Vorschrift J 7→π−1(J) liefert eine Bijektion zwischen der Menge der\nIdeale in R/I und der Menge der Ideale in R, die I enthalten."
+    },
+    {
+     "label": "ii",
+     "text": "Unter der Bijektion aus (i) entsprechen sich Primideale."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Sei R = C([0, 1], R) der Ring der stetigen reellwertigen Funktionen auf [0, 1]",
+   "text": "Sei R = C([0, 1], R) der Ring der stetigen reellwertigen Funktionen auf [0, 1]. Zeigen\nSie:\n(i) Für jedes echte Ideal I ⪇◁R gibt es ein a ∈[0, 1] mit f(a) = 0 für alle f ∈I.\n(ii) Für jedes a ∈[0, 1] ist die Menge ma := {f ∈R | f(a) = 0} ein maximales\nIdeal in R.\n(iii) Jedes maximale Ideal in R ist von der Gestalt ma für ein a ∈[0, 1].",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Für jedes echte Ideal I ⪇◁R gibt es ein a ∈[0, 1] mit f(a) = 0 für alle f ∈I."
+    },
+    {
+     "label": "ii",
+     "text": "Für jedes a ∈[0, 1] ist die Menge ma := {f ∈R | f(a) = 0} ein maximales\nIdeal in R."
+    },
+    {
+     "label": "iii",
+     "text": "Jedes maximale Ideal in R ist von der Gestalt ma für ein a ∈[0, 1]."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": null,
+   "text": "(i) Bestimmen Sie den Quotientenkörper des Rings Z[i] der ganzen Gauss’schen\nZahlen.\n(ii) Zeigen Sie, dass zwei isomorphe Integritätsringe auch isomorphe Quotien-\ntenkörper besitzen.\n(iii) Geben Sie zwei nicht-isomorphe Integritätsringe an, deren Quotientenkörper\nisomorph sind.\n1",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Bestimmen Sie den Quotientenkörper des Rings Z[i] der ganzen Gauss’schen\nZahlen."
+    },
+    {
+     "label": "ii",
+     "text": "Zeigen Sie, dass zwei isomorphe Integritätsringe auch isomorphe Quotien-\ntenkörper besitzen."
+    },
+    {
+     "label": "iii",
+     "text": "Geben Sie zwei nicht-isomorphe Integritätsringe an, deren Quotientenkörper\nisomorph sind.\n1"
+    }
+   ],
+   "references_skript": null
+  }
+ ]
+}

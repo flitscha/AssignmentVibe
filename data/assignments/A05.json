@@ -1,0 +1,45 @@
+{
+ "source": "A05.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 7. November 2024",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Zeigen Sie, dass A4 keine Untergruppe mit 6 Elementen hat.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Zeigen Sie K(A4) ∼= Z/2Z × Z/2Z und K(K(A4)) = {id}.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": null,
+   "text": "Bestimmen Sie bis auf Isomorphie alle Gruppen mit 5, 6 und 7 Elementen.",
+   "subparts": [],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": null,
+   "text": "Für n ⩾3 betrachten wir die Untergruppe Dn von GL2(R), die von der Spieglung\ns an der x-Achse und der Drehung r um den Winkel 2π/n gegen der Uhrzeigersinn\nerzeugt wird. Zeigen Sie:\n(i) Es gilt sr = r−1s.\n(ii) Dn hat 2n Elemente.\n1",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Es gilt sr = r−1s."
+    },
+    {
+     "label": "ii",
+     "text": "Dn hat 2n Elemente.\n1"
+    }
+   ],
+   "references_skript": null
+  }
+ ]
+}

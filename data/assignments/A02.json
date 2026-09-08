@@ -1,0 +1,67 @@
+{
+ "source": "A02.pdf",
+ "blatt_nummer": null,
+ "besprechungstermin": "Do. 17. Oktober 2024",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": "Wir betrachten im Folgenden jeweils eine Menge G mit einer Vernüpfung\n∗",
+   "text": "Wir betrachten im Folgenden jeweils eine Menge G mit einer Vernüpfung\n∗: G × G →G.\nEntscheiden und begründen Sie, welche davon Gruppen sind:\n(i) G = N und a ∗b := |a −b|\n(ii) G = Z und a ∗b := max{a, b}\n(iii) G = {a, b, c, d}\n*\na\nb\nc\nd\na\na\nb\nc\nd\nb\nb\na\nd\nc\nc\nc\nd\na\nb\nd\nd\nc\nb\na",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "G = N und a ∗b := |a −b|"
+    },
+    {
+     "label": "ii",
+     "text": "G = Z und a ∗b := max{a, b}"
+    },
+    {
+     "label": "iii",
+     "text": "G = {a, b, c, d}\n*\na\nb\nc\nd\na\na\nb\nc\nd\nb\nb\na\nd\nc\nc\nc\nd\na\nb\nd\nd\nc\nb\na"
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Entscheiden Sie für die folgenden Gruppen jeweils, welche isomorph sind und welche\nnicht:\n(i) Z/18Z, Z/9Z × Z/2Z, Z/6Z × Z/3Z.\n(ii) (R, +), (R \\ {0}, ·), (R>0, ·), (C \\ {0}, ·).",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Z/18Z, Z/9Z × Z/2Z, Z/6Z × Z/3Z."
+    },
+    {
+     "label": "ii",
+     "text": "(R, +), (R \\ {0}, ·), (R>0, ·), (C \\ {0}, ·)."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Seien G, H Gruppen und φ",
+   "text": "Seien G, H Gruppen und φ: G →H ein Gruppenhomomorphismus.\n(i) Zeigen Sie: Ist φ bijektiv, so ist die Umkehrabbildung φ−1 selbst ein Gruppen-\nhomomorphismus.\n(ii) Bestimmen Sie alle Gruppenhomomorphismen φ: ( Z , +) →( Z , +).",
+   "subparts": [
+    {
+     "label": "i",
+     "text": "Zeigen Sie: Ist φ bijektiv, so ist die Umkehrabbildung φ−1 selbst ein Gruppen-\nhomomorphismus."
+    },
+    {
+     "label": "ii",
+     "text": "Bestimmen Sie alle Gruppenhomomorphismen φ: ( Z , +) →( Z , +)."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen",
+   "text": "Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.\n1",
+   "subparts": [],
+   "references_skript": null
+  }
+ ]
+}

@@ -1,0 +1,74 @@
+Use-Case: 💡 Hint
+
+Gib mir einen kleinen Hinweis, wie ich an diese Aufgabe herangehen koennte. Verrate NICHT die Loesung oder den naechsten Rechenschritt direkt, sondern hilf mir, selbst auf die Idee zu kommen.
+
+# Kontext: PS Optimierung
+Aufgabenblatt 7, Besprechung: 5/6 . 5 . 2026
+
+# Aufgabe 3: Konvexität von Funktionen und des Epigraphs
+Konvexität von Funktionen und des Epigraphs. Es sei Ω⊂Rn eine
+konvexe Menge und f : Ω→R eine Funktion.
+a) Zeigen Sie:
+f ist konvex
+⇔
+epi(f) ist konvexe Menge
+b) Zeigen Sie, dass epi(f) genau dann abgeschlossen in Ω× R ist, wenn f untenhalbs-
+tetig ist, d.h. wenn
+f(x) ≤lim inf
+y→x f(y)
+für alle x ∈Ω.
+
+# Relevante Definitionen/Saetze aus dem Skriptum
+(automatisch per Keyword-Ueberschneidung ausgewaehlt - bei Bedarf ignorieren)
+
+Beispiel 3.1.2:
+Wir betrachten ein paar Beispiele konvexer Funktionen auf Rn.
+1. Die Funktion R →R, x 7→x4 ist konvex.
+2. Die Norm
+Rn →R,
+x 7→∥x∥
+ist eine konvexe Funktion, da wegen der Dreieckunsungleichung der absoluten
+Homogenität
+∥(1 −t)x + ty∥≤(1 −t)∥x∥+ t∥y∥
+für alle x, y ∈Rn und t ∈[0, 1]
+gilt. Sie erfüllt sogar die stärkere Bedingung
+∥(1 −t)x + ty∥< (1 −t)∥x∥+ t∥y∥
+für alle t ∈(0, 1),
+(3.1)
+falls x̸ = y und ∥x∥= ∥y∥(Übung).
+3. Es sei A ∈Matn,n(R) eine symmetrische positive definite Matrix. Dann ist die
+quadratische Form
+Rn →R,
+x 7→xTAx
+eine konvexe Funktion (Übung).
+45
+
+3 Konvexe Funktionen und deren Minima
+
+Korollar 4.1.6:
+Es sei f : Rn →R eine nach unten beschränkte stetig differenzier-
+bare Funktion und x0 ∈Rn so, dass die Menge {x ∈Rn : f(x) ≤f(x0)} kompakt ist.
+Dann stoppt Algorithmus 4.1.1 mit x0 als Startpunkt nach endlich vielen Schritten
+in einem stationäre Punkt von f oder er generiert eine Folge (xk)k∈N, die mindes-
+tens einen Häufungspunkt besitzt und deren Häufungspunkte stationäre Punkte von f
+sind.
+Beweis. In Anbetracht von Satz 4.1.4 müssen wir nur die Existenz eines Häufungs-
+punkts beweisen. Nach Satz 4.1.4 liegen alle von Algorithmus 4.1.1 besuchten Punkte
+xk in der kompakten Menge {x ∈Rn : f(x) ≤f(x0)} und folglich besitzt die Folge
+nach dem Satz von Bolzano-Weierstraß eine konvergente Teilfolge und damit einen
+Häufungspunkt.
+4.1.2 Subgradientenverfahren
+Als Beispiel einer Abstiegsmethode, die auch für nicht stetig differenzierbare konvexe
+Funktionen funktioniert, betrachten wir das Subgradientenverfahren.
+Dazu wählen wir eine Folge positiver reeller Zahlen (αk)k∈N mit limk→∞αk = 0
+und P∞
+k=1 αk = ∞.
+
+Definition 3.1.1:
+Es sei Ω⊂Rn eine konvexe Menge. Eine Funktion f : Ω→R ist
+konvex, falls
+f(λx + (1 −λ)y) ≤λf(x) + (1 −λ)f(y)
+für alle x, y ∈Ωund alle λ ∈[0, 1].
+
+# Meine bisherige Teilloesung
+(noch nichts probiert)

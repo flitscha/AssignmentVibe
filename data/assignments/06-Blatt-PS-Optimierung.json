@@ -1,0 +1,53 @@
+{
+ "source": "06-Blatt-PS-Optimierung.pdf",
+ "blatt_nummer": 6,
+ "besprechungstermin": "28/29.4.2026",
+ "num_aufgaben": 5,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (2.4) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.4"
+   ]
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (2.5) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.5"
+   ]
+  },
+  {
+   "number": 3,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (2.6) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.6"
+   ]
+  },
+  {
+   "number": 4,
+   "title": "Lösen Sie Aufgabe (2.7) vom Skriptum",
+   "text": "Lösen Sie Aufgabe (2.7) vom Skriptum.\nDie folgende Programmieraufgabe wird erst in zwei Wochen besprochen.",
+   "subparts": [],
+   "references_skript": [
+    "2.7"
+   ]
+  },
+  {
+   "number": 5,
+   "title": "Lösen Sie Aufgabe (2.8) vom Skriptum",
+   "text": "Lösen Sie Aufgabe (2.8) vom Skriptum.\nSeite 1 von 1",
+   "subparts": [],
+   "references_skript": [
+    "2.8"
+   ]
+  }
+ ]
+}

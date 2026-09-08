@@ -1,0 +1,53 @@
+{
+ "source": "04-Blatt-PS-Optimierung.pdf",
+ "blatt_nummer": 4,
+ "besprechungstermin": "14/15.4.2026",
+ "num_aufgaben": 5,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (1.11) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "1.11"
+   ]
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (1.14) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "1.14"
+   ]
+  },
+  {
+   "number": 3,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (1.16) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "1.16"
+   ]
+  },
+  {
+   "number": 4,
+   "title": "Lösen Sie Aufgabe (1.17) vom Skriptum",
+   "text": "Lösen Sie Aufgabe (1.17) vom Skriptum.\nDie folgende Programmieraufgabe wird in zwei bis drei Proseminaren besprochen. (Meh-\nrere Studenten präsentieren ihr Programm.) Kreuzerln geht bis spätestens 20.4.2026.",
+   "subparts": [],
+   "references_skript": [
+    "1.17"
+   ]
+  },
+  {
+   "number": 5,
+   "title": "Lösen Sie Aufgabe (1.18) vom Skriptum",
+   "text": "Lösen Sie Aufgabe (1.18) vom Skriptum.\nSeite 1 von 1",
+   "subparts": [],
+   "references_skript": [
+    "1.18"
+   ]
+  }
+ ]
+}

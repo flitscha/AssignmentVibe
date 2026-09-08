@@ -1,0 +1,53 @@
+{
+ "source": "05-Blatt-PS-Optimierung.pdf",
+ "blatt_nummer": 5,
+ "besprechungstermin": "21/22.4.2026",
+ "num_aufgaben": 5,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (1.18) vom Skriptum (Programm von letzter Woche!).",
+   "subparts": [],
+   "references_skript": [
+    "1.18"
+   ]
+  },
+  {
+   "number": 2,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (1.19) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "1.19"
+   ]
+  },
+  {
+   "number": 3,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (2.1) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.1"
+   ]
+  },
+  {
+   "number": 4,
+   "title": null,
+   "text": "Lösen Sie Aufgabe (2.2) vom Skriptum.",
+   "subparts": [],
+   "references_skript": [
+    "2.2"
+   ]
+  },
+  {
+   "number": 5,
+   "title": "Lösen Sie Aufgabe (2.3) vom Skriptum",
+   "text": "Lösen Sie Aufgabe (2.3) vom Skriptum.\nSeite 1 von 1",
+   "subparts": [],
+   "references_skript": [
+    "2.3"
+   ]
+  }
+ ]
+}

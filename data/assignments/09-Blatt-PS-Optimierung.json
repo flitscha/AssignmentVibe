@@ -1,0 +1,67 @@
+{
+ "source": "09-Blatt-PS-Optimierung.pdf",
+ "blatt_nummer": 9,
+ "besprechungstermin": "19/20 . 5 . 2026",
+ "num_aufgaben": 4,
+ "aufgaben": [
+  {
+   "number": 1,
+   "title": "Differenzierbarkeit konvexer Funktionen",
+   "text": "Differenzierbarkeit konvexer Funktionen. Es sei Ω⊂Rn eine offene\nkonvexe Menge, f : Ω→R eine konvexe Funktion und ξ ∈Ω.\na) Zeigen Sie, dass f lokal Lipschitz ist.\nb) Zeigen Sie, dass f in ξ genau dann differenzierbar ist, wenn dort alle Richtungs-\nableitungen existieren.\nc) Zeigen Sie, dass f in ξ differenzierbar ist, wenn ∂f(ξ) aus einem Element besteht.",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Zeigen Sie, dass f lokal Lipschitz ist."
+    },
+    {
+     "label": "b",
+     "text": "Zeigen Sie, dass f in ξ genau dann differenzierbar ist, wenn dort alle Richtungs-\nableitungen existieren."
+    },
+    {
+     "label": "c",
+     "text": "Zeigen Sie, dass f in ξ differenzierbar ist, wenn ∂f(ξ) aus einem Element besteht."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 2,
+   "title": "KKT-Bedingungen und Lagrange-Multiplikator-Regel",
+   "text": "KKT-Bedingungen und Lagrange-Multiplikator-Regel. Wir betrach-\nten das Minimierungsproblem:\nmin f(x) ,\ngi(x) ≤0\nfor\n1 ≤i ≤p ,\nA x = b\nund nehmen an wir hätten ein Minimum x∗gegeben. Wir wollen nun unter bestimmten\nVoraussetzungen die KKT-Bedingungen aus der Lagrange-Multiplikator-Regel herleiten.\na) Wir definieren J := {j : gj(x∗) = 0}, k := |J|, G(x) = (gj(x) : j ∈J) und setzen\nΩ:= {x ∈Rn : gj(x) < 0, j̸ ∈J}.\nZeigen Sie, dass Ωoffen und konvex ist.\nb) Wir setzen F : Rn →Rk+m, x 7→(G(x), A x −b)T und nehmen an, dass der Rang\nvon (DF(x∗)) gleich n ist, wobei DF(x∗) die Jacobimatrix von F in x∗bezeichnet.\nVerwenden Sie die Lagrange-Multiplikatorregel, um die Existenz eines KKT-Punktes\n(x∗, μ∗, λ∗) zu zeigen.",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Wir definieren J := {j : gj(x∗) = 0}, k := |J|, G(x) = (gj(x) : j ∈J) und setzen\nΩ:= {x ∈Rn : gj(x) < 0, j̸ ∈J}.\nZeigen Sie, dass Ωoffen und konvex ist."
+    },
+    {
+     "label": "b",
+     "text": "Wir setzen F : Rn →Rk+m, x 7→(G(x), A x −b)T und nehmen an, dass der Rang\nvon (DF(x∗)) gleich n ist, wobei DF(x∗) die Jacobimatrix von F in x∗bezeichnet.\nVerwenden Sie die Lagrange-Multiplikatorregel, um die Existenz eines KKT-Punktes\n(x∗, μ∗, λ∗) zu zeigen."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 3,
+   "title": "Operationen mit konvexen Funktionen",
+   "text": "Operationen mit konvexen Funktionen. Es sei Ω⊂Rn konvex und\nfi : Ω→R for i = 1, ..., m, konvexe Funktionen.\na) Es seien λ1, ..., λm ≥0. Zeigen Sie, dass die Funktion Ω→R, x 7→Pm\ni=1 λi fi(x)\nkonvex ist.\nb) Zeigen Sie, dass die Funktion Ω→R, x 7→max1≤i≤m fi(x) konvex ist.",
+   "subparts": [
+    {
+     "label": "a",
+     "text": "Es seien λ1, ..., λm ≥0. Zeigen Sie, dass die Funktion Ω→R, x 7→Pm\ni=1 λi fi(x)\nkonvex ist."
+    },
+    {
+     "label": "b",
+     "text": "Zeigen Sie, dass die Funktion Ω→R, x 7→max1≤i≤m fi(x) konvex ist."
+    }
+   ],
+   "references_skript": null
+  },
+  {
+   "number": 4,
+   "title": "Sattelpunkt der Lagrange-Funktion",
+   "text": "Sattelpunkt der Lagrange-Funktion. Zeigen Sie, dass wenn ein kon-\nvexes Minimierungsproblem die Slater-Bedingung erfüllt, es zu jeder Minimallösung\nx∗∈Rn ein y∗∈D gibt, sodass (x∗, y∗) ein Sattelpunkt der Lagrangefunktion ist.\nSeite 1 von 1",
+   "subparts": [],
+   "references_skript": null
+  }
+ ]
+}
