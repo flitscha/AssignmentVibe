@@ -1,0 +1,20 @@
+// Ausschnitt fuer ~/.config/waybar/config.jsonc.
+//
+// 1. Dieses Modul in "modules-right" (oder -left/-center) mit aufnehmen,
+//    z.B.: "modules-right": ["custom/assignmentvibe", "clock", ...]
+// 2. Den Block unten in die JSON-Objekt-Ebene von config.jsonc einfuegen
+//    (auf gleicher Ebene wie andere "custom/..."-Module).
+//
+// Omarchy-Themes ueberschreiben waybar.css teilweise - Anpassung der Optik
+// ggf. in der eigenen ~/.config/waybar/style.css unter .custom-assignmentvibe
+// noetig (Klassennamen: "idle" / "active", siehe waybar-status Ausgabe).
+{
+  "custom/assignmentvibe": {
+    "exec": "assignmentvibe waybar-status",
+    "return-type": "json",
+    "interval": 15,
+    "on-click": "assignmentvibe pick",
+    "on-click-right": "assignmentvibe context clear",
+    "tooltip": true
+  }
+}

@@ -1,0 +1,21 @@
+[project]
+name = "assignmentvibe"
+version = "0.1.0"
+description = "PDF-Skript + Aufgabenblatt -> gezielter LLM-Prompt, fuer den Einsatz vom Linux-Desktop (Omarchy) aus."
+requires-python = ">=3.10"
+dependencies = [
+    "pymupdf==1.28.2",
+]
+
+[project.optional-dependencies]
+ocr = ["pytesseract", "pillow"]
+
+[project.scripts]
+assignmentvibe = "assignmentvibe.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["assignmentvibe", "pipeline"]

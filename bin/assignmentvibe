@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Startet assignmentvibe auch ohne 'pip install' - direkt aus dem geklonten
+# Repo heraus (nach Omarchy-Konvention: bin/-Skripte sind ohne Installation
+# lauffaehig, einfach auf PATH legen oder symlinken). Ist das Paket bereits
+# via pip installiert, wird stattdessen der 'echte' Befehl auf PATH benutzt.
+set -euo pipefail
+
+if command -v assignmentvibe >/dev/null 2>&1 && [[ "$(command -v assignmentvibe)" != "${BASH_SOURCE[0]}" ]]; then
+  exec assignmentvibe "$@"
+fi
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec env PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}" python3 -m assignmentvibe.cli "$@"
