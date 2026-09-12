@@ -1,22 +1,23 @@
 """
-Ein Eintrag aus einer Liste auswaehlen - Fallback-Kette ueber verschiedene
-Picker:
+Pick one entry from a list - fallback chain across different pickers:
 
-  omarchy-menu-select   (Omarchy-eigene Konvention, nutzt den Walker-Launcher,
-                          Optionen als Argumente)
-  -> rofi -dmenu         (weit verbreitet, auch mit Wayland-Fork nutzbar)
-  -> wofi --dmenu         (GTK-basiert, oft auf Hyprland-Setups)
-  -> fzf                  (Terminal-Fuzzyfinder, falls man's im Terminal nutzt)
-  -> nummerierte stdin-Eingabe (funktioniert garantiert ueberall, auch ohne
-                                 grafische Oberflaeche - das ist der einzige
-                                 Pfad, der in dieser Sandbox ohne Wayland/X11
-                                 wirklich end-to-end testbar ist)
+  omarchy-menu-select   (Omarchy's own convention, uses the Walker launcher,
+                          options passed as arguments)
+  -> rofi -dmenu         (widely used, also usable via a Wayland fork)
+  -> wofi --dmenu         (GTK-based, common on Hyprland setups)
+  -> fzf                  (terminal fuzzy-finder, for terminal use)
+  -> numbered stdin prompt (guaranteed to work everywhere, even without a
+                             graphical session - this is the only path that
+                             is truly end-to-end testable in this sandbox,
+                             without Wayland/X11)
 
-Wichtig: die GUI-Picker (omarchy-menu-select/rofi/wofi) sind hier nicht *live*
-in einer echten Hyprland-Session getestet worden (siehe docs/LINUX_PROTOTYPE.md),
-nur der stdin-Fallback ist es. Das Fallback-Design ist genau deshalb so
-aufgebaut: das Tool bleibt benutzbar, falls ein Picker fehlt oder sich anders
-verhaelt als erwartet.
+Important: the GUI pickers (omarchy-menu-select/rofi/wofi) have NOT been
+tested live in a real Hyprland session here (see docs/LINUX_PROTOTYPE.md) -
+only the stdin fallback has. That's exactly why the fallback chain is built
+this way: the tool stays usable even if a picker is missing or behaves
+differently than assumed.
+
+No dependency on any other module in this project.
 """
 
 import shutil
@@ -53,14 +54,13 @@ def _try_dmenu_style(cmd: list[str], prompt: str, options: list[str]) -> str | N
 
 
 def _stdin_fallback(prompt: str, options: list[str]) -> str | None:
-    # input() liest problemlos auch aus einer Pipe (EOF -> EOFError, sofort
-    # abgefangen unten) - kein Hang-Risiko bei geschlossenem/leerem stdin
-    # (z.B. /dev/null). Das einzige theoretische Hang-Risiko ist ein OFFENES
-    # stdin ohne jemals Daten/EOF zu liefern (z.B. wenn ein Prozessmanager
-    # stdin an ein anderes, dauerhaft offenes Programm haengt) - auf echten
-    # Omarchy-Systemen ist das irrelevant, da dort Walker (omarchy-menu-select)
-    # als erstes greift und dieser Fallback nie erreicht wird. Siehe
-    # docs/LINUX_PROTOTYPE.md fuer die Einordnung dieses Risikos.
+    # input() reads fine from a pipe too (EOF -> EOFError, caught below) -
+    # no hang risk with closed/empty stdin (e.g. /dev/null). The only
+    # theoretical hang risk is an OPEN stdin that never delivers data/EOF
+    # (e.g. a process manager attaching stdin to some other, permanently
+    # open program) - irrelevant on real Omarchy systems, since Walker
+    # (omarchy-menu-select) is tried first there and this fallback is never
+    # reached. See docs/LINUX_PROTOTYPE.md for the risk assessment.
     print(f"\n{prompt}")
     for i, opt in enumerate(options, 1):
         print(f"  {i}) {opt}")
@@ -72,7 +72,7 @@ def _stdin_fallback(prompt: str, options: list[str]) -> str | None:
         return None
     if raw.isdigit() and 1 <= int(raw) <= len(options):
         return options[int(raw) - 1]
-    # Auch direkte Texteingabe erlauben (Teilstring-Match)
+    # Also allow typing the option text directly (substring match)
     matches = [o for o in options if raw.lower() in o.lower()]
     return matches[0] if len(matches) == 1 else None
 

@@ -1,29 +1,29 @@
 {
  "source": "A03.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 24. Oktober 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 24. Oktober 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": null,
    "text": "Zeigen Sie, dass\n( Z /n Z ) × ( Z /m Z ) ∼= Z /mn Z\ngenau dann gilt, wenn m und n teilerfremd sind.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
    "title": null,
    "text": "Beweisen Sie den zweiten Isomorphiesatz.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
    "title": "Sei G eine Gruppe",
    "text": "Sei G eine Gruppe. Mit Aut(G) bezeichnen wir die Menge aller bijektiven Grup-\npenhomomorphismen von G in sich selbst. Zeigen Sie, dass Aut(G) bezüglich Hin-\ntereinanderausführung eine Gruppe ist.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -39,7 +39,7 @@
      "text": "Die Abbildung\nι: G →G ⋊θ H\ng 7→(g, e)\nist ein injektiver Gruppenhomomorphismus und Bild(ι) ist eine normale\nUntergruppe in G ⋊θ H.\n1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

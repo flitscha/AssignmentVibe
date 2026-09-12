@@ -1,9 +1,11 @@
 """
-Desktop-Benachrichtigung, mit Fallback-Kette:
-omarchy-notification-send (Omarchy-Konvention, huebsches Glyph+Format)
--> notify-send (Standard auf so gut wie jedem Linux-Desktop)
--> print auf stderr (funktioniert garantiert ueberall, auch in der Sandbox
-   hier ohne Notification-Daemon).
+Desktop notifications, with a fallback chain:
+omarchy-notification-send (Omarchy convention, nice glyph+body formatting)
+-> notify-send (standard on pretty much every Linux desktop)
+-> print to stderr (guaranteed to work anywhere, including this sandbox
+   without a notification daemon).
+
+No dependency on any other module in this project.
 """
 
 import shutil
@@ -12,7 +14,7 @@ import sys
 
 
 def send(headline: str, body: str = "", glyph: str = "🧮") -> str:
-    """Gibt den benutzten Kanal zurueck ('omarchy', 'notify-send', 'stderr')."""
+    """Returns the channel that was used ('omarchy', 'notify-send', 'stderr')."""
     if shutil.which("omarchy-notification-send"):
         try:
             cmd = ["omarchy-notification-send", glyph, headline]

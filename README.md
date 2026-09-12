@@ -10,17 +10,20 @@ angereicherten Prompt bauen – statt jedes Mal alles selbst abzutippen.
 Gedacht für den Einsatz vom Linux-Desktop aus (Omarchy: Hyprland + Waybar +
 Walker), per Klick in der Top-Bar.
 
-## Status
+## Dokumentation
 
+- [docs/STATUS.md](docs/STATUS.md) – Checkliste: was ist implementiert, was
+  ist von Claude getestet, was ist **von dir** getestet (Stand jetzt: nichts).
+- [docs/ROADMAP.md](docs/ROADMAP.md) – priorisierte nächste Schritte,
+  checklisten-artig, mit Abhängigkeiten zwischen den Modulen.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – Modul-Landkarte,
+  Abhängigkeitsgraph, Sprach-Policy (Code englisch, Doku/Produkt-Text
+  deutsch – siehe dort für die genaue Abgrenzung).
 - [docs/POC_REPORT.md](docs/POC_REPORT.md) – der ursprüngliche Proof of
-  Concept für die reine Text-Pipeline (PDF → Wissensbasis → Prompt): Ergebnisse,
-  gefundene Bugs, Fixes, Grenzen.
-- [docs/LINUX_PROTOTYPE.md](docs/LINUX_PROTOTYPE.md) – **der lauffähige
-  Prototyp** darauf aufbauend: installierbares CLI-Tool (`assignmentvibe`),
-  Waybar-Modul, Omarchy-Integration (Walker/Notifications), Sprachwahl-
-  Begründung und eine ehrliche Aufschlüsselung, was wirklich auf echtem Linux
-  getestet wurde und was (mangels Hyprland-Session in der Sandbox) noch auf
-  einem echten Omarchy-Rechner verifiziert werden muss.
+  Concept für die reine Text-Pipeline (PDF → Wissensbasis → Prompt).
+- [docs/LINUX_PROTOTYPE.md](docs/LINUX_PROTOTYPE.md) – der erste
+  installierbare Prototyp: Omarchy-Recherche, Waybar-Integration, ehrliche
+  Testabdeckung.
 
 OCR für Handschrift ist noch nicht getestet (keine Beispieldateien), und
 automatisches Einfügen+Abschicken im Browser wurde bewusst NICHT gebaut –
@@ -31,8 +34,14 @@ sich daneben (robuster, kein Login-Automation-Problem).
 
 ```bash
 pip install --user -e .
+
+# 1. Downloads-Ordner sortieren (Vorschau zuerst, siehe --help)
+assignmentvibe organize ~/Downloads --apply --ingest
+
+# ...oder manuell:
 assignmentvibe ingest-script Algebra.pdf --course "Algebra I"
 assignmentvibe ingest-sheet  A03.pdf     --course "Algebra I"
+
 assignmentvibe pick
 ```
 
@@ -49,19 +58,25 @@ Verfügbare Use-Cases: `hint`, `explain_concept`, `check_solution`, `why_valid`,
 
 ```bash
 pip install -r requirements.txt
-python pipeline/run_all.py
+python scripts/rebuild_example_data.py
 ```
 
 Verarbeitet alle PDFs in `example_files/` und legt die Ergebnisse in `data/`
-ab. Details: [docs/POC_REPORT.md, Abschnitt 7](docs/POC_REPORT.md#7-projektstruktur-poc).
+ab (Dev-Skript zum Regressionstesten der `core/`-Module).
 
 ## Projektstruktur
 
 ```
-pipeline/        PDF -> Text/Wissen/Aufgaben/Prompt (die Engine, plattformunabhaengig)
-assignmentvibe/   CLI, State-Verwaltung, Linux-Integration (Clipboard/Notify/Menu/OCR)
+assignmentvibe/
+  core/            PDF -> Text/Wissen/Aufgaben/Prompt (reine Engine, keine Seiteneffekte)
+  organizer/        Downloads-Ordner klassifizieren & sortieren
+  integrations/      Clipboard/Notify/Menu/OCR (je unabhaengig, mit Fallback-Ketten)
+  paths.py, store.py, context.py, cli.py    App-Schicht / Orchestrierung
 bin/              Bash-Einstiegspunkt (laeuft auch ohne pip install)
 linux/            Waybar-Modul-Konfiguration
+scripts/          Dev-Hilfsskripte (nicht Teil des installierten Pakets)
 data/             eingelesene Beispiel-Skripte/-Blaetter (aus example_files/)
-docs/             POC-Report + Linux-Prototyp-Report
+docs/             siehe oben
 ```
+
+Details/Begründung: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

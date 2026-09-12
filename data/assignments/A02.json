@@ -1,9 +1,9 @@
 {
  "source": "A02.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 17. Oktober 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 17. Oktober 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Wir betrachten im Folgenden jeweils eine Menge G mit einer Vernüpfung\n∗",
@@ -22,7 +22,7 @@
      "text": "G = {a, b, c, d}\n*\na\nb\nc\nd\na\na\nb\nc\nd\nb\nb\na\nd\nc\nc\nc\nd\na\nb\nd\nd\nc\nb\na"
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -38,7 +38,7 @@
      "text": "(R, +), (R \\ {0}, ·), (R>0, ·), (C \\ {0}, ·)."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -54,14 +54,14 @@
      "text": "Bestimmen Sie alle Gruppenhomomorphismen φ: ( Z , +) →( Z , +)."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": "Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen",
    "text": "Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

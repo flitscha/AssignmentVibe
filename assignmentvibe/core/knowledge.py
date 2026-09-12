@@ -1,21 +1,23 @@
 """
-Schritt 2: Rohtext -> strukturierte Wissensbasis (Definitionen, Saetze, Lemmata,
-Korollare, Beispiele, Bemerkungen, Beweise).
+Step 2: raw text -> structured knowledge base (definitions, theorems, lemmas,
+corollaries, examples, remarks, proofs).
 
-Die deutschen Mathe-Skripten hier verwenden durchgaengig eine amsthm-artige
-Nummerierung "<Kapitel>.<Abschnitt>.<Index>" (z.B. "Satz 1.3.4"). Das machen
-wir uns zunutze: Kapitel/Abschnitt werden direkt aus der Nummer abgeleitet,
-keine separate Ueberschriften-Erkennung noetig.
+The German math scripts used here consistently use amsthm-style numbering
+"<chapter>.<section>.<index>" (e.g. "Satz 1.3.4"). We exploit that: chapter
+and section are derived directly from the number, no separate heading
+detection needed.
 
-Ein reiner Zeilenanfang-Regex reicht aber NICHT: Ein Rueckverweis wie
-"Satz 1.3.3" in einem spaeteren Beweis kann durch Zeilenumbruch zufaellig am
-Zeilenanfang stehen und wuerde faelschlich als neuer Block erkannt (beobachtet
-im Test mit VO3_Optimierung.pdf: "Satz 1.3.3" tauchte so mitten in einem
-KKT-Beweis auf, Kapitel 3, und riss einen 200-Zeilen-Textblock mit sich).
-Deshalb wird jeder Regex-Treffer gegen die Fett-/Kursiv-Erkennung aus
-bold_headers.py verifiziert (siehe dort) - nur wirklich ausgezeichnete
-Ueberschriften zaehlen als Blockgrenze, alles andere bleibt Teil des
-umgebenden Blocks.
+A plain line-start regex is NOT enough though: a back-reference like
+"Satz 1.3.3" inside a later proof can end up at the start of a line by pure
+chance (PDF line wrapping) and would be misdetected as a new block
+(observed while testing against VO3_Optimierung.pdf: "Satz 1.3.3" showed up
+this way in the middle of a KKT proof in chapter 3 and dragged along a
+200-line block of unrelated text). That's why every regex match is verified
+against the bold/italic detection from font_styles.py (see there) - only
+genuinely styled headers count as a block boundary, everything else stays
+part of the surrounding block.
+
+Depends only on core.font_styles (and, transitively, core.pdf_text).
 """
 
 import json
@@ -23,8 +25,10 @@ import re
 import sys
 from pathlib import Path
 
-from bold_headers import styled_type_words_per_page
+from .font_styles import styled_type_words_per_page
 
+# Literal German theorem-type words - see font_styles.py for why these are
+# not translated (they must match the actual German source text).
 NUMBERED_TYPES = [
     "Bemerkung/Beispiel",
     "Definition",
@@ -38,16 +42,16 @@ NUMBERED_TYPES = [
     "Konstruktion",
 ]
 
-# \s* statt \s+ zwischen Typ und Nummer: an mind. einer Stelle im Algebra-Skript
-# fehlt das Kerning/Leerzeichen im PDF-Text ("Definition7.4.4" statt
-# "Definition 7.4.4").
+# \s* instead of \s+ between type and number: in at least one spot in the
+# Algebra script the PDF text is missing the kerning/space
+# ("Definition7.4.4" instead of "Definition 7.4.4").
 NUMBERED_RE = re.compile(
     r"(?m)^(?P<type>" + "|".join(re.escape(t) for t in NUMBERED_TYPES) + r")"
     r"\s*(?P<num>\d+\.\d+(?:\.\d+)?)\.?"
     r"(?:\s*\((?P<name>[^)]{1,80})\))?"
 )
 
-BEWEIS_RE = re.compile(
+PROOF_RE = re.compile(
     r"(?m)^(?P<type>Beweis)"
     r"(?:\s+(?:von\s+)?(?P<ref>Satz|Lemma|Korollar|Proposition)\s+(?P<refnum>\d+\.\d+(?:\.\d+)?)\.?)?"
     r"\s*\."
@@ -55,20 +59,19 @@ BEWEIS_RE = re.compile(
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 
-# Am Ende jedes Kapitels stehen unmarkierte Abschnitte ("4.4 Aufgaben",
-# "4.3 Literatur und Ausblick") mit Uebungsaufgaben bzw. Quellenangaben - kein
-# Satz/keine Definition, aber auch kein eigener fett gesetzter Header. Ohne
-# diese als Blockgrenze zu erkennen, wuerde der komplette Rest des Kapitels
-# (oft mehrere Seiten Uebungsaufgaben) dem letzten Satz/Lemma des Kapitels
-# als "Text" angehaengt werden (beobachtet: "Satz 4.2.6" wurde so auf ueber
-# 100 Zeilen aufgeblaeht).
+# Every chapter ends with unlabeled sections ("4.4 Aufgaben", "4.3 Literatur
+# und Ausblick") containing exercises or bibliography - not a Satz/Definition,
+# but also without its own bold header. Without recognizing these as a block
+# boundary, the entire rest of the chapter (often several pages of exercises)
+# would get appended to the last Satz/Lemma of the chapter as its "text"
+# (observed: "Satz 4.2.6" got inflated to over 100 lines this way).
 SECTION_BOUNDARY_RE = re.compile(
     r"(?m)^(?:\d+\.\d+\s+(?:Aufgaben|Literatur und Ausblick)"
     r"|Literaturverzeichnis|Übungsaufgaben|Index)\s*$"
 )
 
 
-def load_pages(path: Path) -> list[str]:
+def load_pages(path: Path) -> tuple[list[str], str]:
     data = json.loads(path.read_text(encoding="utf-8"))
     return data["pages"], data["source"]
 
@@ -92,10 +95,9 @@ def page_at(offset: int, page_marks: list[tuple[int, int]]) -> int:
 
 
 class HeaderVerifier:
-    """Verifiziert Regex-Treffer gegen die per Font-Stil erkannten echten
-    Ueberschriften (in Lesereihenfolge je Seite). "Bemerkung/Beispiel" wird
-    dabei als eigener kombinierter Typ akzeptiert, wenn direkt hintereinander
-    "Bemerkung" und "Beispiel" fett vorkommen."""
+    """Verifies regex matches against the font-style-detected real headers
+    (in reading order per page). "Bemerkung/Beispiel" is accepted as its own
+    combined type when "Bemerkung" and "Beispiel" appear bold back-to-back."""
 
     def __init__(self, styled_words_per_page: list[list[str]]):
         self._queues = [list(words) for words in styled_words_per_page]
@@ -116,21 +118,21 @@ class HeaderVerifier:
         return False
 
 
-def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> list[dict]:
+def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> tuple[list[dict], int]:
     page_marks = [(m.start(), int(m.group(1))) for m in PAGE_MARK_RE.finditer(text)]
     verifier = HeaderVerifier(styled_words_per_page)
 
     raw_matches = []
     for m in NUMBERED_RE.finditer(text):
         raw_matches.append(("numbered", m))
-    for m in BEWEIS_RE.finditer(text):
-        raw_matches.append(("beweis", m))
+    for m in PROOF_RE.finditer(text):
+        raw_matches.append(("proof", m))
     for m in SECTION_BOUNDARY_RE.finditer(text):
         raw_matches.append(("boundary", m))
     raw_matches.sort(key=lambda t: t[1].start())
 
-    # matches enthaelt auch "boundary"-Eintraege: die zaehlen nicht als
-    # eigener Wissensblock, begrenzen aber den davorliegenden Block.
+    # matches also contains "boundary" entries: they don't become their own
+    # knowledge block, but they do cap the block right before them.
     matches = []
     rejected = 0
     for kind, m in raw_matches:
@@ -172,7 +174,7 @@ def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> list
             if m.group("ref"):
                 entry["proves"] = f"{m.group('ref')} {m.group('refnum')}"
             else:
-                entry["proves"] = "vorheriger Block (implizit)"
+                entry["proves"] = "previous block (implicit)"
         blocks.append(entry)
 
     return blocks, rejected
@@ -184,8 +186,8 @@ def attach_proofs(blocks: list[dict]) -> list[dict]:
         if b["kind"] == "numbered":
             b["proof"] = None
             last_numbered = b
-        elif b["kind"] == "beweis":
-            if b.get("proves") == "vorheriger Block (implizit)" and last_numbered is not None:
+        elif b["kind"] == "proof":
+            if b.get("proves") == "previous block (implicit)" and last_numbered is not None:
                 last_numbered["proof"] = b["text"]
     return [b for b in blocks if b["kind"] == "numbered"]
 
@@ -206,8 +208,8 @@ def run(in_path: Path, out_path: Path, pdf_path: Path) -> None:
     by_type = {}
     for b in results:
         by_type[b["type"]] = by_type.get(b["type"], 0) + 1
-    print(f"{source}: {len(results)} Wissenseinheiten -> {out_path} "
-          f"({rejected} False-Positive-Zeilenanfaenge verworfen)")
+    print(f"{source}: {len(results)} knowledge entries -> {out_path} "
+          f"({rejected} false-positive line-starts rejected)")
     for t, c in sorted(by_type.items()):
         print(f"   {t}: {c}")
 

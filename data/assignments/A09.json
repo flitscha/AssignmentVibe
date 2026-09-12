@@ -1,15 +1,15 @@
 {
  "source": "A09.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 5. Dezember 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 5. Dezember 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Überprüfen Sie die folgenden Polynome auf Irreduzibilität im Polynomring Q[x]",
    "text": "Überprüfen Sie die folgenden Polynome auf Irreduzibilität im Polynomring Q[x]:\np1 = x2 −2x + 2\np2 = x10 + 2x8 + 4x6 + 6x4 + 8x2 + 10\np3 = 3x2 −9x −27\np4 = x4 + x3 + 2x2 + x + 1.\nWelche der Polynome sind auch irreduzibel in Z [x]?",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -33,7 +33,7 @@
      "text": "Für jedes Primideal p ⊆M −1R ist φ−1(p) ein Primideal in R, das leeren\nSchnitt mit M hat."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -53,14 +53,14 @@
      "text": "Ist M von der Gestalt M = R \\ p für ein Primideal p ◁R, so ist M unter\nMultiplikation abgeschlossen und M −1R hat genau ein maximales Ideal."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1,",
    "text": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1, . . . , p −1 in Z stets\np |\n\u0012p\ni\n\u0013\ngilt. Stimmt die Aussage auch, wenn p keine Primzahl ist?\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

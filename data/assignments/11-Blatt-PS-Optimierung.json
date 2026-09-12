@@ -1,9 +1,9 @@
 {
  "source": "11-Blatt-PS-Optimierung.pdf",
- "blatt_nummer": 11,
- "besprechungstermin": "16/17 . 5 . 2026",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": 11,
+ "discussion_date": "16/17 . 5 . 2026",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Unbeschränkte konvexe Mengen und Minima konvexer Funktio-\nnen",
@@ -22,21 +22,21 @@
      "text": "Zeigen Sie, dass die Menge Mf := {x ∈Rn | f(x) = m} mit m := min{f(x) | x ∈\nRn} genau dann beschränkt ist, wenn jede Subniveaumenge von f beschränkt ist."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
    "title": "Konvergenz in endlich vielen Schritten",
    "text": "Konvergenz in endlich vielen Schritten. Es sei f : Rn →R ei-\nne konvexe Funktion für die m := min{f(x) | x ∈Rn} existiert und für welche die\nMenge Mf := {x ∈Rn | f(x) = m} eine kompakte Menge mit nicht-leerem Inne-\nren ist. Zeigen Sie, dass das Subgradientenverfahren nach endlich vielen Schritten in\neinem Punkt von Mf stoppt. Hinweis: Es sei B(z, r) ⊂Mf . Zeigen und verwen-\nden Sie, dass im k-ten Schritt des Verfahrens entweder xk ∈Mf oder der Abstand\nd(z, {x ∈Rn | f(x) = f(xk)}) ≥r ist.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
    "title": "Powell-Wolfe-Schrittweitenregel",
    "text": "Powell-Wolfe-Schrittweitenregel. Es sei f : Rn →R eine nach unten\nbeschränkte stetig differenzierbare Funktion, ξ ∈Rn und v ∈Sn−1 eine Abstiegsrichtung\nvon f in ξ. Weiters seien γ ∈(0, 1\n2) und η ∈(γ, 1) gegeben. Zeigen Sie, dass es ein α > 0\nmit\nf(x + α v) −f(x) ≤α γ ∇f(x)T v\nund\n∇f(x + α v)T v ≥η ∇f(x)T v\ngibt.\nFür die folgende Programmieraufgabe haben Sie zwei Wochen zeit!",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -56,7 +56,7 @@
      "text": "Plotten Sie ein paar Niveaukurven von f , das Mimimum und ein paar Iterations-\nschritte des Verfahrens zum Startwert (−12\n10, 1).\nSeite 1 von 1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

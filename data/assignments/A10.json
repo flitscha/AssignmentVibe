@@ -1,29 +1,29 @@
 {
  "source": "A10.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 12. Dezember 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 12. Dezember 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": null,
    "text": "Zeigen Sie, dass die beiden folgenden Polynome irreduzibel im jeweiligen Polynom-\nring sind:\nx2 −2\n√\n2x + 3 ∈R[x]\nx4 −2x2 + 9 ∈Q[x].",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
    "title": "Bestimmen Sie alle irreduziblen Polynome in C[x] und in R[x]",
    "text": "Bestimmen Sie alle irreduziblen Polynome in C[x] und in R[x]. Ist der Grad aller\nirreduziblen Polynome in Q[x] beschränkt?",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
    "title": "Sei R ein faktorieller Ring und p ∈R[x] ein primitives Polynom",
    "text": "Sei R ein faktorieller Ring und p ∈R[x] ein primitives Polynom. Sei weiter a ∈R\nPrimelement, das den Leitkoeffizienten von p nicht teilt. Setze R := R/(a) und sei\np ∈R[x] das Polynom das durch Reduktion der Koeffizienten von p modulo (a)\nentsteht. Zeigen Sie: ist p in R[x] irreduzibel, so auch p in R[x].",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -39,7 +39,7 @@
      "text": "∂(pq) = p∂(q) + q∂(p).\n1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

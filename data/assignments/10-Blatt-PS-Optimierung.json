@@ -1,9 +1,9 @@
 {
  "source": "10-Blatt-PS-Optimierung.pdf",
- "blatt_nummer": 10,
- "besprechungstermin": "26/27 . 5 . 2026",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": 10,
+ "discussion_date": "26/27 . 5 . 2026",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Differenzierbarkeit reeller konvexer Funktionen",
@@ -18,7 +18,7 @@
      "text": "Schließen Sie aus (a), dass es für eine konvexe Funktion f : R →R eine abzählbare\nMenge S ⊂R gibt, sodass f auf R\\S differenzierbar ist."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -42,7 +42,7 @@
      "text": "Schließen Sie aus (a) und (c), dass f außerhalb einer Nullmenge, deren Komple-\nment eine dichte Gδ-Menge ist, differenzierbar ist. (Eine Menge ist Gδ, falls sie\nabzählbarer Durchschnitt offener Mengen ist.)"
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -58,7 +58,7 @@
      "text": "Zeigen Sie, dass eine beschränkte Folge (ak)k∈N genau dann konvergiert, wenn Sie\nnur einen Häufungspunkt besitzt."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -78,7 +78,7 @@
      "text": "Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist.\nSeite 1 von 1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

@@ -1,15 +1,15 @@
 {
  "source": "A07.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Di. 21. November 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Di. 21. November 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": null,
    "text": "Bestimmen Sie alle ganzzahligen Lösungen des folgenden Systems linearer Kon-\ngruenzen:\nx ≡1 mod 3\nx ≡2 mod 7\nx ≡3 mod 4.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -25,7 +25,7 @@
      "text": "Bestimmen Sie sämtliche Ideale in Z/12Z."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -41,14 +41,14 @@
      "text": "Es gilt\np√\nI =\n√\nI.\nBerechnen sie im Ring R = Z\n√\n2Z,\n√\n4Z,\n√\n6Z.\nFür welche n ∈Z gilt\n√\nnZ = nZ?"
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": "Sei R ein Integritätsring",
    "text": "Sei R ein Integritätsring. Zeigen Sie dass R[x] genau dann ein Hauptidealring ist,\nwenn R ein Körper ist.\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

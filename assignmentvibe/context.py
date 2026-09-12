@@ -1,7 +1,9 @@
 """
-"Woran arbeite ich gerade" - Kurs/Blatt/Aufgabe, die zuletzt ausgewaehlt
-wurden. Das Waybar-Modul liest das, um in der Top-Bar anzuzeigen, was gerade
-aktiv ist, ohne bei jedem Klick alles neu abzufragen.
+"What am I currently working on" - course/sheet/task that were last picked.
+The Waybar module reads this to show what's currently active in the top bar,
+without having to re-ask everything on every click.
+
+Depends only on assignmentvibe.paths.
 """
 
 import json

@@ -1,16 +1,17 @@
 """
-OCR fuer ein Foto/einen Screenshot der bisherigen (getippten oder gedruckten)
-Teilloesung, ueber Tesseract.
+OCR for a photo/screenshot of the current (typed or printed) partial
+solution, via Tesseract.
 
-WICHTIG - ehrliche Einschraenkung: Tesseract ist ein Text-OCR-Tool fuer
-gedruckte/getippte Schrift. Fuer HANDSCHRIFT (der eigentliche Use-Case aus der
-Vision) ist es bekanntermassen schlecht bis unbrauchbar, und fuer
-handschriftliche MATHE-FORMELN (Sonderzeichen, hoch-/tiefgestellt, Brueche)
-erst recht nicht geeignet. Das hier ist bewusst nur ein Platzhalter/Proof-of-
-Concept fuer den Code-Pfad ("Bild -> Text -> Prompt"), getestet mit einem
-synthetisch erzeugten, sauber getippten Text-Bild (siehe
-docs/LINUX_PROTOTYPE.md). Fuer echte Handschrift ist ein spezialisiertes
-Modell noetig (z.B. pix2tex/LaTeX-OCR fuer Formeln) - siehe Roadmap.
+IMPORTANT - honest limitation: Tesseract is a text-OCR tool for printed/typed
+writing. For HANDWRITING (the actual use case from the vision) it is known to
+be poor to unusable, and for handwritten MATH FORMULAS (special characters,
+sub/superscripts, fractions) even more so. This is deliberately just a
+placeholder/proof-of-concept for the code path ("image -> text -> prompt"),
+tested with a synthetically generated, cleanly typed text image (see
+docs/LINUX_PROTOTYPE.md). Real handwriting needs a specialized model (e.g.
+pix2tex/LaTeX-OCR for formulas) - see the roadmap.
+
+No dependency on any other module in this project.
 """
 
 

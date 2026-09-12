@@ -1,25 +1,26 @@
 """
-Verwaltet die vom Nutzer eingelesenen Skripte und Aufgabenblaetter unter
-~/.local/share/assignmentvibe/. Duenne Schicht ueber der bestehenden
-pipeline/-Engine (extract_text/extract_knowledge/extract_assignments) - die
-macht die eigentliche PDF-Arbeit, hier geht es nur um "wo liegt was" und
-"welcher Kurs gehoert dazu".
+Manages the scripts and assignment sheets the user has ingested, under
+~/.local/share/assignmentvibe/. A thin layer over the core/ processing
+engine (pdf_text/knowledge/assignments) - that does the actual PDF work,
+this module is only concerned with "where does what live" and "which course
+does it belong to".
+
+Depends on assignmentvibe.core and assignmentvibe.paths.
 """
 
 import json
 import re
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from pipeline import extract_assignments, extract_knowledge, extract_text  # noqa: E402
-
 from . import paths
+from .core import assignments as assignments_core
+from .core import knowledge as knowledge_core
+from .core import pdf_text
 
 
 def _slugify(name: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", name.strip().lower()).strip("-")
-    return slug or "kurs"
+    return slug or "course"
 
 
 def _load_json(path: Path, default):
@@ -44,7 +45,7 @@ def _register_course(slug: str, display_name: str) -> None:
 
 
 def ingest_script(pdf_path: Path, course_name: str) -> dict:
-    """PDF-Skript -> Wissensbasis. Gibt Statistik zurueck (fuer CLI-Ausgabe)."""
+    """PDF script -> knowledge base. Returns stats (for CLI output)."""
     paths.ensure_dirs()
     slug = _slugify(course_name)
     _register_course(slug, course_name)
@@ -52,8 +53,8 @@ def ingest_script(pdf_path: Path, course_name: str) -> dict:
     raw_path = paths.RAW_TEXT_CACHE_DIR / f"{slug}.json"
     knowledge_path = paths.KNOWLEDGE_DIR / f"{slug}.json"
 
-    extract_text.extract_to_json(pdf_path, raw_path)
-    extract_knowledge.run(raw_path, knowledge_path, pdf_path)
+    pdf_text.extract_to_json(pdf_path, raw_path)
+    knowledge_core.run(raw_path, knowledge_path, pdf_path)
     saved = _load_json(knowledge_path, {"entries": []})
 
     return {
@@ -65,7 +66,7 @@ def ingest_script(pdf_path: Path, course_name: str) -> dict:
 
 
 def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
-    """Aufgabenblatt-PDF -> strukturierte Aufgaben, dem Kurs zugeordnet."""
+    """Assignment sheet PDF -> structured tasks, tagged with its course."""
     paths.ensure_dirs()
     slug = _slugify(course_name)
     _register_course(slug, course_name)
@@ -73,7 +74,7 @@ def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
     sheet_id = pdf_path.stem
     out_path = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
 
-    result = extract_assignments.parse_assignment_sheet(pdf_path)
+    result = assignments_core.parse_assignment_sheet(pdf_path)
     result["course_slug"] = slug
     result["sheet_id"] = sheet_id
     _save_json(out_path, result)
@@ -81,7 +82,7 @@ def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
     return {
         "sheet_id": sheet_id,
         "course": course_name,
-        "num_aufgaben": result["num_aufgaben"],
+        "num_tasks": result["num_tasks"],
         "path": str(out_path),
     }
 

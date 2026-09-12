@@ -3,6 +3,10 @@
 **Datum:** 2026-09-08
 **Getestet mit:** `Algebra.pdf`, `VO3_Optimierung.pdf` (Skripte) + 14 Algebra-Aufgabenblätter (`A01`–`A14`) + 12 Optimierung-Aufgabenblätter (`01`–`12-Blatt-PS-Optimierung`)
 
+> **Hinweis:** Die hier erwähnten `pipeline/*.py`-Pfade wurden später nach
+> `assignmentvibe/core/*.py` verschoben (siehe [ARCHITECTURE.md](ARCHITECTURE.md)).
+> Alle Befunde, Bugs und Zahlen in diesem Report sind weiterhin gültig.
+
 ## Kurzfassung
 
 Die Kernidee – Aufgabenblatt + Skript-Wissen automatisch zu einem gezielten LLM-Prompt

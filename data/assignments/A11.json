@@ -1,15 +1,15 @@
 {
  "source": "A11.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 9. Jänner 2025",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 9. Jänner 2025",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": null,
    "text": "Bestimmen Sie das Minimalpolynom von\n√\n2 +\n√\n3über Q , den Körpergrad\n\u0002\nQ (\n√\n2 +\n√\n3) : Q\n\u0003\nsowie eine Basis des Q -Vektorraums Q (\n√\n2 +\n√\n3).",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -25,7 +25,7 @@
      "text": "Falls ggT(q, ∂(q)) = 1 in k[x] gilt, so hat q in K (wie in (i)) keine doppelte\nNullstelle (d.h. alle Linearfaktoren sind verschieden)."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -41,14 +41,14 @@
      "text": "Zeigen Sie, dass für jede Primzahl p und jedes r ∈N ein Körper mit genau pr\nElementen existiert."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": null,
    "text": "Seien m, n ∈N teilerfremde Zahlen, für die man sowohl ein gleichseitiges m-Eck\nals auch ein gleichseitiges n-Eck mit Zirkel und Lineal aus 0, 1 konstruieren kann.\nZeigen Sie, dass man dann auch ein gleichseitiges mn-Eck mit Zirkel und Lineal\naus 0, 1 konstruieren kann.\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

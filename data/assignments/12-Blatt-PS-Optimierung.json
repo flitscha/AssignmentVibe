@@ -1,9 +1,9 @@
 {
  "source": "12-Blatt-PS-Optimierung.pdf",
- "blatt_nummer": 12,
- "besprechungstermin": "23/24 . 5 . 2026",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": 12,
+ "discussion_date": "23/24 . 5 . 2026",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Implementierung des Gradientenverfahrens",
@@ -22,7 +22,7 @@
      "text": "Plotten Sie ein paar Niveaukurven von f , das Mimimum und ein paar Iterations-\nschritte des Verfahrens zum Startwert (−12\n10, 1)."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -38,21 +38,21 @@
      "text": "Zeigen Sie, dass für a ∈Rn\\{0} und b ∈R die Abbildung\nP : Rn →Rn ,\nx 7→x −a max{⟨a, x⟩−b, 0}\n∥a∥2\ndie metrische Projektion auf den Halbraum {x ∈Rn | ⟨a, x⟩≤b} ist.\nAchtung. Für die folgenden zwei Programmieraufgabe haben Sie zwei Wochen zeit! Wir\nholen ein PS nach und zwar am 30.6. bzw. 1.7. zur üblichen Zeit am üblichen Ort. Dann\nwerden wir die Aufgaben 3 und 4 (dieses Zettels und nur diese) besprechen."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
    "title": "Implementierung des Subgradientenverfahrens",
    "text": "Implementierung des Subgradientenverfahrens. Sie Aufgabe (4.8)\nim Skriptum.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": "Implementierung des Newton-Verfahrens",
    "text": "Implementierung des Newton-Verfahrens. Sie Aufgabe (4.9) im Skrip-\ntum.\nSeite 1 von 1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

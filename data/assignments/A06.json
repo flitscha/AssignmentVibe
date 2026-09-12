@@ -1,9 +1,9 @@
 {
  "source": "A06.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 14. November 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 14. November 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": null,
@@ -18,7 +18,7 @@
      "text": "Bestimmen Sie alle Ringhomomorphismen φ: C →C mit φ( R ) ⊆R ."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -42,7 +42,7 @@
      "text": "(I : J) := {a ∈R | ∀b ∈J : ab ∈I} ist ein Ideal in R. Es gilt I ⊆((I · J) : J)."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -58,14 +58,14 @@
      "text": "Sei Λ eine beliebige Indexmenge und (Iλ)λ∈Λ eine Kette (bezüglich Inklusion)\nvon Idealen in R. Zeigen Sie, dass dann auch\n[\nλ∈Λ\nIλ\nein Ideal in R ist."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": null,
    "text": "Zeigen Sie dass im Ring Z[i] Division mit Rest existiert, es also für a, b ∈Z[i] immer\nc, r ∈Z[i] gibt mit\nb = ca + r\nund |r| < |a| (der Betrag ist hier der bekannte Betrag von komplexen Zahlen).\nHinweis: Sie können die Aufgabe geometrisch lösen.\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

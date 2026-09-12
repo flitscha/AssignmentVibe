@@ -1,15 +1,15 @@
 {
  "source": "A04.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 31. Oktober 2024",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 31. Oktober 2024",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Sei G eine Gruppe",
    "text": "Sei G eine Gruppe. Ein Automorphismus φ ∈Aut(G) heißt innerer Automorphis-\nmus, falls ein h ∈G existiert mit\nφ(g) = h−1gh\nfür alle g ∈G. Zeige Sie, dass die Menge Inn(G) aller inneren Automorphismen eine\nnormale Untergruppe von Aut(G) ist. Finden Sie weiter einen Automorphismus\neiner Gruppe, der kein innerer Automorphismus ist.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
@@ -25,7 +25,7 @@
      "text": "Das semidirekte Produkt N ⋊θ H (Aufgabe 4 vom letzten Blatt) ist iso-\nmorph zu G, mittels der Abbildung (n, h) 7→nh."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -41,14 +41,14 @@
      "text": "Finden Sie ein Beispiel für eine Gruppenoperation wie in (i), die genau einen\nFixpunkt hat."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": null,
    "text": "Zeigen Sie, dass für n ⩾3 jede Permutation π ∈Sn mit sgn(π) = 1 ein Produkt\nvon Zykeln der Länge 3 ist.\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

@@ -1,29 +1,29 @@
 {
  "source": "A13.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 23. Jänner 2025",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 23. Jänner 2025",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Sei p ∈k[x] ein irreduzibles Polynom sowie K sein Zerfällungskörperüber k",
    "text": "Sei p ∈k[x] ein irreduzibles Polynom sowie K sein Zerfällungskörperüber k. Zeigen\nSie, dass es für je zwei Nullstellen a, b ∈K von p ein φ ∈Aut(K, k) gibt mit\nφ(a) = b.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
    "title": "Sei p eine Primzahl, ξ := e2πi/p ∈C und K := Q (ξ)",
    "text": "Sei p eine Primzahl, ξ := e2πi/p ∈C und K := Q (ξ). Zeigen Sie, dass für jedes\nj = 1, . . . , p −1 genau ein Q-Isomorphismus φj : K →K existiert mit\nφj(ξ) = ξj.\nStimmt die Aussage auch, wenn p keine Primzahl ist?",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
    "title": "Sei k ⊆K eine Körpererweiterung",
    "text": "Sei k ⊆K eine Körpererweiterung. Man nennt\nkrel\nK := {a ∈K | a algebraischüber k}\nden relativen algebraischen Abschluss von k in K. Falls k = krel\nK gilt, heißt k relativ\nalgebraisch abgeschlossen in K.\nZeigen Sie: Wenn K algebraisch abgeschlossen ist, so ist k genau dann algebraisch\nabgeschlossen, wenn k relativ algebraisch abgeschlossen in K ist.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -47,7 +47,7 @@
      "text": "√\nI ist der Durchschnitt allerüber I liegenden Primideale.\n1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

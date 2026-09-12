@@ -1,9 +1,9 @@
 """
-Speicherorte fuer Nutzerdaten, nach XDG Base Directory Spec (Standard unter
-Linux/Omarchy). Unter Windows/macOS gibt es keine XDG-Env-Vars, dann greifen
-die Defaults (~/.local/share etc.) - funktioniert dort zwar auch, ist aber
-nicht die dortige Konvention. Das ist bewusst so: das Tool ist fuer Linux
-(Omarchy) gebaut, Windows/macOS sind nur "es startet wenigstens nicht ab".
+User data locations, following the XDG Base Directory spec (standard on
+Linux/Omarchy). On Windows/macOS there are no XDG env vars, so the defaults
+(~/.local/share etc.) apply - that works there too, but isn't the local
+convention. That's intentional: this tool is built for Linux (Omarchy);
+Windows/macOS just need to "at least not crash".
 """
 
 import os
@@ -25,6 +25,12 @@ RAW_TEXT_CACHE_DIR = CACHE_DIR / "raw_text"
 COURSES_FILE = DATA_DIR / "courses.json"
 CONTEXT_FILE = STATE_DIR / "context.json"
 LAST_PROMPT_FILE = STATE_DIR / "last_prompt.txt"
+
+# Default target for the downloads organizer (assignmentvibe/organizer/) -
+# deliberately a normal, user-visible location (not the hidden XDG data dir
+# above), since these are the user's own PDFs they'll want to browse/back up
+# normally. Overridable via --target on the `organize` command.
+DEFAULT_LIBRARY_DIR = Path("~/Documents/AssignmentVibe").expanduser()
 
 
 def ensure_dirs() -> None:

@@ -1,15 +1,15 @@
 {
  "source": "07-Blatt-PS-Optimierung.pdf",
- "blatt_nummer": 7,
- "besprechungstermin": "5/6 . 5 . 2026",
- "num_aufgaben": 5,
- "aufgaben": [
+ "sheet_number": 7,
+ "discussion_date": "5/6 . 5 . 2026",
+ "num_tasks": 5,
+ "tasks": [
   {
    "number": 1,
    "title": null,
    "text": "Lösen Sie Programmieraufgabe (2.8) vom Skriptum.",
    "subparts": [],
-   "references_skript": [
+   "script_references": [
     "2.8"
    ]
   },
@@ -18,7 +18,7 @@
    "title": null,
    "text": "Finden Sie eine Lösung des linearen Programms in Aufgabe (2.9) vom\nSkriptum.",
    "subparts": [],
-   "references_skript": [
+   "script_references": [
     "2.9"
    ]
   },
@@ -36,7 +36,7 @@
      "text": "Zeigen Sie, dass epi(f) genau dann abgeschlossen in Ω× R ist, wenn f untenhalbs-\ntetig ist, d.h. wenn\nf(x) ≤lim inf\ny→x f(y)\nfür alle x ∈Ω."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -60,7 +60,7 @@
      "text": "Zeigen Sie, dass f : [0, 1] →R, x 7→−√x eine konvexe Funktion ist. Besitzt f im\nNullpunkt einen Subgradienten?"
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 5,
@@ -76,7 +76,7 @@
      "text": "Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.\nSeite 1 von 1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

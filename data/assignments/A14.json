@@ -1,22 +1,22 @@
 {
  "source": "A14.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 30. Jänner 2025",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 30. Jänner 2025",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Sei k = F2(t) mit einer Variablen t",
    "text": "Sei k = F2(t) mit einer Variablen t. Zeigen Sie, dass\np := x2 −t ∈k[x]\nirreduzibel, der Körper K := k[x]/(p) der Zerfällungskörper von p, aber die Er-\nweiterung k ⊆K nicht separabel ist.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
    "title": null,
    "text": "Zeigen Sie, dass jede Körpererweiterung vom Grad 2 normal ist.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
@@ -32,14 +32,14 @@
      "text": "Finden Sie ein Beispiel für ein irreduzibles Polynom p ∈k[x], für das der\nHomomorphismus aus (i) nicht surjektiv ist."
     }
    ],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
    "title": "Sei K der Zerfällungskörper von p = x3 −2über Q",
    "text": "Sei K der Zerfällungskörper von p = x3 −2über Q. Bestimmen Sie Aut(K, Q) so\nexplizit wie möglich.\n1",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

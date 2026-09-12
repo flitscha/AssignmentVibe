@@ -5,6 +5,13 @@
 lauffähiges Tool machen, das auf Omarchy Linux (Hyprland + Waybar + Walker) in
 die Top-Bar integriert werden kann.
 
+> **Hinweis:** Die Modulstruktur wurde spaeter ueberarbeitet
+> (`assignmentvibe/clipboard.py` etc. -> `assignmentvibe/integrations/clipboard.py`,
+> siehe [ARCHITECTURE.md](ARCHITECTURE.md)) und Feldnamen wurden ins Englische
+> uebersetzt (`aufgabe`->`task` etc.). Die hier beschriebenen Test-Ergebnisse
+> und Erkenntnisse sind weiterhin gueltig, nur einzelne Pfad-/Namens-Referenzen
+> unten sind inzwischen veraltet.
+
 **Wie getestet:** Ich habe hier kein echtes Omarchy/Hyprland zur Verfügung
 (Windows-Umgebung), aber Zugriff auf **WSL Ubuntu 22.04 – echtes Linux, echter
 Python-Interpreter, echtes Dateisystem**. Alles, was *ohne* eine laufende

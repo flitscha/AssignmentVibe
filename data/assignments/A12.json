@@ -1,29 +1,29 @@
 {
  "source": "A12.pdf",
- "blatt_nummer": null,
- "besprechungstermin": "Do. 16. Jänner 2025",
- "num_aufgaben": 4,
- "aufgaben": [
+ "sheet_number": null,
+ "discussion_date": "Do. 16. Jänner 2025",
+ "num_tasks": 4,
+ "tasks": [
   {
    "number": 1,
    "title": "Sei p ∈k[x] und K ein Zerfällungskörper von püber k",
    "text": "Sei p ∈k[x] und K ein Zerfällungskörper von püber k. Zeigen Sie\n[K : k] ≤deg(p)!",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 2,
    "title": "Bestimmen Sie\n[C",
    "text": "Bestimmen Sie\n[C: R] , [R : Q] ,\nh\nQ(\n√\n2) : Q\ni\n,\nh\nQ(\n√\n2,\n√\n3) : Q\ni\n.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 3,
    "title": null,
    "text": "Sei K ein algebraisch abgeschlossener Körper, also ein Körper für den jedes Polynom\np ∈K[x]über K in Linearfaktoren zerfällt. Zeigen Sie, dass K nicht endlich sein\nkann.",
    "subparts": [],
-   "references_skript": null
+   "script_references": null
   },
   {
    "number": 4,
@@ -47,7 +47,7 @@
      "text": "Es gilt L ⊆Fix (Aut(K, L)) und H ⊆Aut (K, Fix(H)) .\n1"
     }
    ],
-   "references_skript": null
+   "script_references": null
   }
  ]
 }

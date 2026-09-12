@@ -1,20 +1,27 @@
 """
-`assignmentvibe` CLI - Einstiegspunkt fuer Terminal, Waybar-Modul und den
-interaktiven "pick"-Flow (der, der letztlich hinter einem Top-Bar-Klick auf
-Omarchy haengen soll).
+`assignmentvibe` CLI - entry point for the terminal, the Waybar module, and
+the interactive "pick" flow (the one meant to sit behind a top-bar click on
+Omarchy).
 
-Unterkommandos:
-  ingest-script <pdf> --course NAME     Skript einlesen -> Wissensbasis
-  ingest-sheet  <pdf> --course NAME     Aufgabenblatt einlesen
-  courses                                Kurse auflisten
-  sheets [--course SLUG]                 Aufgabenblaetter auflisten
-  aufgaben <sheet_id>                    Aufgaben eines Blatts auflisten
-  context show|clear                     aktueller Kontext
-  build   ...                            Prompt bauen, auf stdout ausgeben
-  copy    ...                            Prompt bauen + in Zwischenablage
-  pick                                   interaktiver Flow (fuer Top-Bar-Klick)
-  waybar-status                          JSON-Status fuers Waybar-Custom-Modul
-  open-browser [--provider ...]          Chat-Webseite oeffnen
+Subcommands:
+  organize <dir>                          sort a Downloads folder into the library layout
+  ingest-script <pdf> --course NAME       ingest a script -> knowledge base
+  ingest-sheet  <pdf> --course NAME       ingest an assignment sheet
+  courses                                  list ingested courses
+  sheets [--course SLUG]                   list ingested assignment sheets
+  tasks <sheet_id>                          list the tasks on a sheet
+  context show|clear                        current working context
+  build   ...                                build a prompt, print to stdout
+  copy    ...                                 build a prompt + copy to clipboard
+  pick                                         the full interactive flow (top-bar click)
+  waybar-status                                 JSON status for the Waybar custom module
+  open-browser [--provider ...]                 open the chat website
+
+Note on language: this file (like the rest of the codebase) is commented in
+English, but user-facing strings passed to notify.send()/print() are
+deliberately kept in German - this is a personal tool for a German-speaking
+user working through German course material, so the product's own UI text
+stays German while the source code stays English.
 """
 
 import argparse
@@ -22,10 +29,10 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from pipeline.build_prompt import USE_CASES, build_prompt  # noqa: E402
-
-from . import clipboard, context, menu, notify, ocr, store
+from . import context, paths, store
+from .core.prompts import USE_CASES, build_prompt
+from .integrations import clipboard, menu, notify, ocr
+from .organizer import organize as organizer_module
 
 USE_CASE_LABELS = {key: f"{v['emoji']} {v['label']}" for key, v in USE_CASES.items()}
 LABEL_TO_KEY = {v: k for k, v in USE_CASE_LABELS.items()}
@@ -43,7 +50,7 @@ def cmd_ingest_script(args):
 
 def cmd_ingest_sheet(args):
     result = store.ingest_sheet(Path(args.pdf), args.course)
-    _print(f"'{result['sheet_id']}' ({result['course']}): {result['num_aufgaben']} Aufgaben eingelesen.")
+    _print(f"'{result['sheet_id']}' ({result['course']}): {result['num_tasks']} Aufgaben eingelesen.")
 
 
 def cmd_courses(args):
@@ -62,15 +69,15 @@ def cmd_sheets(args):
         return
     for s in sheets:
         _print(f"{s['sheet_id']}\t{s.get('course_slug', '?')}\t"
-               f"{s.get('num_aufgaben', '?')} Aufgaben\t"
-               f"Blatt {s.get('blatt_nummer', '?')}")
+               f"{s.get('num_tasks', '?')} Aufgaben\t"
+               f"Blatt {s.get('sheet_number', '?')}")
 
 
-def cmd_aufgaben(args):
+def cmd_tasks(args):
     sheet = store.load_sheet(args.sheet_id)
-    for a in sheet["aufgaben"]:
-        title = f": {a['title']}" if a.get("title") else ""
-        _print(f"{a['number']}{title}")
+    for t in sheet["tasks"]:
+        title = f": {t['title']}" if t.get("title") else ""
+        _print(f"{t['number']}{title}")
 
 
 def cmd_context(args):
@@ -103,13 +110,13 @@ def _build_from_args(args) -> str:
         sys.exit(1)
     sheet = store.load_sheet(sheet_id)
 
-    aufgabe_num = args.aufgabe or context.get().get("aufgabe")
-    if not aufgabe_num:
-        print("Keine Aufgabe angegeben (--aufgabe).", file=sys.stderr)
+    task_num = args.task or context.get().get("task")
+    if not task_num:
+        print("Keine Aufgabe angegeben (--task).", file=sys.stderr)
         sys.exit(1)
-    aufgabe = next((a for a in sheet["aufgaben"] if a["number"] == int(aufgabe_num)), None)
-    if aufgabe is None:
-        print(f"Aufgabe {aufgabe_num} nicht in Blatt {sheet_id} gefunden.", file=sys.stderr)
+    task = next((t for t in sheet["tasks"] if t["number"] == int(task_num)), None)
+    if task is None:
+        print(f"Aufgabe {task_num} nicht in Blatt {sheet_id} gefunden.", file=sys.stderr)
         sys.exit(1)
 
     course_slug = sheet.get("course_slug")
@@ -123,9 +130,9 @@ def _build_from_args(args) -> str:
 
     solution = _resolve_solution(args)
 
-    context.set(sheet=sheet_id, aufgabe=int(aufgabe_num), use_case=use_case, course=course_slug)
+    context.set(sheet=sheet_id, task=int(task_num), use_case=use_case, course=course_slug)
 
-    return build_prompt(use_case, aufgabe, sheet, knowledge, solution, course_name)
+    return build_prompt(use_case, task, sheet, knowledge, solution, course_name)
 
 
 def cmd_build(args):
@@ -150,9 +157,9 @@ def cmd_waybar_status(args):
         payload = {"text": "🧮", "tooltip": "AssignmentVibe - kein aktiver Kontext", "class": "idle"}
     else:
         uc_label = USE_CASE_LABELS.get(ctx.get("use_case", ""), ctx.get("use_case", "?"))
-        text = f"🧮 A{ctx.get('aufgabe', '?')}"
+        text = f"🧮 A{ctx.get('task', '?')}"
         tooltip = (f"Blatt: {ctx.get('sheet', '?')}\n"
-                   f"Aufgabe: {ctx.get('aufgabe', '?')}\n"
+                   f"Aufgabe: {ctx.get('task', '?')}\n"
                    f"Use-Case: {uc_label}")
         payload = {"text": text, "tooltip": tooltip, "class": "active"}
     print(json.dumps(payload, ensure_ascii=False))
@@ -178,14 +185,46 @@ def cmd_open_browser(args):
         sys.exit(1)
 
 
+def cmd_organize(args):
+    source_dir = Path(args.source)
+    library_dir = Path(args.target) if args.target else paths.DEFAULT_LIBRARY_DIR
+
+    moves = organizer_module.plan(source_dir, library_dir, store.list_courses())
+    _print(organizer_module.format_plan(moves))
+
+    if not args.apply:
+        _print(f"\n(Dry run - nichts wurde veraendert. Mit --apply ausfuehren, "
+                f"Ziel-Bibliothek: {library_dir})")
+        return
+
+    log = organizer_module.apply(moves, mode=args.mode)
+    for line in log:
+        _print(line)
+
+    if args.ingest:
+        for m in moves:
+            if m.conflict or m.course_display_name is None:
+                continue
+            # Important: ingest under the RESOLVED course (course_display_name,
+            # whose slug is m.course_slug), not classification.course_guess -
+            # otherwise a script and its sheets can be folded into the same
+            # target folder here but still end up registered as two separate
+            # courses with two separate (half-empty) knowledge bases.
+            if m.classification.doc_type == "script":
+                store.ingest_script(m.target_path, m.course_display_name)
+            elif m.classification.doc_type == "sheet":
+                store.ingest_sheet(m.target_path, m.course_display_name)
+        _print("Automatisch eingelesen (--ingest).")
+
+
 def cmd_pick(args):
-    """Der interaktive Flow: Blatt -> Aufgabe -> Use-Case -> (optional Teilloesung)
-    -> Prompt bauen -> kopieren -> benachrichtigen -> optional Browser oeffnen.
-    Genau das soll hinter dem Top-Bar-Klick haengen."""
+    """The interactive flow: sheet -> task -> use-case -> (optional partial
+    solution) -> build prompt -> copy -> notify -> optionally open a browser.
+    This is exactly what should sit behind the top-bar click."""
     if not menu.any_picker_available():
-        # Nur eine Vorab-Warnung, kein harter Abbruch: der stdin-Fallback
-        # funktioniert auch ohne TTY (z.B. bei Tests per Pipe), solange
-        # tatsaechlich Daten kommen - siehe menu.py.
+        # Only a warning, not a hard abort: the stdin fallback also works
+        # without a TTY (e.g. in tests via a pipe), as long as data actually
+        # arrives - see integrations/menu.py.
         notify.send("Kein grafischer Picker gefunden",
                      "Weder Walker/rofi/wofi/fzf verfuegbar - falls kein "
                      "Terminal offen ist, passiert jetzt evtl. nichts.", glyph="⚠️")
@@ -198,7 +237,7 @@ def cmd_pick(args):
     courses = store.list_courses()
     sheet_labels = {
         f"{s['sheet_id']}  ({courses.get(s.get('course_slug'), '?')}, "
-        f"{s.get('num_aufgaben', '?')} Aufgaben)": s
+        f"{s.get('num_tasks', '?')} Aufgaben)": s
         for s in sheets
     }
     sheet_label = menu.pick("Aufgabenblatt", list(sheet_labels.keys()))
@@ -207,15 +246,15 @@ def cmd_pick(args):
         return
     sheet = sheet_labels[sheet_label]
 
-    aufgabe_labels = {
-        f"Aufgabe {a['number']}" + (f": {a['title']}" if a.get("title") else ""): a["number"]
-        for a in sheet["aufgaben"]
+    task_labels = {
+        f"Aufgabe {t['number']}" + (f": {t['title']}" if t.get("title") else ""): t["number"]
+        for t in sheet["tasks"]
     }
-    aufgabe_label = menu.pick("Aufgabe", list(aufgabe_labels.keys()))
-    if not aufgabe_label:
+    task_label = menu.pick("Aufgabe", list(task_labels.keys()))
+    if not task_label:
         notify.send("Abgebrochen", "Keine Aufgabe ausgewaehlt.", glyph="🧮")
         return
-    aufgabe_num = aufgabe_labels[aufgabe_label]
+    task_num = task_labels[task_label]
 
     use_case_label = menu.pick("Use-Case", list(USE_CASE_LABELS.values()))
     if not use_case_label:
@@ -229,7 +268,7 @@ def cmd_pick(args):
     )
     solution = None
     if solution_choice == "Aus Zwischenablage uebernehmen":
-        solution = _read_clipboard_text()
+        solution = clipboard.paste()
     elif solution_choice == "Aus Bild (OCR)":
         img_path = menu.pick("Bildpfad eingeben (dann Enter)", [""])
         if img_path:
@@ -243,7 +282,7 @@ def cmd_pick(args):
 
     fake_args = _Args()
     fake_args.sheet = sheet["sheet_id"]
-    fake_args.aufgabe = aufgabe_num
+    fake_args.task = task_num
     fake_args.use_case = use_case
     fake_args.solution = solution
     fake_args.solution_file = None
@@ -252,7 +291,7 @@ def cmd_pick(args):
     prompt = _build_from_args(fake_args)
     ok, method = clipboard.copy(prompt)
     if ok:
-        notify.send(f"Aufgabe {aufgabe_num} - {USE_CASE_LABELS[use_case]}",
+        notify.send(f"Aufgabe {task_num} - {USE_CASE_LABELS[use_case]}",
                      "Prompt in Zwischenablage kopiert.", glyph="📋")
     else:
         notify.send("Prompt erstellt", f"Zwischenablage nicht verfuegbar, gespeichert: {method}", glyph="⚠️")
@@ -264,24 +303,19 @@ def cmd_pick(args):
         cmd_open_browser(args)
 
 
-def _read_clipboard_text() -> str | None:
-    import shutil
-    import subprocess
-
-    for cmd in (["wl-paste"], ["xclip", "-selection", "clipboard", "-o"], ["xsel", "--clipboard"]):
-        if shutil.which(cmd[0]):
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
-                if result.returncode == 0:
-                    return result.stdout
-            except Exception:
-                continue
-    return None
-
-
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="assignmentvibe")
     sub = p.add_subparsers(dest="command", required=True)
+
+    p_org = sub.add_parser("organize", help="Downloads-Ordner in die Bibliotheks-Struktur sortieren")
+    p_org.add_argument("source", help="Ordner, der durchsucht wird (z.B. ~/Downloads)")
+    p_org.add_argument("--target", default=None,
+                        help=f"Ziel-Bibliothek (default: {paths.DEFAULT_LIBRARY_DIR})")
+    p_org.add_argument("--apply", action="store_true", help="Tatsaechlich verschieben/kopieren (sonst nur Vorschau)")
+    p_org.add_argument("--mode", choices=["copy", "move"], default="copy")
+    p_org.add_argument("--ingest", action="store_true",
+                        help="Nach --apply automatisch in die Wissensbasis einlesen")
+    p_org.set_defaults(func=cmd_organize)
 
     p_is = sub.add_parser("ingest-script", help="Skript-PDF -> Wissensbasis")
     p_is.add_argument("pdf")
@@ -300,9 +334,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p_sheets.add_argument("--course", default=None, help="Kurs-Slug filtern")
     p_sheets.set_defaults(func=cmd_sheets)
 
-    p_auf = sub.add_parser("aufgaben", help="Aufgaben eines Blatts auflisten")
-    p_auf.add_argument("sheet_id")
-    p_auf.set_defaults(func=cmd_aufgaben)
+    p_tasks = sub.add_parser("tasks", help="Aufgaben eines Blatts auflisten")
+    p_tasks.add_argument("sheet_id")
+    p_tasks.set_defaults(func=cmd_tasks)
 
     p_ctx = sub.add_parser("context", help="Aktueller Kontext")
     p_ctx.add_argument("action", choices=["show", "clear"])
@@ -311,7 +345,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     for name, fn in (("build", cmd_build), ("copy", cmd_copy)):
         pb = sub.add_parser(name)
         pb.add_argument("--sheet", default=None)
-        pb.add_argument("--aufgabe", type=int, default=None)
+        pb.add_argument("--task", type=int, default=None)
         pb.add_argument("--use-case", default=None, choices=list(USE_CASES))
         pb.add_argument("--solution", default=None)
         pb.add_argument("--solution-file", default=None)
