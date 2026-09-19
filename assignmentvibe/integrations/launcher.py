@@ -55,10 +55,14 @@ def _natural_key(path: Path):
     return (numbers or [0], path.stat().st_mtime)
 
 
-def _matching(course_dir: Path, patterns: list[str]) -> list[Path]:
-    if not course_dir.is_dir() or not patterns:
+def _matching(directory: Path, patterns: list[str]) -> list[Path]:
+    """Recursive, because a course folder is often organised by hand into
+    subfolders (software_engineering/vo/Kapitel 3 - .../SE Kapitel 3.pdf).
+    The patterns come from the config and are specific enough that recursing
+    does not drag in unrelated PDFs."""
+    if not directory.is_dir() or not patterns:
         return []
-    hits = [p for p in course_dir.iterdir() if p.is_file()
+    hits = [p for p in directory.rglob("*") if p.is_file()
             and any(fnmatch.fnmatch(p.name.lower(), pat.lower()) for pat in patterns)]
     return sorted(hits, key=_natural_key)
 
@@ -99,21 +103,25 @@ def entries_for(cfg: Config, course: Course, scripts_only: bool = False
             "keywords": keywords + f"{extra_keyword};",
         }))
 
-    scripts = _matching(course_dir, course.patterns.get("skript", []))
-    if scripts:
-        # There is exactly one script per course by design (the sorter replaces
-        # the old one); if several are lying around, the newest wins.
-        add(f"{base}-skript.desktop", f"{course.name} Skript{suffix}",
-            scripts[-1], "application-pdf", "Skript")
+    scripts = _matching(cfg.category_dir(course, "skript"),
+                        course.patterns.get("skript", []))
+    # One entry per script: a course can legitimately have more than one
+    # (plain and annotated lecture notes), and they are different documents.
+    for script in scripts:
+        label = "Skript" if len(scripts) == 1 else f"Skript {script.stem}"
+        add(f"{base}-skript-{_slug(script.stem)}.desktop",
+            f"{course.name} {label}{suffix}", script, "application-pdf", "Skript")
 
     if scripts_only:
         return out
 
-    for deck in _matching(course_dir, course.patterns.get("folien", [])):
+    for deck in _matching(cfg.category_dir(course, "folien"),
+                          course.patterns.get("folien", [])):
         add(f"{base}-folien-{_slug(deck.stem)}.desktop",
             f"{course.name} Folien {deck.stem}", deck, "application-pdf", "Folien")
 
-    sheets = _matching(course_dir, course.patterns.get("blaetter", []))
+    sheets = _matching(cfg.category_dir(course, "blaetter"),
+                       course.patterns.get("blaetter", []))
     if sheets:
         add(f"{base}-blatt.desktop", f"{course.name} Blatt",
             sheets[-1], "application-pdf", "Blatt")

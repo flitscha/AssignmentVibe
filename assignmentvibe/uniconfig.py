@@ -29,7 +29,7 @@ offer "<course> Skript", "<course> Folien" and "<course> Blatt" (the newest one)
 
 import fnmatch
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import paths
@@ -47,14 +47,22 @@ class Course:
     folder: str
     name: str
     patterns: dict[str, list[str]]
+    # Optional per-category subfolder, e.g. {"folien": "vo", "blaetter": "ps"}.
+    # Default is flat: everything directly in the course folder.
+    unterordner: dict[str, str] = field(default_factory=dict)
 
-    def match(self, filename: str) -> str | None:
-        """Which category this filename falls into, or None if it's not ours."""
+    def match(self, filename: str) -> tuple[str, str] | None:
+        """(category, pattern) this filename falls into, or None if not ours.
+
+        The matching PATTERN is part of the answer because replacement is scoped
+        to it: "lecture-notes-modeling.pdf" and "lecture-notes-modeling-annotated.pdf"
+        are two scripts that coexist, each replaced only by a newer version of
+        itself. One pattern is one slot."""
         lower = filename.lower()
         for category in CATEGORIES:
             for pattern in self.patterns.get(category, []):
                 if fnmatch.fnmatch(lower, pattern.lower()):
-                    return category
+                    return category, pattern
         return None
 
 
@@ -83,6 +91,12 @@ class Config:
     def course_dir(self, course: Course) -> Path:
         return self.uni_root / course.semester / course.folder
 
+    def category_dir(self, course: Course, category: str) -> Path:
+        """Where files of this category live - the course folder itself unless
+        the course declares a subfolder for it."""
+        sub = course.unterordner.get(category, "")
+        return self.course_dir(course) / sub if sub else self.course_dir(course)
+
 
 def parse(raw: dict, path: Path) -> Config:
     active = raw.get("active")
@@ -103,10 +117,17 @@ def parse(raw: dict, path: Path) -> Config:
             # a note and ignored - both as a course name and inside a course.
             if folder.startswith("_"):
                 continue
-            unknown = {k for k in spec if not k.startswith("_")} - {"name", *CATEGORIES}
+            allowed = {"name", "unterordner", *CATEGORIES}
+            unknown = {k for k in spec if not k.startswith("_")} - allowed
             if unknown:
                 raise ConfigError(f'{semester}/{folder}: unbekannte Felder '
-                                  f'{sorted(unknown)}. Erlaubt: name, {", ".join(CATEGORIES)}.')
+                                  f'{sorted(unknown)}. Erlaubt: {", ".join(sorted(allowed))}.')
+
+            subfolders = spec.get("unterordner") or {}
+            bad = set(subfolders) - set(CATEGORIES)
+            if bad:
+                raise ConfigError(f'{semester}/{folder}: "unterordner" kennt nur '
+                                  f'{", ".join(CATEGORIES)} - nicht {sorted(bad)}.')
             # A bare string is accepted where a list is expected - writing
             # "skript": "VO3.pdf" is the mistake everyone makes once.
             patterns = {}
@@ -118,6 +139,7 @@ def parse(raw: dict, path: Path) -> Config:
                 folder=folder,
                 name=spec.get("name") or folder,
                 patterns=patterns,
+                unterordner={k: str(v) for k, v in subfolders.items()},
             ))
 
     # Absolute, because generated .desktop entries embed these paths and are

@@ -72,9 +72,14 @@ Download passiert:
 
 | Kategorie | Anzahl | Beim Neu-Download |
 |---|---|---|
-| `skript` | genau eines | ersetzt das alte Skript, **auch unter anderem Namen** (`VO3_…` → `VO4_…`) |
+| `skript` | eines **pro Muster** | ersetzt das alte Skript, **auch unter anderem Namen** (`VO3_…` → `VO4_…`) |
 | `folien` | eines pro Kapitel | ersetzt nur bei **gleichem Namen**, sonst kommt es dazu |
 | `blaetter` | viele | ersetzt nur bei **gleichem Namen**, sonst kommt es dazu |
+
+Bei `skript` gilt: **ein Muster = ein Platz.** `"skript": ["VO*_Optimierung.pdf"]`
+lässt `VO4_…` das alte `VO3_…` ablösen. Zwei Muster sind zwei Plätze – so
+koexistieren `lecture-notes-modeling.pdf` und `lecture-notes-modeling-annotated.pdf`,
+statt sich gegenseitig zu überschreiben.
 
 „Gleicher Name" wird nach Abziehen des Browser-Suffixes verglichen:
 `Folien_Kapitel2(1).pdf` gilt als neue Version von `Folien_Kapitel2.pdf` und
@@ -83,6 +88,23 @@ so behandelt – `Blatt_1.pdf` und `Blatt_2.pdf` sind verschiedene Blätter.
 
 Ersetzte Dateien und überflüssige Downloads werden nie gelöscht, sondern via
 `gio trash` in den Papierkorb gelegt.
+
+### Unterordner
+
+Standard ist flach: alles direkt in `<uni_root>/<semester>/<kurs>/`. Wenn ein
+Kurs-Ordner von Hand unterteilt ist, sagt `unterordner` pro Kategorie, wohin:
+
+```jsonc
+"parallele_programmierung": {
+  "name": "Parallele Programmierung",
+  "folien": ["[0-9][0-9]_*.pdf", "part?_*.pdf"],
+  "unterordner": { "folien": "vo" }
+}
+```
+
+Gesucht wird darunter **rekursiv**. Liegt schon eine gleichnamige Datei
+irgendwo tiefer (`vo/Kapitel 5 - …/SE Kapitel 5 Teil 1.pdf`), ersetzt der
+Download genau sie – statt eine zweite Kopie eine Ebene höher anzulegen.
 
 Im Launcher landen: das Skript, **jeder** Foliensatz einzeln (nach Kapitel
 auswählbar), das **neueste** Blatt, und der Kurs-Ordner. PDFs öffnen mit

@@ -7,10 +7,11 @@ left where it is. Dry run is the default.
 
 Replacement rules, which differ by category because the real-world artefacts do:
 
-  skript    There is exactly one per course. A newly downloaded script replaces
-            whatever script is currently in the folder, even under a different
-            name (VO3_... superseded by VO4_...) - that is what "new version"
-            means for a lecture script.
+  skript    One per PATTERN, not one per course. A new download replaces the
+            script matching the same pattern, even under a different name
+            ("VO*_Optimierung.pdf" lets VO4 supersede VO3). Two patterns are two
+            slots, which is how a course keeps both "lecture-notes.pdf" and
+            "lecture-notes-annotated.pdf" without them fighting each other.
   folien    Several per course, one per chapter. Only a file with the SAME name
             replaces an existing one; a different name is simply a different
             chapter and is added alongside.
@@ -60,6 +61,7 @@ class Item:
     source: Path
     course: Course
     category: str
+    pattern: str
     target: Path
     status: str
     # Files already in the course folder that this download supersedes. They are
@@ -81,16 +83,28 @@ def _trash(path: Path) -> None:
     path.rename(backup)
 
 
-def _existing_scripts(cfg: Config, course: Course, keep: Path) -> list[Path]:
-    """Script files already in the course folder, other than `keep`."""
-    course_dir = cfg.course_dir(course)
-    if not course_dir.is_dir():
-        return []
+def _existing_for_pattern(cfg: Config, course: Course, category: str,
+                          pattern: str, keep: Path) -> list[Path]:
+    """Files already filed under this course that match the SAME pattern, other
+    than `keep`. Searched recursively, because a course folder may be organised
+    into subfolders by hand (e.g. vo/Kapitel 3 - .../)."""
     import fnmatch
-    patterns = course.patterns.get("skript", [])
-    return [p for p in sorted(course_dir.iterdir())
+    directory = cfg.category_dir(course, category)
+    if not directory.is_dir():
+        return []
+    return [p for p in sorted(directory.rglob("*"))
             if p.is_file() and p != keep
-            and any(fnmatch.fnmatch(p.name.lower(), pat.lower()) for pat in patterns)]
+            and fnmatch.fnmatch(p.name.lower(), pattern.lower())]
+
+
+def _find_filed(cfg: Config, course: Course, category: str, name: str) -> Path | None:
+    """An already-filed file of exactly this name, wherever it sits under the
+    category folder. Re-downloads then land next to the version they replace,
+    instead of a second copy appearing one level up."""
+    directory = cfg.category_dir(course, category)
+    if not directory.is_dir():
+        return None
+    return next((p for p in sorted(directory.rglob(name)) if p.is_file()), None)
 
 
 def plan(cfg: Config) -> tuple[list[Item], int]:
@@ -104,17 +118,18 @@ def plan(cfg: Config) -> tuple[list[Item], int]:
         # a pattern written as "*-Blatt*.pdf".
         hits = []
         for course in courses:
-            category = course.match(source.name) or course.match(target_name)
-            if category:
-                hits.append((course, category))
+            hit = course.match(source.name) or course.match(target_name)
+            if hit:
+                hits.append((course, *hit))
         if not hits:
             ignored += 1
             continue
 
-        course, category = hits[0]
+        course, category, pattern = hits[0]
         status = AMBIGUOUS if len(hits) > 1 else NEW
-        items.append(Item(source, course, category,
-                          cfg.course_dir(course) / target_name, status))
+        filed = _find_filed(cfg, course, category, target_name)
+        target = filed or (cfg.category_dir(course, category) / target_name)
+        items.append(Item(source, course, category, pattern, target, status))
 
     _resolve_within_run(items)
     _resolve_against_disk(cfg, items)
@@ -151,9 +166,11 @@ def _resolve_against_disk(cfg: Config, items: list[Item]) -> None:
             item.replaces.append(item.target)
 
         # A lecture script replaces the previous one even under a different
-        # name; slides and sheets only ever replace the same name.
+        # name - but only within its own pattern. Slides and sheets exist in
+        # numbers and only ever replace an identical name.
         if item.category == "skript":
-            older = _existing_scripts(cfg, item.course, keep=item.target)
+            older = _existing_for_pattern(cfg, item.course, item.category,
+                                          item.pattern, keep=item.target)
             if older:
                 item.replaces.extend(older)
                 item.status = REPLACE
