@@ -30,15 +30,71 @@ automatisches Einfügen+Abschicken im Browser wurde bewusst NICHT gebaut –
 stattdessen landet der Prompt in der Zwischenablage und der Browser öffnet
 sich daneben (robuster, kein Login-Automation-Problem).
 
-## Schnellstart (Linux/Omarchy)
+## Semester einrichten (das Einzige, was du regelmäßig anfasst)
+
+Einmal pro Semester `~/.config/assignmentvibe/uni.json` bearbeiten: welches
+Semester gerade läuft, welche Kurse es gibt, und wie deren Dateien heißen.
+
+```jsonc
+{
+  "active": "m1",
+  "uni_root": "~/Uni",
+  "downloads": "~/Downloads",
+
+  "semesters": {
+    "m1": {
+      "optimierung": {
+        "name": "Optimierung",
+        "skript":   ["VO*_Optimierung*.pdf"],
+        "folien":   ["*Folien*.pdf"],
+        "blaetter": ["*-Blatt-PS-Optimierung.pdf"]
+      }
+    }
+  }
+}
+```
+
+Muster sind Glob-Muster (`*`, `?`, `[0-9]`), Groß-/Kleinschreibung egal.
+Keys mit `_` davor sind Notizen und werden ignoriert (JSON kann keine
+Kommentare).
+
+**Die einzige Regel:** eine Datei wird einsortiert, wenn sie auf ein Muster
+hier passt – sonst nicht. Ein Downloads-Ordner ist voll mit Dingen, die nichts
+mit der Uni zu tun haben; alles davon bleibt unberührt liegen. Keine Heuristik,
+kein Raten.
+
+Die drei Kategorien entscheiden **nicht**, wohin die Datei kommt (alles landet
+flach in `<uni_root>/<semester>/<kurs>/`, so wie deine bestehenden Ordner).
+Sie sagen nur, was die Datei *ist* – damit der Launcher „Optimierung Skript",
+„Optimierung Folien" und „Optimierung Blatt" (immer das neueste) anbieten kann.
 
 ```bash
-pip install --user -e .
+assignmentvibe config show     # zeigt, was die Config gerade bedeutet
+assignmentvibe sort            # Vorschau: was würde wohin
+assignmentvibe sort --apply    # verschieben + Launcher-Einträge aktualisieren
+assignmentvibe launcher        # nur die Super+Space-Einträge neu bauen
+```
 
-# 1. Downloads-Ordner sortieren (Vorschau zuerst, siehe --help)
-assignmentvibe organize ~/Downloads --apply --ingest
+`Super+Shift+U` öffnet ein Terminal mit der Vorschau und fragt nach, bevor
+etwas bewegt wird (`bin/uni-sort`).
 
-# ...oder manuell:
+Die erzeugten `.desktop`-Dateien heißen `assignmentvibe-*.desktop` und tragen
+`X-AssignmentVibe=true`. Nur solche Dateien werden beim Neu-Synchronisieren
+aufgeräumt – handgeschriebene Einträge bleiben unangetastet.
+
+## Schnellstart (Linux/Omarchy)
+
+Sortierer und Launcher brauchen nur Python – die Wissensbasis (`ingest-*`,
+`pick`) zusätzlich pymupdf:
+
+```bash
+ln -s "$PWD/bin/assignmentvibe" ~/.local/bin/assignmentvibe   # ohne Installation
+sudo pacman -S python-pymupdf                                  # nur für ingest/pick
+
+assignmentvibe config init     # Vorlage anlegen
+assignmentvibe sort            # Vorschau
+
+# Wissensbasis füllen:
 assignmentvibe ingest-script Algebra.pdf --course "Algebra I"
 assignmentvibe ingest-sheet  A03.pdf     --course "Algebra I"
 
@@ -69,10 +125,11 @@ ab (Dev-Skript zum Regressionstesten der `core/`-Module).
 ```
 assignmentvibe/
   core/            PDF -> Text/Wissen/Aufgaben/Prompt (reine Engine, keine Seiteneffekte)
-  organizer/        Downloads-Ordner klassifizieren & sortieren
+  organizer/        sort.py = Config-gesteuertes Einsortieren; organize.py = alte Heuristik
   integrations/      Clipboard/Notify/Menu/OCR (je unabhaengig, mit Fallback-Ketten)
+  uniconfig.py      Semester-Config (~/.config/assignmentvibe/uni.json)
   paths.py, store.py, context.py, cli.py    App-Schicht / Orchestrierung
-bin/              Bash-Einstiegspunkt (laeuft auch ohne pip install)
+bin/              assignmentvibe (Einstiegspunkt), uni-sort (Super+Shift+U)
 linux/            Waybar-Modul-Konfiguration
 scripts/          Dev-Hilfsskripte (nicht Teil des installierten Pakets)
 data/             eingelesene Beispiel-Skripte/-Blaetter (aus example_files/)

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Interactive sorter for the Super+Shift+U keybinding: always shows the preview
+# first and moves nothing without a confirmation. Meant to be opened in a
+# terminal window, which is why it keeps the window open at the end.
+set -uo pipefail
+
+assignmentvibe sort
+status=$?
+
+if [[ $status -eq 10 ]]; then
+  echo
+  read -rsn1 -p "Taste zum Schliessen..."
+  exit 0
+fi
+
+if [[ $status -ne 0 ]]; then
+  echo
+  read -rsn1 -p "Fehler. Taste zum Schliessen..."
+  exit $status
+fi
+
+echo
+read -rn1 -p "Verschieben? [j/N] " answer
+echo
+if [[ "$answer" == "j" || "$answer" == "J" ]]; then
+  assignmentvibe sort --apply
+else
+  echo "Abgebrochen - nichts veraendert."
+fi
+
+echo
+read -rsn1 -p "Taste zum Schliessen..."

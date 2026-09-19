@@ -4,7 +4,10 @@ the interactive "pick" flow (the one meant to sit behind a top-bar click on
 Omarchy).
 
 Subcommands:
-  organize <dir>                          sort a Downloads folder into the library layout
+  config show|init|path                   the per-semester config (uniconfig.py)
+  sort [--apply]                          move matching downloads into ~/Uni/<semester>/<course>/
+  launcher                                (re)generate the Super+Space .desktop entries
+  organize <dir>                          older heuristic sorter, superseded by `sort`
   ingest-script <pdf> --course NAME       ingest a script -> knowledge base
   ingest-sheet  <pdf> --course NAME       ingest an assignment sheet
   courses                                  list ingested courses
@@ -29,10 +32,9 @@ import json
 import sys
 from pathlib import Path
 
-from . import context, paths, store
+from . import context, paths, uniconfig
 from .core.prompts import USE_CASES, build_prompt
 from .integrations import clipboard, menu, notify, ocr
-from .organizer import organize as organizer_module
 
 USE_CASE_LABELS = {key: f"{v['emoji']} {v['label']}" for key, v in USE_CASES.items()}
 LABEL_TO_KEY = {v: k for k, v in USE_CASE_LABELS.items()}
@@ -43,17 +45,20 @@ def _print(*args):
 
 
 def cmd_ingest_script(args):
+    from . import store
     result = store.ingest_script(Path(args.pdf), args.course)
     _print(f"'{result['course']}' eingelesen: {result['entries']} Wissenseinheiten "
            f"-> {result['knowledge_path']}")
 
 
 def cmd_ingest_sheet(args):
+    from . import store
     result = store.ingest_sheet(Path(args.pdf), args.course)
     _print(f"'{result['sheet_id']}' ({result['course']}): {result['num_tasks']} Aufgaben eingelesen.")
 
 
 def cmd_courses(args):
+    from . import store
     courses = store.list_courses()
     if not courses:
         _print("Keine Kurse eingelesen. Mit 'ingest-script' starten.")
@@ -63,6 +68,7 @@ def cmd_courses(args):
 
 
 def cmd_sheets(args):
+    from . import store
     sheets = store.list_sheets(args.course)
     if not sheets:
         _print("Keine Aufgabenblaetter gefunden.")
@@ -74,6 +80,7 @@ def cmd_sheets(args):
 
 
 def cmd_tasks(args):
+    from . import store
     sheet = store.load_sheet(args.sheet_id)
     for t in sheet["tasks"]:
         title = f": {t['title']}" if t.get("title") else ""
@@ -104,6 +111,7 @@ def _resolve_solution(args) -> str | None:
 
 
 def _build_from_args(args) -> str:
+    from . import store
     sheet_id = args.sheet or context.get().get("sheet")
     if not sheet_id:
         print("Kein Aufgabenblatt angegeben (--sheet) und kein aktueller Kontext gesetzt.", file=sys.stderr)
@@ -186,6 +194,8 @@ def cmd_open_browser(args):
 
 
 def cmd_organize(args):
+    from . import store
+    from .organizer import organize as organizer_module
     source_dir = Path(args.source)
     library_dir = Path(args.target) if args.target else paths.DEFAULT_LIBRARY_DIR
 
@@ -221,6 +231,8 @@ def cmd_pick(args):
     """The interactive flow: sheet -> task -> use-case -> (optional partial
     solution) -> build prompt -> copy -> notify -> optionally open a browser.
     This is exactly what should sit behind the top-bar click."""
+    from . import store
+
     if not menu.any_picker_available():
         # Only a warning, not a hard abort: the stdin fallback also works
         # without a TTY (e.g. in tests via a pipe), as long as data actually
@@ -303,9 +315,140 @@ def cmd_pick(args):
         cmd_open_browser(args)
 
 
+# --- Semester config, sorting and launcher entries -------------------------
+# These three are the "everyday" commands and deliberately work without pymupdf
+# installed (see the lazy imports above), so a fresh clone is usable right away.
+
+STARTER_CONFIG = """{
+  "active": "m1",
+  "uni_root": "~/Uni",
+  "downloads": "~/Downloads",
+
+  "semesters": {
+    "m1": {
+      "beispielkurs": {
+        "name": "Beispielkurs",
+        "skript": ["VO*_Beispielkurs*.pdf"],
+        "folien": ["*Folien*.pdf"],
+        "blaetter": ["*Blatt*Beispielkurs*.pdf"]
+      }
+    }
+  }
+}
+"""
+
+
+# Exit code of `sort` (preview) when no file matches - not an error.
+NOTHING_TO_DO = 10
+
+
+def _load_config_or_exit(args):
+    try:
+        return uniconfig.load(getattr(args, "config", None))
+    except uniconfig.ConfigError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_config(args):
+    if args.action == "init":
+        target = Path(args.config).expanduser() if args.config else paths.CONFIG_FILE
+        if target.exists() and not args.force:
+            print(f"{target} existiert bereits. Mit --force ueberschreiben.", file=sys.stderr)
+            sys.exit(1)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(STARTER_CONFIG, encoding="utf-8")
+        _print(f"Vorlage angelegt: {target}")
+        _print("Jetzt Kurse und Dateinamen eintragen, dann: assignmentvibe sort")
+        return
+
+    if args.action == "path":
+        _print(str(Path(args.config).expanduser() if args.config else paths.CONFIG_FILE))
+        return
+
+    cfg = _load_config_or_exit(args)
+    _print(f"Config:   {cfg.path}")
+    _print(f"Semester: {cfg.active}")
+    _print(f"Uni:      {cfg.uni_root}")
+    _print(f"Downloads:{cfg.downloads}")
+    _print("")
+    for course in cfg.active_courses():
+        _print(f"{course.name}  ({cfg.course_dir(course)})")
+        for category in uniconfig.CATEGORIES:
+            patterns = course.patterns.get(category, [])
+            if patterns:
+                _print(f"    {category:9} {', '.join(patterns)}")
+
+
+def cmd_sort(args):
+    from .organizer import sort as sorter
+
+    cfg = _load_config_or_exit(args)
+    if not cfg.downloads.is_dir():
+        print(f"Downloads-Ordner nicht gefunden: {cfg.downloads}", file=sys.stderr)
+        sys.exit(1)
+
+    items, ignored = sorter.plan(cfg)
+    _print(sorter.format_plan(cfg, items, ignored))
+
+    if not args.apply:
+        if not any(i.status == sorter.OK for i in items):
+            # Distinct exit code so bin/uni-sort can skip the "move it?" prompt
+            # when there is nothing to move.
+            sys.exit(NOTHING_TO_DO)
+        _print("\n(Vorschau - nichts veraendert. Mit --apply wirklich verschieben.)")
+        return
+
+    _print("")
+    for line in sorter.apply(items, mode=args.mode):
+        _print(line)
+
+    if not args.no_launcher:
+        cmd_launcher(args, cfg=cfg, quiet=True)
+
+
+def cmd_launcher(args, cfg=None, quiet=False):
+    from .integrations import launcher
+
+    cfg = cfg or _load_config_or_exit(args)
+    written, removed = launcher.sync(cfg)
+
+    if quiet:
+        _print(f"Launcher aktualisiert: {len(written)} Eintraege.")
+        return
+    for name in written:
+        _print(f"  {name}")
+    for name in removed:
+        _print(f"  entfernt: {name}")
+    if not written:
+        _print("Keine Eintraege erzeugt - passen die Dateinamen in der Config "
+               "zu dem, was in den Kurs-Ordnern liegt? (assignmentvibe config show)")
+    else:
+        _print(f"\n{len(written)} Eintraege in {paths.APPLICATIONS_DIR}. "
+               f"Mit Super+Space suchbar.")
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="assignmentvibe")
     sub = p.add_subparsers(dest="command", required=True)
+
+    p_cfg = sub.add_parser("config", help="Semester-Konfiguration")
+    p_cfg.add_argument("action", choices=["show", "init", "path"], nargs="?", default="show")
+    p_cfg.add_argument("--config", default=None, help="andere Config-Datei benutzen")
+    p_cfg.add_argument("--force", action="store_true", help="bei 'init' ueberschreiben")
+    p_cfg.set_defaults(func=cmd_config)
+
+    p_sort = sub.add_parser("sort", help="Downloads laut Config in ~/Uni einsortieren")
+    p_sort.add_argument("--apply", action="store_true", help="wirklich verschieben (sonst nur Vorschau)")
+    p_sort.add_argument("--mode", choices=["move", "copy"], default="move")
+    p_sort.add_argument("--config", default=None)
+    p_sort.add_argument("--no-launcher", action="store_true",
+                        help="nach --apply die Launcher-Eintraege nicht aktualisieren")
+    p_sort.set_defaults(func=cmd_sort)
+
+    p_launch = sub.add_parser("launcher", help="Kurse in die Super+Space-Suche eintragen")
+    p_launch.add_argument("--config", default=None)
+    p_launch.set_defaults(func=cmd_launcher)
 
     p_org = sub.add_parser("organize", help="Downloads-Ordner in die Bibliotheks-Struktur sortieren")
     p_org.add_argument("source", help="Ordner, der durchsucht wird (z.B. ~/Downloads)")
