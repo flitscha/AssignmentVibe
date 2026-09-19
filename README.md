@@ -81,10 +81,19 @@ lässt `VO4_…` das alte `VO3_…` ablösen. Zwei Muster sind zwei Plätze – 
 koexistieren `lecture-notes-modeling.pdf` und `lecture-notes-modeling-annotated.pdf`,
 statt sich gegenseitig zu überschreiben.
 
-„Gleicher Name" wird nach Abziehen des Browser-Suffixes verglichen:
-`Folien_Kapitel2(1).pdf` gilt als neue Version von `Folien_Kapitel2.pdf` und
-landet unter dem sauberen Namen. Ein `-1`/`_1` am Ende wird bewusst **nicht**
-so behandelt – `Blatt_1.pdf` und `Blatt_2.pdf` sind verschiedene Blätter.
+„Gleicher Name" wird nach Abziehen des Browser-Zählers verglichen (Firefox
+hängt `-1` an, Chrome ` (1)`): `Folien-1.pdf` gilt als neue Version von
+`Folien.pdf` und landet unter dem sauberen Namen.
+
+Das Abschneiden passiert aber **nur, wenn es den Namen ohne Zähler wirklich
+gibt** – schon einsortiert oder ebenfalls in Downloads. Sonst wäre
+`04x1-1.pdf` (ein echter Foliensatz) fälschlich ein Duplikat von `04x1.pdf`.
+`_1` wird nie abgeschnitten, `Blatt_1.pdf` und `Blatt_2.pdf` sind
+verschiedene Blätter.
+
+Konkurrieren mehrere Downloads um denselben Namen (`Folien.pdf`, `Folien-1.pdf`,
+`Folien-2.pdf`), gewinnt die **zuletzt heruntergeladene** (nach Änderungszeit),
+der Rest kommt in den Papierkorb.
 
 Ersetzte Dateien und überflüssige Downloads werden nie gelöscht, sondern via
 `gio trash` in den Papierkorb gelegt.

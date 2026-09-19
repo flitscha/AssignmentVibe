@@ -17,9 +17,16 @@ Replacement rules, which differ by category because the real-world artefacts do:
             chapter and is added alongside.
   blaetter  Same as folien: same name replaces, different name adds.
 
-"Same name" is compared after stripping the browser's duplicate suffix, so
-re-downloading "Folien_Kapitel2.pdf" as "Folien_Kapitel2(1).pdf" is recognised
-as a new version of the same file - and lands under the clean name.
+"Same name" is compared after stripping the browser's duplicate counter, so
+re-downloading "Folien.pdf" as "Folien-1.pdf" is recognised as a new version of
+the same file - and lands under the clean name. Firefox uses "-1", Chrome
+"(1)"; both are handled.
+
+That stripping is conditional, because a counter suffix is not always one:
+"04x1-1.pdf" is a real slide deck in this user's material. A suffix therefore
+only counts as a duplicate marker when the name WITHOUT it actually exists -
+either already filed under the course, or as another file in the same batch of
+downloads. Otherwise the name is kept as it is.
 
 Nothing is ever deleted outright: replaced files and redundant downloads go to
 the desktop trash via `gio trash`, so a wrong guess stays recoverable.
@@ -42,18 +49,20 @@ DUPLICATE = "duplicate"    # byte-identical copy already filed; drop the downloa
 SUPERSEDED = "superseded"  # another download in this same run wins this target
 AMBIGUOUS = "ambiguous"    # matches two courses - the config needs sharpening
 
-# Firefox writes "foo(1).pdf", Chrome "foo (1).pdf" when a name is taken.
-# Only the parenthesised forms are treated as duplicate markers: a trailing
-# "-1"/"_1" is far more likely to be a real chapter or sheet number
-# ("Blatt_1.pdf"), and stripping that would merge distinct files.
-DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+?) ?\(\d+\)$")
+# Firefox appends "-1", Chrome " (1)" when the target name is taken. "_1" is
+# left out on purpose: "Blatt_1.pdf" and "Blatt_2.pdf" are ordinary distinct
+# sheets, and no browser here produces that form.
+DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+?)(?: ?\(\d+\)|-\d+)$")
 
 
-def clean_name(filename: str) -> str:
-    """'Folien_Kapitel2(1).pdf' -> 'Folien_Kapitel2.pdf'"""
+def base_name(filename: str) -> str | None:
+    """'Folien-1.pdf' -> 'Folien.pdf'; None if there is no counter suffix.
+
+    Whether that base name is the RIGHT target is decided by the caller, which
+    checks that a file of that name actually exists - see the module docstring."""
     parts = PurePath(filename)
     match = DUPLICATE_SUFFIX_RE.match(parts.stem)
-    return f"{match.group('stem')}{parts.suffix}" if match else filename
+    return f"{match.group('stem')}{parts.suffix}" if match else None
 
 
 @dataclass
@@ -110,15 +119,17 @@ def _find_filed(cfg: Config, course: Course, category: str, name: str) -> Path |
 def plan(cfg: Config) -> tuple[list[Item], int]:
     """Returns (items, ignored_count). Touches nothing on disk."""
     courses = cfg.active_courses()
+    sources = sorted(p for p in cfg.downloads.iterdir() if p.is_file())
+    in_downloads = {p.name for p in sources}
     items, ignored = [], 0
 
-    for source in sorted(p for p in cfg.downloads.iterdir() if p.is_file()):
-        target_name = clean_name(source.name)
-        # Match on the cleaned name as well, so "01-Blatt(1).pdf" still matches
-        # a pattern written as "*-Blatt*.pdf".
+    for source in sources:
+        base = base_name(source.name)
+        # Match on the stripped name too, so "01-Blatt-1.pdf" still matches a
+        # pattern written as "*-Blatt-PS-Optimierung.pdf".
         hits = []
         for course in courses:
-            hit = course.match(source.name) or course.match(target_name)
+            hit = course.match(source.name) or (base and course.match(base))
             if hit:
                 hits.append((course, *hit))
         if not hits:
@@ -127,7 +138,16 @@ def plan(cfg: Config) -> tuple[list[Item], int]:
 
         course, category, pattern = hits[0]
         status = AMBIGUOUS if len(hits) > 1 else NEW
-        filed = _find_filed(cfg, course, category, target_name)
+
+        # Treat the counter as a duplicate marker only if the un-suffixed name
+        # is real - already filed, or sitting in Downloads next to this one.
+        filed_base = _find_filed(cfg, course, category, base) if base else None
+        if base and (filed_base is not None or base in in_downloads):
+            target_name, filed = base, filed_base
+        else:
+            target_name = source.name
+            filed = _find_filed(cfg, course, category, target_name)
+
         target = filed or (cfg.category_dir(course, category) / target_name)
         items.append(Item(source, course, category, pattern, target, status))
 
