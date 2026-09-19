@@ -392,7 +392,7 @@ def cmd_sort(args):
     _print(sorter.format_plan(cfg, items, ignored))
 
     if not args.apply:
-        if not any(i.status == sorter.OK for i in items):
+        if not any(i.status in (sorter.NEW, sorter.REPLACE) for i in items):
             # Distinct exit code so bin/uni-sort can skip the "move it?" prompt
             # when there is nothing to move.
             sys.exit(NOTHING_TO_DO)

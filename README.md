@@ -40,6 +40,8 @@ Semester gerade läuft, welche Kurse es gibt, und wie deren Dateien heißen.
   "active": "m1",
   "uni_root": "~/Uni",
   "downloads": "~/Downloads",
+  "pdf_viewer": "firefox",
+  "alte_skripte_im_launcher": true,
 
   "semesters": {
     "m1": {
@@ -65,8 +67,29 @@ kein Raten.
 
 Die drei Kategorien entscheiden **nicht**, wohin die Datei kommt (alles landet
 flach in `<uni_root>/<semester>/<kurs>/`, so wie deine bestehenden Ordner).
-Sie sagen nur, was die Datei *ist* – damit der Launcher „Optimierung Skript",
-„Optimierung Folien" und „Optimierung Blatt" (immer das neueste) anbieten kann.
+Sie sagen, was die Datei *ist* – und danach richtet sich, was beim erneuten
+Download passiert:
+
+| Kategorie | Anzahl | Beim Neu-Download |
+|---|---|---|
+| `skript` | genau eines | ersetzt das alte Skript, **auch unter anderem Namen** (`VO3_…` → `VO4_…`) |
+| `folien` | eines pro Kapitel | ersetzt nur bei **gleichem Namen**, sonst kommt es dazu |
+| `blaetter` | viele | ersetzt nur bei **gleichem Namen**, sonst kommt es dazu |
+
+„Gleicher Name" wird nach Abziehen des Browser-Suffixes verglichen:
+`Folien_Kapitel2(1).pdf` gilt als neue Version von `Folien_Kapitel2.pdf` und
+landet unter dem sauberen Namen. Ein `-1`/`_1` am Ende wird bewusst **nicht**
+so behandelt – `Blatt_1.pdf` und `Blatt_2.pdf` sind verschiedene Blätter.
+
+Ersetzte Dateien und überflüssige Downloads werden nie gelöscht, sondern via
+`gio trash` in den Papierkorb gelegt.
+
+Im Launcher landen: das Skript, **jeder** Foliensatz einzeln (nach Kapitel
+auswählbar), das **neueste** Blatt, und der Kurs-Ordner. PDFs öffnen mit
+`pdf_viewer` (Standard Firefox), der Ordner mit dem Dateimanager.
+Mit `alte_skripte_im_launcher` bleiben Skripten vergangener Semester
+auffindbar – als „Analysis Skript (s4)". Deren Folien, Blätter und Ordner
+nicht, sonst wird die Suche unbrauchbar.
 
 ```bash
 assignmentvibe config show     # zeigt, was die Config gerade bedeutet

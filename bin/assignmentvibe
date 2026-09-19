@@ -5,9 +5,15 @@
 # via pip installiert, wird stattdessen der 'echte' Befehl auf PATH benutzt.
 set -euo pipefail
 
-if command -v assignmentvibe >/dev/null 2>&1 && [[ "$(command -v assignmentvibe)" != "${BASH_SOURCE[0]}" ]]; then
-  exec assignmentvibe "$@"
+# readlink -f, weil dieses Skript ueblicherweise als Symlink auf dem PATH liegt
+# (~/.local/bin/assignmentvibe). Ohne Aufloesen waere REPO_ROOT ~/.local, und
+# das Paket wuerde nur gefunden, wenn man zufaellig im Repo-Ordner steht.
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+REPO_ROOT="$(dirname "$(dirname "$SELF")")"
+
+ON_PATH="$(command -v assignmentvibe 2>/dev/null || true)"
+if [[ -n "$ON_PATH" && "$(readlink -f "$ON_PATH")" != "$SELF" ]]; then
+  exec "$ON_PATH" "$@"
 fi
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 exec env PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}" python3 -m assignmentvibe.cli "$@"

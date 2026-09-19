@@ -5,6 +5,7 @@
       "active": "m1",
       "uni_root": "~/Uni",
       "downloads": "~/Downloads",
+      "pdf_viewer": "firefox",
       "semesters": {
         "m1": {
           "optimierung": {
@@ -64,9 +65,20 @@ class Config:
     downloads: Path
     courses: list[Course]
     path: Path
+    # Which program the generated launcher entries open PDFs with. The desktop
+    # default (xdg-open) is Evince here, but a browser keeps a lecture script in
+    # a tab next to everything else, which is how these are actually read.
+    pdf_viewer: str = "firefox"
+    # Lecture scripts stay searchable after the semester ends - you look things
+    # up in an old script long after the course is over. Slides, sheets and
+    # folders would only be noise, so those stay limited to the active semester.
+    alte_skripte_im_launcher: bool = True
 
     def active_courses(self) -> list[Course]:
         return [c for c in self.courses if c.semester == self.active]
+
+    def past_courses(self) -> list[Course]:
+        return [c for c in self.courses if c.semester != self.active]
 
     def course_dir(self, course: Course) -> Path:
         return self.uni_root / course.semester / course.folder
@@ -116,6 +128,8 @@ def parse(raw: dict, path: Path) -> Config:
         downloads=Path(raw.get("downloads", "~/Downloads")).expanduser().resolve(),
         courses=courses,
         path=path,
+        pdf_viewer=raw.get("pdf_viewer", "firefox"),
+        alte_skripte_im_launcher=bool(raw.get("alte_skripte_im_launcher", True)),
     )
 
 
