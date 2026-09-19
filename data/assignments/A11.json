@@ -7,7 +7,7 @@
   {
    "number": 1,
    "title": null,
-   "text": "Bestimmen Sie das Minimalpolynom von\n√\n2 +\n√\n3über Q , den Körpergrad\n\u0002\nQ (\n√\n2 +\n√\n3) : Q\n\u0003\nsowie eine Basis des Q -Vektorraums Q (\n√\n2 +\n√\n3).",
+   "text": "Bestimmen Sie das Minimalpolynom von\n√\n2 +\n√\n3über Q , den Körpergrad\n\nQ (\n√\n2 +\n√\n3) : Q\n\nsowie eine Basis des Q -Vektorraums Q (\n√\n2 +\n√\n3).",
    "subparts": [],
    "script_references": null
   },

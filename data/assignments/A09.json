@@ -58,7 +58,7 @@
   {
    "number": 4,
    "title": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1,",
-   "text": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1, . . . , p −1 in Z stets\np |\n\u0012p\ni\n\u0013\ngilt. Stimmt die Aussage auch, wenn p keine Primzahl ist?\n1",
+   "text": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1, . . . , p −1 in Z stets\np |\np\ni\n\ngilt. Stimmt die Aussage auch, wenn p keine Primzahl ist?\n1",
    "subparts": [],
    "script_references": null
   }

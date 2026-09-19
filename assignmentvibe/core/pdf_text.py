@@ -46,7 +46,25 @@ STRAY_SPACE_RE = re.compile(r" ([̈¨])(?=\w)")
 STRAY_DIAERESIS_RE = re.compile(r"[̈¨](\w)")
 
 
+# Maths-heavy PDFs hand back two kinds of character that carry no meaning once
+# they leave the document's own font:
+#   - Private Use Area codepoints (U+E000-U+F8FF), which the maths font uses for
+#     the pieces of a tall bracket around a matrix. Outside that font they are
+#     undefined glyphs.
+#   - Raw control bytes (NUL, 0x01, 0x10, 0x11 were all seen in one algebra
+#     script), which make the extracted text a "binary" file for git/grep and
+#     can end up on the clipboard and in a prompt.
+# Neither is recoverable into something meaningful, so both are dropped. TAB and
+# newline are kept, since the layout does carry information.
+JUNK_CHARS_RE = re.compile(r"[\uE000-\uF8FF]|(?![\t\n])[\x00-\x1f\x7f]")
+
+
+def strip_undisplayable(text: str) -> str:
+    return JUNK_CHARS_RE.sub("", text)
+
+
 def normalize(text: str) -> str:
+    text = strip_undisplayable(text)
     text = STRAY_SPACE_RE.sub(r"\1", text)
     text = STRAY_DIAERESIS_RE.sub(lambda m: unicodedata.normalize("NFC", m.group(1) + "̈"), text)
     return unicodedata.normalize("NFKC", text)

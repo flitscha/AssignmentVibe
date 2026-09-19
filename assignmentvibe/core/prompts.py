@@ -17,6 +17,7 @@ Depends on nothing else in this project (pure functions over plain dicts).
 """
 
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -96,30 +97,97 @@ STOPWORDS = set(
 )
 
 
+# German inflection is enough to break exact matching on the words that matter:
+# a task says "Epigraphs" where the script says "Epigraph", "Funktionen" where
+# it says "Funktion". A full stemmer would be overkill (and a dependency), so
+# we strip the handful of endings that actually cause misses, and only when
+# enough of the word survives to stay distinctive.
+GERMAN_ENDINGS = ("en", "es", "er", "em", "e", "n", "s")
+MIN_STEM_LENGTH = 5
+
+
+def stem(word: str) -> str:
+    for ending in GERMAN_ENDINGS:
+        if word.endswith(ending) and len(word) - len(ending) >= MIN_STEM_LENGTH:
+            return word[: -len(ending)]
+    return word
+
+
 def tokenize(text: str) -> set[str]:
-    words = re.findall(r"[A-Za-zÄÖÜäöüß]{4,}", text.lower())
-    return {w for w in words if w not in STOPWORDS}
+    # 3 letters, not 4: "epi" in "epi(f)" is exactly the kind of short technical
+    # token that identifies the relevant definition.
+    words = re.findall(r"[A-Za-zÄÖÜäöüß]{3,}", text.lower())
+    return {stem(w) for w in words if w not in STOPWORDS}
 
 
-def score_entry(task_tokens: set[str], entry: dict) -> int:
-    entry_tokens = tokenize(entry["text"])
-    return len(task_tokens & entry_tokens)
+def entry_tokens(entry: dict) -> set[str]:
+    """Tokens of an entry - its name counts as much as its body.
+
+    Some results are only findable through the name: the algebra script states
+    "Satz 2.2.6 (2. Isomorphiesatz)" whose text never contains the word
+    "Isomorphiesatz", so a task saying "Beweisen Sie den zweiten Isomorphiesatz"
+    could not reach it at all. The proof is deliberately NOT tokenized: it adds
+    length without saying what the entry is about."""
+    return tokenize(f"{entry.get('name') or ''} {entry.get('text', '')}")
+
+
+def _inverse_document_frequency(entries: list[dict]) -> dict[str, float]:
+    """How rare each token is across the script. Without this, "funktion" and
+    "menge" - which appear in half the entries and say nothing about which one
+    is relevant - count as much as "epigraph", which appears in two."""
+    document_count = len(entries) or 1
+    frequency: dict[str, int] = {}
+    for entry in entries:
+        for token in entry_tokens(entry):
+            frequency[token] = frequency.get(token, 0) + 1
+    return {token: math.log(document_count / count)
+            for token, count in frequency.items()}
+
+
+def score_entry(task_tokens: set[str], entry: dict,
+                idf: dict[str, float] | None = None) -> float:
+    """Sum of the rarity of the shared tokens, damped by how long the entry is.
+
+    Both halves matter. Without rarity weighting, common vocabulary decides the
+    ranking. Without the length damping, a long Korollar-plus-proof outscores a
+    two-line Definition purely by having more words to collide with - which is
+    exactly how "Korollar 4.1.6" (gradient descent) beat "Definition 3.1.4"
+    (epigraph) on a task about epigraphs."""
+    tokens = entry_tokens(entry)
+    shared = task_tokens & tokens
+    if not shared:
+        return 0.0
+    weights = idf if idf is not None else {}
+    # Default weight 1.0 keeps the function meaningful when called without a
+    # corpus (tests, single entries).
+    overlap = sum(weights.get(token, 1.0) for token in shared)
+    return overlap / math.sqrt(len(tokens) or 1)
 
 
 def select_context(task_text: str, knowledge_entries: list[dict], top_k: int = 3) -> list[dict]:
     task_tokens = tokenize(task_text)
-    scored = [(score_entry(task_tokens, e), e) for e in knowledge_entries]
+    idf = _inverse_document_frequency(knowledge_entries)
+    scored = [(score_entry(task_tokens, e, idf), e) for e in knowledge_entries]
     scored = [t for t in scored if t[0] > 0]
-    scored.sort(key=lambda t: t[0], reverse=True)
+    # Ties broken by the script's own order, so the output is stable between runs.
+    scored.sort(key=lambda t: -t[0])
     return [e for _, e in scored[:top_k]]
 
 
-def format_knowledge_entry(e: dict) -> str:
+# Use cases whose whole point is that the answer is NOT given away. Retrieval
+# is good enough now to surface the very theorem a task asks you to prove -
+# "Zeigen Sie: f konvex <=> epi(f) konvex" pulls up Satz 3.1.5, which states
+# exactly that - so shipping its proof along would hand over the solution under
+# the heading "here is a small hint".
+SPOILER_SENSITIVE_USE_CASES = {"hint", "next_step"}
+
+
+def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
     header = f"{e['type']} {e['number']}"
     if e.get("name"):
         header += f" ({e['name']})"
     out = f"{header}:\n{e['text']}"
-    if e.get("proof"):
+    if include_proof and e.get("proof"):
         out += f"\nBeweis: {e['proof']}"
     return out
 
@@ -155,7 +223,8 @@ def build_prompt(
         lines.append("(automatisch per Keyword-Ueberschneidung ausgewaehlt - bei Bedarf ignorieren)")
         for e in context:
             lines.append("")
-            lines.append(format_knowledge_entry(e))
+            lines.append(format_knowledge_entry(
+                e, include_proof=use_case not in SPOILER_SENSITIVE_USE_CASES))
         lines.append("")
 
     lines.append("# Meine bisherige Teilloesung")

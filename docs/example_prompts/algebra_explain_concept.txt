@@ -12,56 +12,6 @@ Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.
 # Relevante Definitionen/Saetze aus dem Skriptum
 (automatisch per Keyword-Ueberschneidung ausgewaehlt - bei Bedarf ignorieren)
 
-Beispiel 2.1.3 (i):
-Beispiele für abelsche Gruppen sind Z, Q, R, C (oder jeder be-
-liebige Körper) mit + und e = 0. Dabei sind die kleineren jeweils Untergruppen
-in den größeren.
-(ii) Für n ∈N sei
-Z/nZ := {0, 1, . . . , n −1}
-versehen mit der Addition wie auf einer Uhr. Wir addieren also wie gewöhnlich,
-identifizieren aber n mit 0, n + 1 mit 1 usw... Auf diese Weise erhalten wir eine
-abelsche Gruppe mit n Elementen. Sie ist aber keine Untergruppe von Z, denn die
-Verknüpfungisteineandere.InZgilt(n−1)+1 = n,inZ/nZgilt(n−1)+1 = 0.
-(iii) Für einen Körper K ist K \ {0} mit · und e = 1 eine abelsche Gruppe.
-(iv) Die Menge GLn(K) der invertierbaren Matrizen mit Einträgen aus K ist mit
-Matrixmultiplikation und e = I ebenfalls eine Gruppe, die für n ≥2 nicht
-abelsch ist.
-(v) Für jede Menge X bilden die bijektiven Abbildungen von X nach X eine Grup-
-pe S(X) bezüglich der Hintereinanderausführung ◦, das neutrale Element ist
-dabei die identische Abbildung idX. Falls X mindestens 3 Elemente hat, ist S(X)
-nicht abelsch. S(X) wird als Permutationsgruppe oder Symmetriegruppe von
-X bezeichnet.
-Im Fall X = {1, . . . , n} schreiben wir statt S(X) auch Sn und verwenden für
-Permutationen σ ∈Sn auch die bereits bekannte Matrixschreibweise
-
-1
-2
-· · ·
-n
-σ(1)
-σ(2)
-· · ·
-σ(n)
-
-
-2.1. GRUNDLAGEN
-9
-oder die Darstellung als Produkt von Zykeln
-(1, σ(1), σ(σ(1)), . . .).
-(vi)Sind(G, ∗)und(H, ·)Gruppen,soistdaskartesischeProduktG×H ebenfalls
-eine Gruppe mit der komponentenweise definierten Verknüpfung
-(g, h) ◦(g′, h′) := (g ∗g′, h · h′).
-Das neutrale Element ist dabei (eG, eH) und das inverse Element zu (g, h) ist
-(g−1, h−1).
-△
-
-Bemerkung 2.1.14 (i):
-Eine Gruppe mit 8 Elementen kann höchstens Untergrup-
-pen mit der Mächtigkeit 1, 2, 4, 8 haben.
-(ii) Eine Gruppe G mit Primzahlmächtigkeit hat nur die beiden trivialen Unter-
-gruppen {e} und G.
-△
-
 Korollar 2.4.12:
 Bis auf Isomorphie gibt es nur eine Gruppe mit 15 Elementen, nämlich
 die zyklische Gruppe Z/15Z.
@@ -91,6 +41,37 @@ Auflösbare Gruppen
 Der Begriff einer auflösbaren Gruppe ist zunächst sehr abstrakt. Er wird aber ge-
 braucht, um später die Existenz von Lösungsformeln für polynomiale Gleichun-
 gen zu untersuchen. Sei G stets eine Gruppe.
+
+Korollar 4.4.9:
+Der Zerfällungskörper eines Polynoms p ∈k[x] ist bis auf Isomorphie
+über k eindeutig bestimmt.
+
+86
+KAPITEL 4. KÖRPER
+Beweis: Satz 4.4.6 mit φ = idk.
+
+Beispiel 4.6.10:
+Wir wollen alle Teilkörper der Galoiserweiterung
+Q ⊆Q(e2πi/5)
+finden. Setze ξ := e2πi/5. Wir wissen bereits [Q(ξ) : Q] = 4, also hat jeder echte
+Zwischenkörper laut Gradformel Grad 2 über Q. Aus Beispiel 4.6.2 (iii) wissen
+wir
+Gal(Q(ξ), Q) = (Z/5Z)× = {1, 2, 3, 4} .
+Man kann nun leicht sämtliche Untergruppen dieser Gruppe bestimmen:
+{1}, {1, 2, 3, 4}, {1, 4}.
+Also gibt es genau einen echten Zwischenkörper, und zwar den Fixkörper der Ab-
+bildung
+φ4 : ξ 7→ξ4.
+Fixiert wird durch φ4 das Element
+χ := ξ + ξ4 = 2 cos(2π/5),
+da φ4(ξ4) = ξ16 = ξ. Andererseits gilt χ /∈Q, da
+φ2(χ) = ξ2 + ξ3 = 2 cos(4π/5)̸ = χ.
+Also ist
+Fix ({1, 4}) = Q(χ)
+der eindeutig bestimmte nichttriviale Zwischenkörper der Erweiterung.
+△
+Eine erste Folgerung, in deren Beweis wir Ergebnisse der Gruppentheorie in die
+Körpertheorie übertragen, ist der Fundamentalsatz der Algebra:
 
 # Meine bisherige Teilloesung
 (noch nichts probiert)
