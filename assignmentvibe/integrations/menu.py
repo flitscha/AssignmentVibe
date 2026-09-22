@@ -20,9 +20,14 @@ differently than assumed.
 No dependency on any other module in this project.
 """
 
+import json
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
+import time
+from pathlib import Path
 
 
 # Wide enough for a section title next to its counts - "3.1 Konvexe Funktionen
@@ -30,19 +35,104 @@ import sys
 # an indent on top of that. The menu's own default cut them in half.
 MENU_WIDTH = 900
 
+# How often to look for the menu's answer. omarchy-menu-select polls at 50ms,
+# which is a fifth of a second of dead time on a bad draw, and it is dead time
+# the user sees: the menu has already closed by then and the next one is not up.
+POLL_SECONDS = 0.005
+MENU_TIMEOUT = 180
 
-def _try_omarchy(prompt: str, options: list[str]) -> str | None:
+
+def _ipc(call: list[str]) -> bool:
+    """One IPC call into the running shell. `qs ipc` is what omarchy-shell ends
+    up running anyway, and going straight to it skips its bash and a `timeout`
+    fork - about 10ms, on a path that runs once per menu window. The wrapper
+    stays as the fallback, since it also knows how to find the Wayland socket
+    when WAYLAND_DISPLAY is not set."""
+    omarchy = os.environ.get("OMARCHY_PATH")
+    if omarchy and shutil.which("qs"):
+        try:
+            done = subprocess.run(["qs", "ipc", "-n", "-p", f"{omarchy}/shell",
+                                   "call", "--", *call],
+                                  capture_output=True, text=True, timeout=10)
+            if done.returncode == 0:
+                return True
+        except Exception:
+            pass
+
+    if not shutil.which("omarchy-shell"):
+        return False
+    try:
+        done = subprocess.run(["omarchy-shell", *call],
+                              capture_output=True, text=True, timeout=10)
+        return done.returncode == 0
+    except Exception:
+        return False
+
+
+def _summon_menu(prompt: str, options: list[str]) -> str | None | bool:
+    """Ask the running Omarchy shell for a menu, without the shell wrapper.
+
+    omarchy-menu-select does exactly this, but spends ~90ms per window getting
+    there: its own bash, two mktemps, and TWO perl interpreters loading JSON::PP
+    just to build the payload. Python is already running and already has json,
+    so the whole preamble collapses into the summon itself. That matters more
+    than it sounds, because the hub is a sequence of menus - between any two,
+    the old window is gone and the new one has not arrived, and every
+    millisecond of that preamble is a millisecond of empty screen.
+
+    Returns the choice, None when the user cancelled, or False when the shell
+    could not be reached at all - which is the caller's cue to try the wrapper
+    and the other pickers instead."""
+
+    selection = Path(tempfile.mkdtemp(prefix="assignmentvibe-menu-"))
+    selection_file = selection / "selection"
+    done_file = selection / "done"
+    try:
+        selection_file.write_text("", encoding="utf-8")
+        payload = json.dumps({
+            "mode": "select",
+            "prompt": prompt,
+            "options": options,
+            "selectionFile": str(selection_file),
+            "doneFile": str(done_file),
+            "width": MENU_WIDTH,
+        }, ensure_ascii=False)
+
+        if not _ipc(["shell", "summon", "omarchy.menu", payload]):
+            return False
+
+        deadline = time.monotonic() + MENU_TIMEOUT
+        while not done_file.exists():
+            if time.monotonic() > deadline:
+                return None
+            time.sleep(POLL_SECONDS)
+
+        choice = selection_file.read_text(encoding="utf-8").strip()
+        return choice or None
+    except Exception:
+        return False
+    finally:
+        shutil.rmtree(selection, ignore_errors=True)
+
+
+def _try_omarchy(prompt: str, options: list[str]) -> str | None | bool:
+    """False means "this picker is not available", so the caller keeps looking.
+    None means the user cancelled, which must NOT fall through to another
+    picker - pressing Escape should close the menu, not open the next one."""
+    choice = _summon_menu(prompt, options)
+    if choice is not False:
+        return choice
+
     if not shutil.which("omarchy-menu-select"):
-        return None
+        return False
     try:
         result = subprocess.run(
             ["omarchy-menu-select", prompt, *options, "--", "--width", str(MENU_WIDTH)],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, timeout=MENU_TIMEOUT,
         )
-        choice = result.stdout.strip()
-        return choice or None
+        return result.stdout.strip() or None
     except Exception:
-        return None
+        return False
 
 
 def _try_dmenu_style(cmd: list[str], prompt: str, options: list[str]) -> str | None:
@@ -98,7 +188,7 @@ def pick(prompt: str, options: list[str], allow_stdin_fallback: bool = True) -> 
         return None
 
     choice = _try_omarchy(prompt, options)
-    if choice:
+    if choice is not False:
         return choice
 
     choice = _try_dmenu_style(["rofi", "-dmenu", "-p", prompt], prompt, options)

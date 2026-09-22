@@ -8,15 +8,15 @@ does it belong to".
 Depends on assignmentvibe.core and assignmentvibe.paths.
 """
 
-import fnmatch
 import json
 import re
 from pathlib import Path
 
 from . import paths
-from .core import assignments as assignments_core
-from .core import knowledge as knowledge_core
-from .core import pdf_text
+
+# The extraction modules are imported by the two functions that ingest a PDF.
+# Everything else here only reads JSON that was written earlier, and the bar
+# polls one of those readers every few seconds.
 
 
 def slug_for(name: str) -> str:
@@ -30,10 +30,22 @@ def slug_for(name: str) -> str:
 _slugify = slug_for  # kept for readability at the existing call sites
 
 
+# Reading the same file twice in one run is the normal case, not an edge one:
+# building a single hub row wants the entries AND the section titles, which live
+# in one 166KB document. Keyed by path and mtime, so a re-ingest inside the same
+# process is still picked up.
+_JSON_CACHE: dict[tuple[str, float], object] = {}
+
+
 def _load_json(path: Path, default):
-    if not path.exists():
+    try:
+        key = (str(path), path.stat().st_mtime)
+    except OSError:
         return default
-    return json.loads(path.read_text(encoding="utf-8"))
+    if key not in _JSON_CACHE:
+        _JSON_CACHE.clear()
+        _JSON_CACHE[key] = json.loads(path.read_text(encoding="utf-8"))
+    return _JSON_CACHE[key]
 
 
 def _save_json(path: Path, data) -> None:
@@ -52,6 +64,9 @@ def _register_course(slug: str, display_name: str) -> None:
 
 
 def ingest_script(pdf_path: Path, course_name: str) -> dict:
+    from .core import knowledge as knowledge_core
+    from .core import pdf_text
+
     """PDF script -> knowledge base. Returns stats (for CLI output)."""
     paths.ensure_dirs()
     slug = _slugify(course_name)
@@ -89,6 +104,8 @@ def load_section_titles(course_slug: str) -> dict[str, str]:
 
 
 def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
+    from .core import assignments as assignments_core
+
     """Assignment sheet PDF -> structured tasks, tagged with its course."""
     paths.ensure_dirs()
     slug = _slugify(course_name)
@@ -138,6 +155,8 @@ def load_knowledge(course_slug: str) -> list[dict]:
 
 def _matching_pdfs(cfg, course, category: str) -> list[Path]:
     """The course's files of one category, as they lie in the library."""
+    import fnmatch
+
     directory = cfg.category_dir(course, category)
     if not directory.is_dir():
         return []

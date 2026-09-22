@@ -34,15 +34,44 @@ user working through German course material, so the product's own UI text
 stays German while the source code stays English.
 """
 
-import argparse
 import json
 import os
 import sys
 from pathlib import Path
 
-from . import context, paths, uniconfig
-from .core.prompts import build_prompt, format_knowledge_entry
-from .integrations import clipboard, menu, notify, ocr
+from . import context, paths
+
+# Nothing heavier than json is imported up here. argparse, uniconfig, the
+# prompt builder, the clipboard, the menu and the notifier are each imported by
+# the commands that use them. The bar re-runs `waybar-status` every few seconds
+# for the whole session and needs none of them - it prints one line of JSON -
+# and that was a third of its run time, spent on argument parsers, subprocess
+# and clipboard backends it never touched.
+
+
+class _LazyModule:
+    """Imports a submodule the first time something is read off it.
+
+    `menu` and `notify` are used by nearly every interactive command and by
+    none of the ones the bar polls, and between them they pull in subprocess,
+    shutil and tempfile. A plain lazy import inside each function would work but
+    would have to be repeated at forty call sites; this keeps `menu.pick(...)`
+    reading the same everywhere, and keeps the module attribute patchable in
+    tests."""
+
+    def __init__(self, name: str):
+        self._name = name
+        self._module = None
+
+    def __getattr__(self, attr: str):
+        if self._module is None:
+            from importlib import import_module
+            self._module = import_module(f".integrations.{self._name}", __package__)
+        return getattr(self._module, attr)
+
+
+menu = _LazyModule("menu")
+notify = _LazyModule("notify")
 
 def _print(*args):
     print(*args)
@@ -101,6 +130,8 @@ def cmd_context(args):
 
 
 def _resolve_solution(args) -> str | None:
+    from .integrations import ocr
+
     if args.solution:
         return args.solution
     if args.solution_file:
@@ -119,6 +150,7 @@ def _build_from_args(args) -> str:
     over what is remembered for the course, so a one-off `build --sections 3.1`
     does not overwrite the setup the widget is standing on."""
     from . import store
+    from .core.prompts import build_prompt
 
     sheet_id = args.sheet or context.course_state().get("sheet")
     if not sheet_id:
@@ -166,6 +198,8 @@ def cmd_build(args):
 
 
 def cmd_copy(args):
+    from .integrations import clipboard
+
     prompt = _build_from_args(args)
     ok, method = clipboard.copy(prompt)
     if ok:
@@ -367,6 +401,7 @@ def _task_of(state: dict) -> dict | None:
 def _sections_summary(course: str, state: dict) -> str:
     from . import store
     from .core import selection, toc
+    from .core.prompts import format_knowledge_entry
 
     if not state["sections"]:
         return "picked automatically by keyword"
@@ -456,6 +491,7 @@ def cmd_followup(args):
     them on the right mouse button - mid-conversation you want them without
     walking through the hub."""
     from .core.prompts import FOLLOW_UPS
+    from .integrations import clipboard
 
     labels = {f"{emoji} {label}": text for emoji, label, text in FOLLOW_UPS}
     choice = menu.pick("Follow-up", list(labels))
@@ -489,6 +525,7 @@ def _do_ingest(cfg) -> None:
 def _copy_prompt(course: str, course_name: str, state: dict, solution: str | None) -> None:
     from . import store
     from .core.prompts import build_prompt
+    from .integrations import clipboard
 
     task = _task_of(state)
     prompt = build_prompt(
@@ -625,6 +662,8 @@ NOTHING_TO_DO = 10
 
 
 def _load_config_or_exit(args):
+    from . import uniconfig
+
     try:
         return uniconfig.load(getattr(args, "config", None))
     except uniconfig.ConfigError as e:
@@ -654,6 +693,8 @@ def cmd_config(args):
     _print(f"Uni:      {cfg.uni_root}")
     _print(f"Downloads:{cfg.downloads}")
     _print("")
+    from . import uniconfig
+
     for course in cfg.active_courses():
         _print(f"{course.name}  ({cfg.course_dir(course)})")
         for category in uniconfig.CATEGORIES:
@@ -772,6 +813,8 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
     bibliography or a foreword is not something to hand to the model."""
     from .core import selection, toc
 
+    from .core.prompts import format_knowledge_entry
+
     grouped = selection.group_by_section(entries, include_algorithms)
     titles = {n["key"]: n["title"] for n in nodes if n.get("title")}
 
@@ -880,7 +923,9 @@ def cmd_sections(args):
            f"{len(nodes)} sections.")
 
 
-def build_arg_parser() -> argparse.ArgumentParser:
+def build_arg_parser():
+    import argparse
+
     p = argparse.ArgumentParser(prog="assignmentvibe")
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -979,7 +1024,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return p
 
 
+# Commands the bar polls, which therefore must not pay for the argument parser.
+# argparse is ~13ms of a ~60ms run, and `waybar-status` is re-run every few
+# seconds for as long as the session lasts. It takes no arguments, so there is
+# nothing for a parser to do.
+_NO_ARGUMENT_COMMANDS = {
+    "waybar-status": lambda: cmd_waybar_status(None),
+    "followup": lambda: cmd_followup(None),
+}
+
+
 def main() -> None:
+    shortcut = _NO_ARGUMENT_COMMANDS.get(sys.argv[1]) if len(sys.argv) == 2 else None
+    if shortcut:
+        shortcut()
+        return
+
     parser = build_arg_parser()
     args = parser.parse_args()
     args.func(args)
