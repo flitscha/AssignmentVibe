@@ -5,6 +5,12 @@
 // 2. Den Block unten in die JSON-Objekt-Ebene von config.jsonc einfuegen
 //    (auf gleicher Ebene wie andere "custom/..."-Module).
 //
+// Maustasten:
+//   links   Hub-Menue: Aufgabe waehlen, Kapitel waehlen, Prompt kopieren
+//   rechts  direkt die Nachfragen ("Erklaere den letzten Schritt genauer" ...),
+//           weil man die mitten im Chat braucht und nicht durchs Hub laufen will
+//   mitte   Kontext vergessen
+//
 // Omarchy-Themes ueberschreiben waybar.css teilweise - Anpassung der Optik
 // ggf. in der eigenen ~/.config/waybar/style.css unter .custom-assignmentvibe
 // noetig (Klassennamen: "idle" / "active", siehe waybar-status Ausgabe).
@@ -14,7 +20,8 @@
     "return-type": "json",
     "interval": 15,
     "on-click": "assignmentvibe pick",
-    "on-click-right": "assignmentvibe context clear",
+    "on-click-right": "assignmentvibe followup",
+    "on-click-middle": "assignmentvibe context clear",
     "tooltip": true
   }
 }

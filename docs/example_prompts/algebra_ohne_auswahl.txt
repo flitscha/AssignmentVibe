@@ -1,0 +1,88 @@
+Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten.
+
+# Kontext: Algebra I
+Aufgabenblatt None, Besprechung: Do. 17. Oktober 2024
+
+# Aufgabe 4: Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen
+Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.
+1
+
+# Aus dem Skriptum: Abschnitt 2.4 Existenz von Untergruppen und Sylow-Sätze
+(alle Definitionen und Saetze dieser Abschnitte, ohne Beweise)
+
+Lemma 2.3.8:
+Es gilt Z(G) ◁G und CG(h) < G für alle h ∈G.
+
+Korollar 2.3.9 (Klassengleichung):
+. Sei G eine endliche Gruppe und V ein Vertretersy-
+stem aller Konjugationsklassen in G mit mindestens 2 Elementen. Dann gilt
+#G = #Z(G) +
+X
+v∈V
+|G : CG(v)|.
+
+Korollar 2.3.10:
+Sei p eine Primzahl und G eine Gruppe mit #G = pr > 1. Dann gilt
+Z(G)̸ = {e}.
+
+Definition 2.4.1:
+Sei G eine Gruppe. Die Ordnung ord(g) eines Elements g ∈G
+ist die Mächtigkeit der Untergruppe ⟨g⟩.
+△
+
+Lemma 2.4.2:
+Sei G eine Gruppe und g ∈G.
+(i) Es gilt gz = e für z ∈Z genau dann, wenn ord(g) | z. Insbesondere ist die Ordnung
+von g die kleinste positive Zahl n mit gn = e.
+(ii) Falls gp = e für eine Primzahl p gilt, folgt g = e oder ord(g) = p.
+
+Korollar 2.4.3 (Kleiner Satz von Fermat):
+. Sei p eine Primzahl und a ∈N mit 1 ≤
+a < p. Dann gilt
+p | ap−1 −1.
+
+Proposition 2.4.4 (Lemma von Cauchy):
+. Sei G eine endliche Gruppe und p eine Prim-
+zahl mit p | #G. Dann gibt es in G ein Element g mit ord(g) = p.
+
+Satz 2.4.5:
+Sei G eine endliche abelsche Gruppe. Dann gibt es für jeden Teiler n von #G
+eine Untergruppe H von G mit #H = n.
+
+Proposition 2.4.6:
+Sei p eine Primzahl und G eine Gruppe mit #G = pr. Dann gibt es
+für jedes 0 ≤k ≤r eine Untergruppe H von G mit #H = pk.
+
+Satz 2.4.7 (1. Sylowsatz):
+. Sei G eine endliche Gruppe mit #G = prm, wobei p eine
+Primzahl mit p ∤m sei. Dann gibt es für jedes 0 ≤k ≤r eine Untergruppe H von G mit
+#H = pk.
+
+Definition 2.4.9:
+Sei p eine Primzahl mit #G = prm und p ∤m.
+(i) H < G heißt p-Untergruppe von G, falls #H = pk für ein 0 ≤k ≤r gilt.
+(ii) H < G heißt p-Sylow-Untergruppe, falls #H = pr gilt.
+△
+
+Satz 2.4.10 (2. Sylowsatz):
+. Sei G eine endliche Gruppe mit #G = prm, wobei p eine
+Primzahlmitp ∤msei.SeienH einep-UntergruppeundS einep-Sylow-Untergruppevon
+G. Dann gibt es ein g ∈G mit
+H ⊆gSg−1.
+Insbesondere ist jede p-Untergruppe in einer p-Sylow-Untergruppe enthalten und je zwei
+p-Sylow-Untergruppen sind zueinander konjugiert.
+
+26
+KAPITEL 2. GRUPPEN
+
+Satz 2.4.11 (3. Sylowsatz):
+. Sei G eine endliche Gruppe mit #G = prm, wobei p eine
+Primzahl mit p ∤m sei. Sei s die Anzahl der p-Sylow-Untergruppen von G. Dann gilt
+s | m und s ≡1 mod p.
+
+Korollar 2.4.12:
+Bis auf Isomorphie gibt es nur eine Gruppe mit 15 Elementen, nämlich
+die zyklische Gruppe Z/15Z.
+
+# Meine bisherige Teilloesung
+(noch nichts probiert)

@@ -1,6 +1,4 @@
-Use-Case: 💡 Hint
-
-Gib mir einen kleinen Hinweis, wie ich an diese Aufgabe herangehen koennte. Verrate NICHT die Loesung oder den naechsten Rechenschritt direkt, sondern hilf mir, selbst auf die Idee zu kommen.
+Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten.
 
 # Kontext: PS Optimierung
 Aufgabenblatt 7, Besprechung: 5/6 . 5 . 2026
@@ -18,7 +16,7 @@ f(x) ≤lim inf
 y→x f(y)
 für alle x ∈Ω.
 
-# Aus dem Skriptum: Abschnitt 3.1 Konvexe Funktionen
+# Aus dem Skriptum: Abschnitt 3 Konvexe Funktionen und deren Minima
 (alle Definitionen und Saetze dieser Abschnitte, ohne Beweise)
 
 Definition 3.1.1:
@@ -87,6 +85,75 @@ durch y ∈C und
 für alle z ∈C
 (3.2)
 charakterisiert.
+
+Satz 3.2.1:
+Es sei Ω⊂Rn eine offene konvexe Menge, f : Ω→R eine konvexe
+Funktion und ξ ∈Ωein lokales Minimum von f. Dann ist ξ ein globales Minimum
+von f.
+
+Satz 3.2.2:
+Es sei f : Rn →R eine stetig differenzierbare konvexe Funktion. Ein
+Punkt ξ ∈Rn ist genau dann ein globales Minimum von f wenn ∇f(ξ) = 0 ist.
+
+Satz 3.2.3:
+Es sei f : Rn →R eine konvexe Funktion. Ein Punkt ξ ∈Rn ist genau
+dann ein globales Minimum von f, wenn 0 ∈∂f(ξ) ist.
+
+Definition 3.2.4:
+Ein Punkt (x∗, μ∗, λ∗) ∈Rn+p+m heißt Karush-Kuhn-Tucker-
+Punkt oder kurz KKT-Punkt für (3.3), falls die Bedingungen
+∇f(x∗) +
+p
+X
+i=1
+μ∗
+i ∇gi(x∗) +
+m
+X
+j=1
+λ∗
+jAT
+j−= 0
+gi(x∗) ≤0
+Ax∗= b
+μ∗
+i ≥0
+μ∗
+i gi(x∗) = 0
+erfüllt sind.
+
+Satz 3.2.5 (Karush-Kuhn-Tucker):
+. Es seien f : Rn →R und gi : Rn →R stetig
+differenzierbare konvexe Funktionen. Ein Punkt x∗∈Rn ist genau dann eine Lösung
+des Optimierungsproblems (3.3), wenn es (μ∗, λ∗) ∈Rp+m so gibt, dass (x∗, μ∗, λ∗)
+ein KKT-Punkt für (3.3) ist.
+
+Definition 3.2.7:
+Zu den Daten aus (3.5) setzen wir
+D := {y ∈Rp+m : yi ≥0 für i = 1, . . . , p}.
+Die Funktion
+L: Rn × D →R,
+(x, y) 7→f(x) +
+p
+X
+i=1
+yigi(x) +
+j+p
+X
+j=1
+yj(Ai−x −bi)
+nennt man Langrange-Funktion des Problems (3.5). Ein Punkt (x∗, y∗) ∈Rn × D
+heißt Sattelpunkt von L, falls
+L(x, y∗) ≥L(x∗, y∗) ≥L(x∗, y)
+für alle x ∈Rn und alle y ∈D gilt.
+
+Satz 3.2.8:
+Es sei (x∗, y∗) ∈Rn × D ein Sattelpunkt der Lagrange-Funktion L
+von (3.5). Dann ist x∗eine Lösung von (3.5) und es gilt L(x∗, y∗) = f(x∗). Ist um-
+gekehrt x∗∈Rn eine Lösung von (3.5) und das System erfüllt die Slater-Bedingung,
+so gibt es ein y∗∈D so, dass (x∗, y∗) ein Sattelpunkt der Lagrange-Funktion ist.
+52
+PAGE57
 
 # Meine bisherige Teilloesung
 (noch nichts probiert)

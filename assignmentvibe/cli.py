@@ -1,7 +1,6 @@
 """
 `assignmentvibe` CLI - entry point for the terminal, the Waybar module, and
-the interactive "pick" flow (the one meant to sit behind a top-bar click on
-Omarchy).
+the hub menu (the one behind a top-bar click on Omarchy).
 
 Subcommands:
   config show|init|path                   the per-semester config (uniconfig.py)
@@ -12,13 +11,21 @@ Subcommands:
   ingest-sheet  <pdf> --course NAME       ingest an assignment sheet
   courses                                  list ingested courses
   sheets [--course SLUG]                   list ingested assignment sheets
+  sections [--course SLUG] [--all]          the chapters a script chunks into
   tasks <sheet_id>                          list the tasks on a sheet
   context show|clear                        current working context
   build   ...                                build a prompt, print to stdout
   copy    ...                                 build a prompt + copy to clipboard
-  pick                                         the full interactive flow (top-bar click)
-  waybar-status                                 JSON status for the Waybar custom module
-  open-browser [--provider ...]                 open the chat website
+  followup                                     copy a canned reply for the chat
+  pick                                           the hub menu (top-bar click)
+  waybar-status                                   JSON status for the Waybar module
+  open-browser [--provider ...]                   open the chat website
+
+There is one prompt mode: solve the task. The seven it replaces ("hint",
+"explain the concept", "what next", ...) asked the reader to decide how much
+of an answer they wanted BEFORE seeing one, which is the wrong moment - you
+read the first step, get the idea, and stop. What those modes were for now
+lives in `followup` as canned replies, one click at the moment it is needed.
 
 Note on language: this file (like the rest of the codebase) is commented in
 English, but user-facing strings passed to notify.send()/print() are
@@ -33,12 +40,8 @@ import sys
 from pathlib import Path
 
 from . import context, paths, uniconfig
-from .core.prompts import USE_CASES, build_prompt, format_knowledge_entry
+from .core.prompts import build_prompt, format_knowledge_entry
 from .integrations import clipboard, menu, notify, ocr
-
-USE_CASE_LABELS = {key: f"{v['emoji']} {v['label']}" for key, v in USE_CASES.items()}
-LABEL_TO_KEY = {v: k for k, v in USE_CASE_LABELS.items()}
-
 
 def _print(*args):
     print(*args)
@@ -111,14 +114,22 @@ def _resolve_solution(args) -> str | None:
 
 
 def _build_from_args(args) -> str:
+    """The command-line path to the same prompt the hub builds. Arguments win
+    over what is remembered for the course, so a one-off `build --sections 3.1`
+    does not overwrite the setup the widget is standing on."""
     from . import store
-    sheet_id = args.sheet or context.get().get("sheet")
+
+    sheet_id = args.sheet or context.course_state().get("sheet")
     if not sheet_id:
-        print("Kein Aufgabenblatt angegeben (--sheet) und kein aktueller Kontext gesetzt.", file=sys.stderr)
+        print("Kein Aufgabenblatt angegeben (--sheet) und kein aktueller Kontext gesetzt.",
+              file=sys.stderr)
         sys.exit(1)
     sheet = store.load_sheet(sheet_id)
 
-    task_num = args.task or context.get().get("task")
+    course_slug = sheet.get("course_slug")
+    saved = context.course_state(course_slug)
+
+    task_num = args.task or saved.get("task")
     if not task_num:
         print("Keine Aufgabe angegeben (--task).", file=sys.stderr)
         sys.exit(1)
@@ -127,36 +138,21 @@ def _build_from_args(args) -> str:
         print(f"Aufgabe {task_num} nicht in Blatt {sheet_id} gefunden.", file=sys.stderr)
         sys.exit(1)
 
-    course_slug = sheet.get("course_slug")
     knowledge = store.load_knowledge(course_slug) if course_slug else []
     course_name = store.list_courses().get(course_slug, course_slug or "")
-
-    use_case = args.use_case or context.get().get("use_case", "hint")
-    if use_case not in USE_CASES:
-        print(f"Unbekannter Use-Case '{use_case}'. Optionen: {', '.join(USE_CASES)}", file=sys.stderr)
-        sys.exit(1)
-
     solution = _resolve_solution(args)
 
-    # Read the remembered selection BEFORE overwriting the context below, and
-    # only when it belongs to this sheet's course - section keys mean different
-    # chapters in different scripts, so carrying them across a course switch
-    # would quietly fill the prompt with another subject's definitions.
-    previous = context.get()
-    same_course = previous.get("course") == course_slug
-    remembered = previous.get("sections") if same_course else None
-    if not same_course:
-        # Otherwise the old course's keys stay behind next to the new course and
-        # would be taken as "remembered" on the following build.
-        context.drop("sections")
+    context.set_course(course_slug, sheet=sheet_id, task=int(task_num))
 
-    context.set(sheet=sheet_id, task=int(task_num), use_case=use_case, course=course_slug)
-
-    sections = getattr(args, "sections", None) or remembered
+    sections = getattr(args, "sections", None) or saved.get("sections")
     proofs = getattr(args, "proofs", None)
-    algorithms = bool(getattr(args, "algorithms", None))
+    if proofs is None:
+        proofs = saved.get("proofs")
+    algorithms = getattr(args, "algorithms", None)
+    if algorithms is None:
+        algorithms = bool(saved.get("algorithms"))
 
-    return build_prompt(use_case, task, sheet, knowledge, solution, course_name,
+    return build_prompt(task, sheet, knowledge, solution, course_name,
                         sections=sections, include_proofs=proofs,
                         include_algorithms=algorithms,
                         section_titles=store.load_section_titles(course_slug)
@@ -180,17 +176,39 @@ def cmd_copy(args):
 
 
 def cmd_waybar_status(args):
-    ctx = context.get()
-    if not ctx:
-        payload = {"text": "🧮", "tooltip": "AssignmentVibe - kein aktiver Kontext", "class": "idle"}
-    else:
-        uc_label = USE_CASE_LABELS.get(ctx.get("use_case", ""), ctx.get("use_case", "?"))
-        text = f"🧮 A{ctx.get('task', '?')}"
-        tooltip = (f"Blatt: {ctx.get('sheet', '?')}\n"
-                   f"Aufgabe: {ctx.get('task', '?')}\n"
-                   f"Use-Case: {uc_label}")
-        payload = {"text": text, "tooltip": tooltip, "class": "active"}
-    print(json.dumps(payload, ensure_ascii=False))
+    """What the top bar shows. Course and task, because those are the two things
+    you check without clicking: am I still pointed at the right course, and
+    which task is loaded."""
+    from . import store
+
+    course = context.current_course()
+    state = context.course_state(course) if course else {}
+    if not course or not state.get("task"):
+        print(json.dumps({"text": "🧮",
+                          "tooltip": "AssignmentVibe - keine Aufgabe gewaehlt",
+                          "class": "idle"}, ensure_ascii=False))
+        return
+
+    name = store.list_courses().get(course, course)
+    # The first word is the course ("Parallele Programmierung" -> "Parallele");
+    # the bar is shared with everything else running, so it gets one word.
+    short = name.split()[0][:12]
+
+    sheet_id = state.get("sheet")
+    sheet_text = sheet_id or "?"
+    if sheet_id:
+        try:
+            sheet_text = f"Blatt {store.load_sheet(sheet_id).get('sheet_number') or sheet_id}"
+        except (FileNotFoundError, OSError):
+            sheet_text = sheet_id
+
+    sections = ", ".join(state.get("sections") or []) or "automatisch nach Stichworten"
+    print(json.dumps({
+        "text": f"🧮 {short} A{state['task']}",
+        "tooltip": (f"Kurs: {name}\n{sheet_text}, Aufgabe {state['task']}\n"
+                    f"Kapitel: {sections}"),
+        "class": "active",
+    }, ensure_ascii=False))
 
 
 def cmd_open_browser(args):
@@ -202,7 +220,7 @@ def cmd_open_browser(args):
         "chatgpt": "https://chatgpt.com",
         "gemini": "https://gemini.google.com/app",
     }
-    url = urls.get(args.provider, urls["claude"])
+    url = urls.get(getattr(args, "provider", None) or "claude", urls["claude"])
 
     if shutil.which("omarchy-launch-webapp"):
         subprocess.run(["omarchy-launch-webapp", url])
@@ -247,10 +265,225 @@ def cmd_organize(args):
         _print("Automatisch eingelesen (--ingest).")
 
 
+# --- The hub -----------------------------------------------------------------
+#
+# One window that shows where you are and lets you change one thing at a time,
+# rather than a chain of questions asked in a fixed order. The chain it replaces
+# asked six of them (sheet, task, use-case, chapters, partial solution, browser)
+# on every single prompt, which is tolerable with a keyboard and not at all with
+# a mouse - and five of those six answers are the same as last time.
+#
+# So: the top row does the thing, the ARROW rows change one part of the setup
+# and come straight back here. Everything below the first separator is state
+# that persists per course (see assignmentvibe.context), which is why the
+# common case is a single click on the top row.
+
+ARROW = "▸"
+COPY_ROW = "▶  Prompt kopieren"
+FOLLOWUP_ROW = "💬 Nachfrage kopieren …"
+BROWSER_ROW = "🌐 Chat oeffnen"
+INGEST_ROW = "⟳  Neue Blaetter einlesen"
+SOLUTION_ROW = "📋 Teilloesung aus Zwischenablage"
+SEPARATOR = "───────────────────────────────"
+
+
+def _semester_courses(cfg) -> dict[str, str]:
+    """slug -> display name for the active semester's courses, in config order.
+
+    The config is the authority on what is current; the knowledge base only
+    knows what has ever been ingested, which includes last year's courses."""
+    from . import store
+    return {store.slug_for(c.name): c.name for c in cfg.active_courses()}
+
+
+def _latest_sheet(sheets: list[dict]) -> dict | None:
+    """The newest sheet of a course - by sheet number, falling back to the id.
+    This is the one you are working on; older ones are rarely wanted again."""
+    if not sheets:
+        return None
+    return max(sheets, key=lambda s: (s.get("sheet_number") or 0, s["sheet_id"]))
+
+
+def _resolve_state(course: str) -> dict:
+    """What the hub currently stands on: the remembered sheet and task for this
+    course, repaired where it no longer exists (a sheet can be re-ingested under
+    a different name, or the remembered task number can be off the end of a
+    freshly replaced sheet)."""
+    from . import store
+
+    saved = context.course_state(course)
+    sheets = store.list_sheets(course)
+    by_id = {s["sheet_id"]: s for s in sheets}
+
+    sheet = by_id.get(saved.get("sheet")) or _latest_sheet(sheets)
+    task_num = saved.get("task")
+    if sheet and not any(t["number"] == task_num for t in sheet["tasks"]):
+        task_num = sheet["tasks"][0]["number"] if sheet["tasks"] else None
+
+    return {
+        "sheet": sheet,
+        "task": task_num,
+        "sections": saved.get("sections") or [],
+        "proofs": bool(saved.get("proofs")),
+        "algorithms": bool(saved.get("algorithms")),
+        "sheets": sheets,
+    }
+
+
+def _task_of(state: dict) -> dict | None:
+    sheet = state.get("sheet")
+    if not sheet or state.get("task") is None:
+        return None
+    return next((t for t in sheet["tasks"] if t["number"] == state["task"]), None)
+
+
+def _sections_summary(course: str, state: dict) -> str:
+    from . import store
+    from .core import selection, toc
+
+    if not state["sections"]:
+        return "automatisch nach Stichworten"
+
+    titles = store.load_section_titles(course)
+    entries = selection.entries_in(store.load_knowledge(course), state["sections"],
+                                   state["algorithms"])
+    size = sum(len(format_knowledge_entry(e, include_proof=state["proofs"])) + 1
+               for e in entries)
+    names = ", ".join(toc.label(titles, k) for k in state["sections"])
+    if len(names) > 44:
+        names = names[:41] + "…"
+    return f"{names}  ({len(entries)}, {size // 1000}k)"
+
+
+def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str]]:
+    """(label, action) for the hub, top to bottom."""
+    task = _task_of(state)
+    sheet = state["sheet"]
+
+    task_text = "keine"
+    if task:
+        title = f"  {task['title']}" if task.get("title") else ""
+        task_text = f"{task['number']}{title}"
+    sheet_text = "keins eingelesen"
+    if sheet:
+        newest = _latest_sheet(state["sheets"])
+        suffix = "  (neuestes)" if newest and newest["sheet_id"] == sheet["sheet_id"] else ""
+        sheet_text = f"{sheet.get('sheet_number') or sheet['sheet_id']}{suffix}"
+
+    rows = []
+    if task:
+        rows.append((COPY_ROW, "copy"))
+    rows.append((FOLLOWUP_ROW, "followup"))
+    rows.append((BROWSER_ROW, "browser"))
+    rows.append((SEPARATOR, None))
+    rows += [
+        (f"   Aufgabe  {ARROW}  {task_text}", "task"),
+        (f"   Blatt    {ARROW}  {sheet_text}", "sheet"),
+        (f"   Kurs     {ARROW}  {course_name}", "course"),
+        (f"   Kapitel  {ARROW}  {_sections_summary(course, state)}", "sections"),
+        (f"   Beweise  {ARROW}  {'an' if state['proofs'] else 'aus'}", "proofs"),
+    ]
+    rows.append((SEPARATOR + " ", None))
+    rows.append((INGEST_ROW, "ingest"))
+    return rows
+
+
+def _pick_course(cfg, current: str | None) -> str | None:
+    from . import store
+
+    courses = _semester_courses(cfg)
+    if not courses:
+        notify.send("Keine Kurse", f"Semester '{cfg.active}' hat keine Kurse in der Config.",
+                    glyph="⚠️")
+        return None
+    counts = {slug: len(store.list_sheets(slug)) for slug in courses}
+    labels = {f"{'●' if slug == current else '○'} {name}  "
+              f"({counts[slug]} Blaetter)": slug
+              for slug, name in courses.items()}
+    choice = menu.pick("Kurs", list(labels))
+    return labels.get(choice) if choice else None
+
+
+def _pick_sheet(state: dict, current_id: str | None) -> dict | None:
+    sheets = sorted(state["sheets"], key=lambda s: (s.get("sheet_number") or 0),
+                    reverse=True)
+    labels = {f"{'●' if s['sheet_id'] == current_id else '○'} Blatt "
+              f"{s.get('sheet_number') or s['sheet_id']}  "
+              f"({s.get('num_tasks', '?')} Aufgaben)": s
+              for s in sheets}
+    choice = menu.pick("Aufgabenblatt", list(labels))
+    return labels.get(choice) if choice else None
+
+
+def _pick_task(sheet: dict, current: int | None) -> int | None:
+    labels = {}
+    for t in sheet["tasks"]:
+        title = f": {t['title']}" if t.get("title") else ""
+        labels[f"{'●' if t['number'] == current else '○'} Aufgabe {t['number']}{title}"] = t["number"]
+    choice = menu.pick("Aufgabe", list(labels))
+    return labels.get(choice) if choice else None
+
+
+def cmd_followup(args):
+    """The canned replies, as their own entry point so the Waybar module can put
+    them on the right mouse button - mid-conversation you want them without
+    walking through the hub."""
+    from .core.prompts import FOLLOW_UPS
+
+    labels = {f"{emoji} {label}": text for emoji, label, text in FOLLOW_UPS}
+    choice = menu.pick("Nachfrage", list(labels))
+    if not choice:
+        return
+    ok, method = clipboard.copy(labels[choice])
+    if ok:
+        notify.send(choice, "In Zwischenablage kopiert.", glyph="💬")
+    else:
+        notify.send("Nachfrage", f"Zwischenablage nicht verfuegbar: {method}", glyph="⚠️")
+
+
+def _do_ingest(cfg) -> None:
+    from . import store
+
+    notify.send("Einlesen laeuft", "Neue Skripte und Blaetter werden verarbeitet.",
+                glyph="⟳")
+    result = store.ingest_missing(cfg)
+    parts = []
+    if result["scripts"]:
+        parts.append(f"{len(result['scripts'])} Skript(e)")
+    if result["sheets"]:
+        parts.append(f"{len(result['sheets'])} Blatt/Blaetter")
+    if result["errors"]:
+        notify.send("Einlesen mit Fehlern", "\n".join(result["errors"][:3]), glyph="⚠️")
+    elif parts:
+        notify.send("Eingelesen", ", ".join(parts), glyph="✅")
+    else:
+        notify.send("Nichts Neues", "Alle Blaetter des Semesters sind schon eingelesen.",
+                    glyph="🧮")
+
+
+def _copy_prompt(course: str, course_name: str, state: dict, solution: str | None) -> None:
+    from . import store
+    from .core.prompts import build_prompt
+
+    task = _task_of(state)
+    prompt = build_prompt(
+        task, state["sheet"], store.load_knowledge(course), solution, course_name,
+        sections=state["sections"] or None,
+        include_proofs=state["proofs"],
+        include_algorithms=state["algorithms"],
+        section_titles=store.load_section_titles(course),
+    )
+    ok, method = clipboard.copy(prompt)
+    if ok:
+        notify.send(f"Aufgabe {state['task']} kopiert",
+                    f"{len(prompt)} Zeichen - jetzt im Chat einfuegen.", glyph="📋")
+    else:
+        notify.send("Prompt erstellt",
+                    f"Zwischenablage nicht verfuegbar, gespeichert: {method}", glyph="⚠️")
+
+
 def cmd_pick(args):
-    """The interactive flow: sheet -> task -> use-case -> (optional partial
-    solution) -> build prompt -> copy -> notify -> optionally open a browser.
-    This is exactly what should sit behind the top-bar click."""
+    """The hub behind the top-bar click."""
     from . import store
 
     if not menu.any_picker_available():
@@ -258,104 +491,85 @@ def cmd_pick(args):
         # without a TTY (e.g. in tests via a pipe), as long as data actually
         # arrives - see integrations/menu.py.
         notify.send("Kein grafischer Picker gefunden",
-                     "Weder Walker/rofi/wofi/fzf verfuegbar - falls kein "
-                     "Terminal offen ist, passiert jetzt evtl. nichts.", glyph="⚠️")
+                    "Weder Walker/rofi/wofi/fzf verfuegbar - falls kein "
+                    "Terminal offen ist, passiert jetzt evtl. nichts.", glyph="⚠️")
 
-    sheets = store.list_sheets()
-    if not sheets:
-        notify.send("Keine Aufgabenblaetter", "Erst 'assignmentvibe ingest-sheet' ausfuehren.", glyph="⚠️")
-        sys.exit(1)
-
-    courses = store.list_courses()
-    sheet_labels = {
-        f"{s['sheet_id']}  ({courses.get(s.get('course_slug'), '?')}, "
-        f"{s.get('num_tasks', '?')} Aufgaben)": s
-        for s in sheets
-    }
-    sheet_label = menu.pick("Aufgabenblatt", list(sheet_labels.keys()))
-    if not sheet_label:
-        notify.send("Abgebrochen", "Kein Aufgabenblatt ausgewaehlt.", glyph="🧮")
+    cfg = _load_config_or_exit(args)
+    courses = _semester_courses(cfg)
+    if not courses:
+        notify.send("Keine Kurse", f"Semester '{cfg.active}' hat keine Kurse in der Config.",
+                    glyph="⚠️")
         return
-    sheet = sheet_labels[sheet_label]
 
-    task_labels = {
-        f"Aufgabe {t['number']}" + (f": {t['title']}" if t.get("title") else ""): t["number"]
-        for t in sheet["tasks"]
-    }
-    task_label = menu.pick("Aufgabe", list(task_labels.keys()))
-    if not task_label:
-        notify.send("Abgebrochen", "Keine Aufgabe ausgewaehlt.", glyph="🧮")
-        return
-    task_num = task_labels[task_label]
+    course = context.current_course()
+    if course not in courses:
+        course = next(iter(courses))
 
-    use_case_label = menu.pick("Use-Case", list(USE_CASE_LABELS.values()))
-    if not use_case_label:
-        notify.send("Abgebrochen", "Kein Use-Case ausgewaehlt.", glyph="🧮")
-        return
-    use_case = LABEL_TO_KEY[use_case_label]
-
-    # Which part of the script to hand over. Pre-selected from the sections used
-    # last time for this course, or - on the first run - from what the keyword
-    # ranking suggests, so the common case is a single confirming keystroke.
-    course_slug = sheet.get("course_slug")
-    knowledge = store.load_knowledge(course_slug) if course_slug else []
-    sections, proofs, algorithms = None, None, None
-    if knowledge:
-        from .core import selection
-
-        task = next(t for t in sheet["tasks"] if t["number"] == task_num)
-        ctx = context.get()
-        remembered = ctx.get("sections") if ctx.get("course") == course_slug else None
-        preselected = remembered or selection.suggest_sections(task["text"], knowledge)
-        picked = _pick_sections(knowledge, store.load_sections(course_slug), preselected)
-        if picked is None:
-            notify.send("Abgebrochen", "Kein Skript-Kontext ausgewaehlt.", glyph="🧮")
-            return
-        sections, proofs, algorithms = picked
-        context.set(course=course_slug, sections=sections)
-
-    solution_choice = menu.pick(
-        "Teilloesung",
-        ["Keine", "Aus Zwischenablage uebernehmen", "Aus Bild (OCR)"],
-    )
     solution = None
-    if solution_choice == "Aus Zwischenablage uebernehmen":
-        solution = clipboard.paste()
-    elif solution_choice == "Aus Bild (OCR)":
-        img_path = menu.pick("Bildpfad eingeben (dann Enter)", [""])
-        if img_path:
-            try:
-                solution = ocr.image_to_text(img_path)
-            except ocr.OcrUnavailable as e:
-                notify.send("OCR fehlgeschlagen", str(e), glyph="⚠️")
+    while True:
+        state = _resolve_state(course)
+        rows = _hub_rows(course, courses[course], state)
+        where = f"Aufgabe {state['task']}" if state["task"] is not None else "keine Aufgabe"
+        header = f"{courses[course]} · {where}"
+        choice = menu.pick(header, [label for label, _ in rows])
+        if choice is None:
+            return
+        action = next((a for label, a in rows if label == choice), None)
+        if action is None:
+            continue
 
-    class _Args:
-        pass
-
-    fake_args = _Args()
-    fake_args.sheet = sheet["sheet_id"]
-    fake_args.task = task_num
-    fake_args.use_case = use_case
-    fake_args.solution = solution
-    fake_args.solution_file = None
-    fake_args.solution_image = None
-    fake_args.sections = sections
-    fake_args.proofs = proofs
-    fake_args.algorithms = algorithms
-
-    prompt = _build_from_args(fake_args)
-    ok, method = clipboard.copy(prompt)
-    if ok:
-        notify.send(f"Aufgabe {task_num} - {USE_CASE_LABELS[use_case]}",
-                     "Prompt in Zwischenablage kopiert.", glyph="📋")
-    else:
-        notify.send("Prompt erstellt", f"Zwischenablage nicht verfuegbar, gespeichert: {method}", glyph="⚠️")
-
-    open_choice = menu.pick("Chat oeffnen?", ["Ja - claude.ai", "Ja - chatgpt.com", "Nein"])
-    if open_choice and open_choice.startswith("Ja"):
-        provider = "claude" if "claude" in open_choice else "chatgpt"
-        args.provider = provider
-        cmd_open_browser(args)
+        if action == "copy":
+            _copy_prompt(course, courses[course], state, solution)
+            return
+        if action == "followup":
+            cmd_followup(args)
+            return
+        if action == "browser":
+            cmd_open_browser(args)
+            return
+        if action == "ingest":
+            _do_ingest(cfg)
+            continue
+        if action == "course":
+            picked = _pick_course(cfg, course)
+            if picked:
+                course = picked
+                context.set(course=course)
+            continue
+        if action == "sheet":
+            picked = _pick_sheet(state, state["sheet"] and state["sheet"]["sheet_id"])
+            if picked:
+                # A different sheet invalidates the task number, not the chapters.
+                first = picked["tasks"][0]["number"] if picked["tasks"] else None
+                context.set_course(course, sheet=picked["sheet_id"], task=first)
+            continue
+        if action == "task":
+            if not state["sheet"]:
+                notify.send("Kein Aufgabenblatt",
+                            "Erst ein Blatt einlesen ('Neue Blaetter einlesen').",
+                            glyph="⚠️")
+                continue
+            picked = _pick_task(state["sheet"], state["task"])
+            if picked is not None:
+                context.set_course(course, sheet=state["sheet"]["sheet_id"], task=picked)
+            continue
+        if action == "proofs":
+            context.set_course(course, proofs=not state["proofs"])
+            continue
+        if action == "sections":
+            entries = store.load_knowledge(course)
+            if not entries:
+                notify.send("Keine Wissensbasis",
+                            f"Fuer '{courses[course]}' ist noch kein Skript eingelesen.",
+                            glyph="⚠️")
+                continue
+            picked = _pick_sections(entries, store.load_sections(course),
+                                    state["sections"])
+            if picked is not None:
+                sections, proofs, algorithms = picked
+                context.set_course(course, sections=sections, proofs=proofs,
+                                   algorithms=algorithms)
+            continue
 
 
 # --- Semester config, sorting and launcher entries -------------------------
@@ -709,7 +923,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
         pb = sub.add_parser(name)
         pb.add_argument("--sheet", default=None)
         pb.add_argument("--task", type=int, default=None)
-        pb.add_argument("--use-case", default=None, choices=list(USE_CASES))
         pb.add_argument("--solution", default=None)
         pb.add_argument("--solution-file", default=None)
         pb.add_argument("--solution-image", default=None)
@@ -721,7 +934,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="Algorithmen mitgeben (Standard: aus)")
         pb.set_defaults(func=fn)
 
-    p_pick = sub.add_parser("pick", help="Interaktiver Auswahl-Flow (fuer Top-Bar-Klick)")
+    p_fu = sub.add_parser("followup", help="Typische Nachfrage in die Zwischenablage kopieren")
+    p_fu.set_defaults(func=cmd_followup)
+
+    p_pick = sub.add_parser("pick", help="Das Hub-Menue (fuer den Top-Bar-Klick)")
+    p_pick.add_argument("--config", default=None, help="andere Config-Datei benutzen")
+    p_pick.add_argument("--provider", default="claude",
+                        choices=["claude", "chatgpt", "gemini"],
+                        help="Welcher Chat bei 'Chat oeffnen' aufgeht")
     p_pick.set_defaults(func=cmd_pick)
 
     p_wb = sub.add_parser("waybar-status", help="JSON-Status fuers Waybar-Custom-Modul")

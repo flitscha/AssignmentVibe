@@ -8,7 +8,7 @@ retrieval, but it demonstrates that automatic chapter/theorem selection
 works in principle. Replace with real embedding search for a production
 version.
 
-Note: USE_CASES instruction text and the prompt template strings further
+Note: the instruction text and the prompt template strings further
 down are deliberately kept in German - this is product content sent to an
 LLM on behalf of a German-speaking student working through German course
 material, not internal code. Only identifiers/comments are English here.
@@ -22,69 +22,54 @@ import re
 import sys
 from pathlib import Path
 
-USE_CASES = {
-    "hint": {
-        "emoji": "\U0001F4A1",
-        "label": "Hint",
-        "instruction": (
-            "Gib mir einen kleinen Hinweis, wie ich an diese Aufgabe herangehen "
-            "koennte. Verrate NICHT die Loesung oder den naechsten Rechenschritt "
-            "direkt, sondern hilf mir, selbst auf die Idee zu kommen."
-        ),
-    },
-    "explain_concept": {
-        "emoji": "\U0001F9E0",
-        "label": "Explain concept",
-        "instruction": (
-            "Erklaere mir das zugrunde liegende Konzept dieser Aufgabe allgemein "
-            "verstaendlich, bevor ich die Aufgabe selbst loese."
-        ),
-    },
-    "check_solution": {
-        "emoji": "✓",
-        "label": "Check solution",
-        "instruction": (
-            "Ueberpruefe meine Teilloesung unten auf Korrektheit. Sag mir klar, "
-            "ob sie stimmt, und falls nicht, an welcher Stelle der Fehler liegt "
-            "(ohne die Aufgabe komplett fuer mich zu loesen)."
-        ),
-    },
-    "why_valid": {
-        "emoji": "❓",
-        "label": "Why is this valid?",
-        "instruction": (
-            "Ich verstehe nicht, warum der Schritt in meiner Teilloesung "
-            "mathematisch gerechtfertigt ist. Erklaere mir, welcher Satz/welche "
-            "Definition das rechtfertigt und warum."
-        ),
-    },
-    "next_step": {
-        "emoji": "➡️",
-        "label": "What should I do next?",
-        "instruction": (
-            "Basierend auf meiner Teilloesung: was ist ein sinnvoller naechster "
-            "Schritt? Gib mir nur den naechsten Schritt, nicht die ganze weitere "
-            "Loesung."
-        ),
-    },
-    "explain_definition": {
-        "emoji": "\U0001F4D6",
-        "label": "Explain definition",
-        "instruction": (
-            "Erklaere mir die unten angegebene(n) Definition(en)/Saetze aus dem "
-            "Skriptum in eigenen, einfachen Worten mit einem kleinen Beispiel."
-        ),
-    },
-    "find_mistake": {
-        "emoji": "\U0001F50D",
-        "label": "Find mistake",
-        "instruction": (
-            "In meiner Teilloesung unten ist (vermutlich) ein Fehler. Finde ihn "
-            "und erklaere, warum es ein Fehler ist - ohne die Aufgabe komplett "
-            "neu zu loesen."
-        ),
-    },
-}
+# There is one thing to ask for: solve it. The seven modes this replaces
+# ("hint", "next step", "explain the concept", ...) were the tool guessing how
+# much of an answer the reader wanted, before the answer existed. That guess is
+# free to make afterwards and impossible to make before - you read the first
+# step, see the idea, and stop. What the modes were really for lives on in
+# FOLLOW_UPS below, where it costs one click at the moment you know you need it.
+SOLVE_INSTRUCTION = (
+    "Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar "
+    "vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus "
+    "dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des "
+    "Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten."
+)
+
+# Canned replies to paste back into the chat. The point is the keyboard: these
+# are used on a tablet or with a pen in hand, where typing "erklaere den letzten
+# Schritt genauer" is the expensive part of asking it. Each one has to stand
+# alone as a chat message - no placeholders to fill in, nothing to edit after
+# pasting - which is why none of them name a step number or a symbol.
+FOLLOW_UPS = [
+    ("\U0001F50E", "Letzten Schritt genauer",
+     "Erklaere den letzten Schritt ausfuehrlicher. Was genau passiert da, und "
+     "warum ist er erlaubt?"),
+    ("\U0001F4CF", "Schritt fuer Schritt",
+     "Mach das kleinschrittiger. Lass keinen Zwischenschritt aus, auch nicht die, "
+     "die offensichtlich wirken."),
+    ("\U0001F4D6", "An das Skript halten",
+     "Benutze ausschliesslich die Definitionen und Saetze aus dem Skriptum oben. "
+     "Wenn du etwas brauchst, das dort nicht steht, sag es, statt es zu verwenden."),
+    ("\U0001F4A1", "Nur ein Hinweis",
+     "Verrate mir die Loesung noch nicht. Gib mir nur einen Hinweis, wie ich "
+     "selbst auf die Idee komme."),
+    ("\u27A1\uFE0F", "Nur der naechste Schritt",
+     "Nur der naechste Schritt, nicht die ganze weitere Loesung."),
+    ("\u2753", "Warum gilt das?",
+     "Warum gilt das? Nenne mir die Definition oder den Satz, der diesen Schritt "
+     "rechtfertigt, und erklaere, warum seine Voraussetzungen hier erfuellt sind."),
+    ("\U0001F50D", "Fehler suchen",
+     "Pruefe das noch einmal nach. Falls ein Fehler drin ist, sag mir, an welcher "
+     "Stelle - und korrigiere nur diese Stelle, nicht die ganze Rechnung."),
+    ("\U0001F9E0", "Idee dahinter",
+     "Lass die Rechnung kurz beiseite: was ist die Idee hinter diesem Vorgehen, "
+     "und woran haette ich selbst erkennen koennen, dass es hier passt?"),
+    ("\u2702\uFE0F", "Kuerzer",
+     "Zu ausfuehrlich. Fasse es kurz: nur die Rechnung und das Ergebnis."),
+    ("\U0001F9EA", "Beispiel dazu",
+     "Gib mir ein kleines konkretes Beispiel dazu, an dem ich nachvollziehen "
+     "kann, dass das stimmt."),
+]
 
 # German stopwords - the source material and task texts are German, so the
 # keyword scoring below has to filter German stopwords to be useful.
@@ -174,12 +159,11 @@ def select_context(task_text: str, knowledge_entries: list[dict], top_k: int = 3
     return [e for _, e in scored[:top_k]]
 
 
-# Use cases whose whole point is that the answer is NOT given away. Retrieval
-# is good enough now to surface the very theorem a task asks you to prove -
-# "Zeigen Sie: f konvex <=> epi(f) konvex" pulls up Satz 3.1.5, which states
-# exactly that - so shipping its proof along would hand over the solution under
-# the heading "here is a small hint".
-SPOILER_SENSITIVE_USE_CASES = {"hint", "next_step"}
+# Proofs stay out unless asked for. Retrieval is good enough to surface the very
+# theorem a task asks you to prove - "Zeigen Sie: f konvex <=> epi(f) konvex"
+# pulls up Satz 3.1.5, which states exactly that - so shipping its proof along
+# would hand over the solution inside the context block.
+INCLUDE_PROOFS_BY_DEFAULT = False
 
 
 def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
@@ -193,7 +177,6 @@ def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
 
 
 def build_prompt(
-    use_case: str,
     task: dict,
     sheet_meta: dict,
     knowledge_entries: list[dict],
@@ -206,22 +189,18 @@ def build_prompt(
 ) -> str:
     """`sections` selects script sections to include in full (see
     core.selection); without it, the sections its keyword ranking suggests are
-    used. `include_proofs` defaults to off for the use cases that must not give
-    the answer away."""
+    used."""
     from . import selection
     from .toc import label as section_label
 
     section_titles = section_titles or {}
-    uc = USE_CASES[use_case]
     context, used_sections = selection.select(
         task["text"], knowledge_entries, sections, include_algorithms)
     if include_proofs is None:
-        include_proofs = use_case not in SPOILER_SENSITIVE_USE_CASES
+        include_proofs = INCLUDE_PROOFS_BY_DEFAULT
 
     lines = []
-    lines.append(f"Use-Case: {uc['emoji']} {uc['label']}")
-    lines.append("")
-    lines.append(uc["instruction"])
+    lines.append(SOLVE_INSTRUCTION)
     lines.append("")
     lines.append(f"# Kontext: {course_name}")
     if sheet_meta.get("discussion_date"):
@@ -260,14 +239,14 @@ if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     sheet_path = Path(sys.argv[1])
     task_num = int(sys.argv[2])
-    use_case = sys.argv[3]
-    knowledge_path = Path(sys.argv[4])
-    course_name = sys.argv[5] if len(sys.argv) > 5 else ""
-    partial_solution = sys.argv[6] if len(sys.argv) > 6 else None
+    knowledge_path = Path(sys.argv[3])
+    course_name = sys.argv[4] if len(sys.argv) > 4 else ""
+    partial_solution = sys.argv[5] if len(sys.argv) > 5 else None
 
     sheet = json.loads(sheet_path.read_text(encoding="utf-8"))
-    knowledge = json.loads(knowledge_path.read_text(encoding="utf-8"))["entries"]
-    task = next(a for a in sheet["tasks"] if a["number"] == task_num)
-
-    prompt = build_prompt(use_case, task, sheet, knowledge, partial_solution, course_name)
-    print(prompt)
+    task = next(t for t in sheet["tasks"] if t["number"] == task_num)
+    knowledge = json.loads(knowledge_path.read_text(encoding="utf-8"))
+    titles = {n["key"]: n["title"] for n in knowledge.get("sections", [])
+              if n.get("title")}
+    print(build_prompt(task, sheet, knowledge["entries"], partial_solution,
+                       course_name, section_titles=titles))

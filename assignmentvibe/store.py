@@ -8,6 +8,7 @@ does it belong to".
 Depends on assignmentvibe.core and assignmentvibe.paths.
 """
 
+import fnmatch
 import json
 import re
 from pathlib import Path
@@ -18,9 +19,15 @@ from .core import knowledge as knowledge_core
 from .core import pdf_text
 
 
-def _slugify(name: str) -> str:
+def slug_for(name: str) -> str:
+    """The key a course is filed under. The config names courses ("Parallele
+    Programmierung"), everything stored names them by slug, and this is the one
+    place that bridges the two."""
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", name.strip().lower()).strip("-")
     return slug or "course"
+
+
+_slugify = slug_for  # kept for readability at the existing call sites
 
 
 def _load_json(path: Path, default):
@@ -127,3 +134,75 @@ def load_knowledge(course_slug: str) -> list[dict]:
     if not path.exists():
         return []
     return _load_json(path, {"entries": []})["entries"]
+
+
+def _matching_pdfs(cfg, course, category: str) -> list[Path]:
+    """The course's files of one category, as they lie in the library."""
+    directory = cfg.category_dir(course, category)
+    if not directory.is_dir():
+        return []
+    patterns = course.patterns.get(category, [])
+    found = [f for f in sorted(directory.glob("*.pdf"))
+             if any(fnmatch.fnmatch(f.name.lower(), pat.lower()) for pat in patterns)]
+    return found
+
+
+def ingest_missing(cfg, progress=None) -> dict:
+    """Read in whatever the active semester has that the knowledge base does
+    not. Scripts and assignment sheets both, but only for the courses of the
+    semester the config calls active - the point is one click after a download,
+    not a rebuild of everything ever ingested.
+
+    A sheet is only ever read once: its tasks do not change, and re-reading
+    would throw away nothing but cost seconds per sheet. A script is re-read
+    when its PDF is newer than what was made from it, which is how an annotated
+    or corrected script replaces its earlier version."""
+    known_sheets = {s["sheet_id"] for s in list_sheets()}
+    result = {"scripts": [], "sheets": [], "errors": []}
+
+    for course in cfg.active_courses():
+        slug = slug_for(course.name)
+
+        script = _course_script(cfg, course)
+        if script is not None:
+            target = paths.KNOWLEDGE_DIR / f"{slug}.json"
+            if not target.exists() or target.stat().st_mtime < script.stat().st_mtime:
+                if progress:
+                    progress(f"Skript: {course.name}")
+                try:
+                    ingest_script(script, course.name)
+                    result["scripts"].append(course.name)
+                except Exception as e:
+                    result["errors"].append(f"{script.name}: {e}")
+
+        for pdf in _matching_pdfs(cfg, course, "blaetter"):
+            if pdf.stem in known_sheets:
+                continue
+            if progress:
+                progress(f"Blatt: {pdf.stem}")
+            try:
+                ingest_sheet(pdf, course.name)
+                result["sheets"].append(pdf.stem)
+            except Exception as e:
+                result["errors"].append(f"{pdf.name}: {e}")
+
+    return result
+
+
+def _course_script(cfg, course) -> Path | None:
+    """The one script PDF a course's knowledge base is built from.
+
+    A course can have several: Modellierung ships the lecture notes twice, plain
+    and annotated, and both match its "skript" patterns. One course is one
+    knowledge base, so ingesting both would have them overwrite each other - and
+    worse, each would then look outdated next to the file the other one wrote,
+    so every run would redo both. The newest wins, which is also the one you
+    want: an annotated or corrected script is the later file.
+
+    (A course whose script genuinely comes in several parts - Analysis I and II
+    as separate PDFs - is not handled by this. It would need the section keys of
+    several PDFs merged into one tree, which is a different job.)"""
+    candidates = _matching_pdfs(cfg, course, "skript")
+    if not candidates:
+        return None
+    return max(candidates, key=lambda p: p.stat().st_mtime)
