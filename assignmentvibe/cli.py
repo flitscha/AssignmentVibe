@@ -36,6 +36,7 @@ stays German while the source code stays English.
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -175,24 +176,34 @@ def cmd_copy(args):
         _print(f"Kein Zwischenablage-Tool gefunden. Prompt gespeichert unter: {method}")
 
 
+# The bar glyph. A Nerd Font codepoint (nf-md-school), not an emoji: the bar
+# renders in the shell's monospace font, where a colour emoji is a different
+# size than everything beside it. Overridable for a bar without a Nerd Font.
+BAR_ICON = os.environ.get("ASSIGNMENTVIBE_BAR_ICON", "\U000f0dc9")
+
+
 def cmd_waybar_status(args):
     """What the top bar shows. Course and task, because those are the two things
     you check without clicking: am I still pointed at the right course, and
-    which task is loaded."""
+    which task is loaded.
+
+    Waybar-style JSON, which Omarchy's Quickshell bar reads as-is for a widget
+    of `"type": "command"`. No "active" class: that one turns the widget the
+    theme's urgent colour, which has to keep meaning something is wrong."""
     from . import store
 
     course = context.current_course()
     state = context.course_state(course) if course else {}
     if not course or not state.get("task"):
-        print(json.dumps({"text": "🧮",
-                          "tooltip": "AssignmentVibe - keine Aufgabe gewaehlt",
-                          "class": "idle"}, ensure_ascii=False))
+        print(json.dumps({"text": BAR_ICON,
+                          "tooltip": "AssignmentVibe - keine Aufgabe gewaehlt"},
+                         ensure_ascii=False))
         return
 
     name = store.list_courses().get(course, course)
     # The first word is the course ("Parallele Programmierung" -> "Parallele");
     # the bar is shared with everything else running, so it gets one word.
-    short = name.split()[0][:12]
+    short = name.split()[0]
 
     sheet_id = state.get("sheet")
     sheet_text = sheet_id or "?"
@@ -204,10 +215,10 @@ def cmd_waybar_status(args):
 
     sections = ", ".join(state.get("sections") or []) or "automatisch nach Stichworten"
     print(json.dumps({
-        "text": f"🧮 {short} A{state['task']}",
+        "text": f"{BAR_ICON} {short} A{state['task']}",
         "tooltip": (f"Kurs: {name}\n{sheet_text}, Aufgabe {state['task']}\n"
-                    f"Kapitel: {sections}"),
-        "class": "active",
+                    f"Kapitel: {sections}\n\n"
+                    f"Links: Menue · Rechts: Nachfragen · Mitte: zuruecksetzen"),
     }, ensure_ascii=False))
 
 
@@ -277,6 +288,22 @@ def cmd_organize(args):
 # and come straight back here. Everything below the first separator is state
 # that persists per course (see assignmentvibe.context), which is why the
 # common case is a single click on the top row.
+
+def _chosen(choice: str | None, rows: list[tuple[str, object]]):
+    """Map a picker's answer back to the row it came from.
+
+    Exact match first, then ignoring surrounding whitespace: the rows are
+    indented to show the tree, and a picker is free to hand the label back
+    trimmed. Getting this wrong is silent - the click just does nothing - so it
+    is worth the second pass."""
+    for label, value in rows:
+        if label == choice:
+            return value, True
+    for label, value in rows:
+        if choice is not None and label.strip() == choice.strip():
+            return value, True
+    return None, False
+
 
 ARROW = "▸"
 COPY_ROW = "▶  Prompt kopieren"
@@ -514,8 +541,8 @@ def cmd_pick(args):
         choice = menu.pick(header, [label for label, _ in rows])
         if choice is None:
             return
-        action = next((a for label, a in rows if label == choice), None)
-        if action is None:
+        action, found = _chosen(choice, rows)
+        if not found or action is None:
             continue
 
         if action == "copy":
@@ -817,8 +844,8 @@ def _pick_sections(entries: list[dict], nodes: list[dict],
             include_algorithms = not include_algorithms
             continue
 
-        key = next((k for label, k in rows if label == choice), None)
-        if key is None:
+        key, found = _chosen(choice, rows)
+        if not found or key is None:
             continue
         # Toggling a parent clears its children too, so the two cannot disagree
         # about what is selected.

@@ -1,0 +1,16 @@
+#!/bin/bash
+# Bar button: the current assignment, and the menu to change it.
+#
+# assignmentvibe prints Waybar-style JSON, which the bar's "command" widget
+# reads as-is, so this is only a thin wrapper - it exists to keep the widget
+# working when the tool is missing (a fresh machine, a broken venv) instead of
+# leaving an empty gap in the bar with no hint why.
+#
+# Left click opens the menu (pick a task, pick the chapters, copy the prompt),
+# right click goes straight to the canned replies - those are needed mid-chat,
+# where walking through the menu first is exactly the wrong thing.
+if ! command -v assignmentvibe >/dev/null; then
+  printf '{"text":"󰷉","tooltip":"assignmentvibe nicht im PATH"}\n'
+  exit 0
+fi
+assignmentvibe waybar-status
