@@ -1,9 +1,9 @@
-Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten.
+Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
 
-# Kontext: PS Optimierung
-Aufgabenblatt 7, Besprechung: 5/6 . 5 . 2026
+# Course: PS Optimierung
+Sheet 7, due: 5/6 . 5 . 2026
 
-# Aufgabe 3: Konvexität von Funktionen und des Epigraphs
+# Task 3: Konvexität von Funktionen und des Epigraphs
 Konvexität von Funktionen und des Epigraphs. Es sei Ω⊂Rn eine
 konvexe Menge und f : Ω→R eine Funktion.
 a) Zeigen Sie:
@@ -16,8 +16,8 @@ f(x) ≤lim inf
 y→x f(y)
 für alle x ∈Ω.
 
-# Aus dem Skriptum: Abschnitt 3 Konvexe Funktionen und deren Minima
-(alle Definitionen und Saetze dieser Abschnitte, ohne Beweise)
+# From the lecture notes: section 3 Konvexe Funktionen und deren Minima
+(every definition and theorem of these sections, proofs omitted)
 
 Definition 3.1.1:
 Es sei Ω⊂Rn eine konvexe Menge. Eine Funktion f : Ω→R ist
@@ -155,5 +155,5 @@ so gibt es ein y∗∈D so, dass (x∗, y∗) ein Sattelpunkt der Lagrange-Funkt
 52
 PAGE57
 
-# Meine bisherige Teilloesung
-(noch nichts probiert)
+# What I have so far
+(nothing yet)

@@ -101,14 +101,14 @@ class Config:
 def parse(raw: dict, path: Path) -> Config:
     active = raw.get("active")
     if not active:
-        raise ConfigError('In der Config fehlt "active": "<semester>", z.B. "m1".')
+        raise ConfigError('The config is missing "active": "<semester>", e.g. "m1".')
 
     semesters = {k: v for k, v in (raw.get("semesters") or {}).items()
                  if not k.startswith("_")}
     if active not in semesters:
-        known = ", ".join(semesters) or "(keine)"
-        raise ConfigError(f'"active" ist "{active}", aber unter "semesters" gibt es '
-                          f'dieses Semester nicht. Vorhanden: {known}.')
+        known = ", ".join(semesters) or "(none)"
+        raise ConfigError(f'"active" is "{active}", but "semesters" has no such '
+                          f'semester. Available: {known}.')
 
     courses = []
     for semester, folders in semesters.items():
@@ -120,14 +120,14 @@ def parse(raw: dict, path: Path) -> Config:
             allowed = {"name", "unterordner", *CATEGORIES}
             unknown = {k for k in spec if not k.startswith("_")} - allowed
             if unknown:
-                raise ConfigError(f'{semester}/{folder}: unbekannte Felder '
-                                  f'{sorted(unknown)}. Erlaubt: {", ".join(sorted(allowed))}.')
+                raise ConfigError(f'{semester}/{folder}: unknown fields '
+                                  f'{sorted(unknown)}. Allowed: {", ".join(sorted(allowed))}.')
 
             subfolders = spec.get("unterordner") or {}
             bad = set(subfolders) - set(CATEGORIES)
             if bad:
-                raise ConfigError(f'{semester}/{folder}: "unterordner" kennt nur '
-                                  f'{", ".join(CATEGORIES)} - nicht {sorted(bad)}.')
+                raise ConfigError(f'{semester}/{folder}: "unterordner" only knows '
+                                  f'{", ".join(CATEGORIES)} - not {sorted(bad)}.')
             # A bare string is accepted where a list is expected - writing
             # "skript": "VO3.pdf" is the mistake everyone makes once.
             patterns = {}
@@ -158,10 +158,10 @@ def parse(raw: dict, path: Path) -> Config:
 def load(path: Path | None = None) -> Config:
     config_path = Path(path).expanduser() if path else paths.CONFIG_FILE
     if not config_path.exists():
-        raise ConfigError(f"Keine Config unter {config_path}.\n"
-                          f"Anlegen mit: assignmentvibe config init")
+        raise ConfigError(f"No config at {config_path}.\n"
+                          f"Create one with: assignmentvibe config init")
     try:
         raw = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as e:
-        raise ConfigError(f"{config_path} ist kein gueltiges JSON: {e}") from e
+        raise ConfigError(f"{config_path} is not valid JSON: {e}") from e
     return parse(raw, config_path)

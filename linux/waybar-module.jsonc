@@ -1,19 +1,19 @@
-// Ausschnitt fuer ~/.config/waybar/config.jsonc.
+// Snippet for ~/.config/waybar/config.jsonc.
 //
-// 1. Dieses Modul in "modules-right" (oder -left/-center) mit aufnehmen,
-//    z.B.: "modules-right": ["custom/assignmentvibe", "clock", ...]
-// 2. Den Block unten in die JSON-Objekt-Ebene von config.jsonc einfuegen
-//    (auf gleicher Ebene wie andere "custom/..."-Module).
+// 1. Add this module to "modules-right" (or -left/-center), e.g.:
+//    "modules-right": ["custom/assignmentvibe", "clock", ...]
+// 2. Put the block below at the JSON object level of config.jsonc
+//    (the same level as other "custom/..." modules).
 //
-// Maustasten:
-//   links   Hub-Menue: Aufgabe waehlen, Kapitel waehlen, Prompt kopieren
-//   rechts  direkt die Nachfragen ("Erklaere den letzten Schritt genauer" ...),
-//           weil man die mitten im Chat braucht und nicht durchs Hub laufen will
-//   mitte   Kontext vergessen
+// Mouse buttons:
+//   left    the hub: pick a task, pick the chapters, copy the prompt
+//   right   straight to the follow-ups ("Expand on that last step" ...), which
+//           you need mid-chat rather than on the way into the hub
+//   middle  forget the context
 //
-// Omarchy-Themes ueberschreiben waybar.css teilweise - Anpassung der Optik
-// ggf. in der eigenen ~/.config/waybar/style.css unter .custom-assignmentvibe
-// noetig (Klassennamen: "idle" / "active", siehe waybar-status Ausgabe).
+// On Omarchy the shell bar (linux/omarchy-shell-widget.md) replaces Waybar;
+// this file is for a plain Waybar setup. Styling goes in your own
+// ~/.config/waybar/style.css under .custom-assignmentvibe.
 {
   "custom/assignmentvibe": {
     "exec": "assignmentvibe waybar-status",

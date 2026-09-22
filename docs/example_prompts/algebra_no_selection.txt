@@ -1,14 +1,14 @@
-Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten.
+Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
 
-# Kontext: Algebra I
-Aufgabenblatt None, Besprechung: Do. 17. Oktober 2024
+# Course: Algebra I
+Sheet None, due: Do. 17. Oktober 2024
 
-# Aufgabe 4: Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen
+# Task 4: Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen
 Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.
 1
 
-# Aus dem Skriptum: Abschnitt 2.4 Existenz von Untergruppen und Sylow-Sätze
-(alle Definitionen und Saetze dieser Abschnitte, ohne Beweise)
+# From the lecture notes: section 2.4 Existenz von Untergruppen und Sylow-Sätze
+(every definition and theorem of these sections, proofs omitted)
 
 Lemma 2.3.8:
 Es gilt Z(G) ◁G und CG(h) < G für alle h ∈G.
@@ -84,5 +84,5 @@ Korollar 2.4.12:
 Bis auf Isomorphie gibt es nur eine Gruppe mit 15 Elementen, nämlich
 die zyklische Gruppe Z/15Z.
 
-# Meine bisherige Teilloesung
-(noch nichts probiert)
+# What I have so far
+(nothing yet)

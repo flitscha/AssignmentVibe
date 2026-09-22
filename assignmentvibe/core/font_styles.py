@@ -31,7 +31,9 @@ Depends only on core.pdf_text (for text normalization) and pymupdf.
 import re
 from pathlib import Path
 
-import pymupdf
+# pymupdf is imported where it is used, not here. It costs ~350ms to load,
+# and the bar asks for the status every few seconds while none of that path
+# opens a PDF - that import was most of what made the tool feel slow.
 
 from .pdf_text import normalize
 
@@ -78,6 +80,8 @@ def is_styled(span: dict) -> bool:
 
 def styled_type_words_per_page(pdf_path: Path) -> list[list[str]]:
     """Per page: list of styled (bold/italic) type words in reading order."""
+    import pymupdf
+
     doc = pymupdf.open(pdf_path)
     result = []
     for page in doc:

@@ -108,7 +108,7 @@ def entries_for(cfg: Config, course: Course, scripts_only: bool = False
     # One entry per script: a course can legitimately have more than one
     # (plain and annotated lecture notes), and they are different documents.
     for script in scripts:
-        label = "Skript" if len(scripts) == 1 else f"Skript {script.stem}"
+        label = "Notes" if len(scripts) == 1 else f"Notes {script.stem}"
         add(f"{base}-skript-{_slug(script.stem)}.desktop",
             f"{course.name} {label}{suffix}", script, "application-pdf", "Skript")
 
@@ -118,12 +118,12 @@ def entries_for(cfg: Config, course: Course, scripts_only: bool = False
     for deck in _matching(cfg.category_dir(course, "folien"),
                           course.patterns.get("folien", [])):
         add(f"{base}-folien-{_slug(deck.stem)}.desktop",
-            f"{course.name} Folien {deck.stem}", deck, "application-pdf", "Folien")
+            f"{course.name} Slides {deck.stem}", deck, "application-pdf", "Folien")
 
     sheets = _matching(cfg.category_dir(course, "blaetter"),
                        course.patterns.get("blaetter", []))
     if sheets:
-        add(f"{base}-blatt.desktop", f"{course.name} Blatt",
+        add(f"{base}-blatt.desktop", f"{course.name} Sheet",
             sheets[-1], "application-pdf", "Blatt")
 
     if course_dir.is_dir():

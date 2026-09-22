@@ -26,7 +26,9 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import pymupdf
+# pymupdf is imported where it is used, not here. It costs ~350ms to load,
+# and the bar asks for the status every few seconds while none of that path
+# opens a PDF - that import was most of what made the tool feel slow.
 
 from ..core import pdf_text
 
@@ -93,6 +95,8 @@ def _classify_by_filename(stem: str) -> tuple[str, float, str]:
 
 
 def _page_count(pdf_path: Path) -> int | None:
+    import pymupdf
+
     try:
         return pymupdf.open(pdf_path).page_count
     except Exception:

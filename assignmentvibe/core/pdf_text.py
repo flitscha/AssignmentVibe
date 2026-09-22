@@ -28,7 +28,9 @@ import sys
 import unicodedata
 from pathlib import Path
 
-import pymupdf
+# pymupdf is imported where it is used, not here. It costs ~350ms to load,
+# and the bar asks for the status every few seconds while none of that path
+# opens a PDF - that import was most of what made the tool feel slow.
 
 # Some PDF fonts encode ligatures (fi, fl, ffi, ...) as a single Unicode
 # codepoint instead of two letters. NFKC decomposes these ligature codepoints
@@ -71,6 +73,8 @@ def normalize(text: str) -> str:
 
 
 def extract_pages(pdf_path: Path) -> list[str]:
+    import pymupdf
+
     doc = pymupdf.open(pdf_path)
     return [normalize(page.get_text("text")) for page in doc]
 

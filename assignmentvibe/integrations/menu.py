@@ -25,12 +25,18 @@ import subprocess
 import sys
 
 
+# Wide enough for a section title next to its counts - "3.1 Konvexe Funktionen
+# und deren Minima  (17, 3k)" is about 60 characters, and the hub's rows carry
+# an indent on top of that. The menu's own default cut them in half.
+MENU_WIDTH = 900
+
+
 def _try_omarchy(prompt: str, options: list[str]) -> str | None:
     if not shutil.which("omarchy-menu-select"):
         return None
     try:
         result = subprocess.run(
-            ["omarchy-menu-select", prompt, *options],
+            ["omarchy-menu-select", prompt, *options, "--", "--width", str(MENU_WIDTH)],
             capture_output=True, text=True, timeout=120,
         )
         choice = result.stdout.strip()

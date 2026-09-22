@@ -35,9 +35,9 @@ FAULTY_SOLUTION = (
 
 EXAMPLES = [
     # (output name, sheet id, task number, course name, chapters, partial solution)
-    ("algebra_ohne_auswahl", "A02", 4, "Algebra I", None, None),
-    ("algebra_mit_teilloesung", "A07", 1, "Algebra I", None, FAULTY_SOLUTION),
-    ("optimierung_kapitel_gewaehlt", "07-Blatt-PS-Optimierung", 3,
+    ("algebra_no_selection", "A02", 4, "Algebra I", None, None),
+    ("algebra_with_partial_solution", "A07", 1, "Algebra I", None, FAULTY_SOLUTION),
+    ("optimierung_chapter_chosen", "07-Blatt-PS-Optimierung", 3,
      "PS Optimierung", ["3"], None),
 ]
 
@@ -63,7 +63,7 @@ def main() -> None:
                               sections=sections, section_titles=titles)
         out_path = OUT_DIR / f"{name}.txt"
         out_path.write_text(prompt + "\n", encoding="utf-8")
-        print(f"{out_path.relative_to(REPO_ROOT)}  ({len(prompt)} Zeichen)")
+        print(f"{out_path.relative_to(REPO_ROOT)}  ({len(prompt)} characters)")
 
 
 if __name__ == "__main__":

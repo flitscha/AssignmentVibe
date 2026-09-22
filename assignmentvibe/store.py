@@ -124,8 +124,8 @@ def list_sheets(course_slug: str | None = None) -> list[dict]:
 def load_sheet(sheet_id: str) -> dict:
     path = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
     if not path.exists():
-        raise FileNotFoundError(f"Kein Aufgabenblatt mit id '{sheet_id}' gefunden. "
-                                 f"Erst mit 'ingest-sheet' einlesen.")
+        raise FileNotFoundError(f"No assignment sheet with id '{sheet_id}'. "
+                                 f"Read it in with 'ingest-sheet' first.")
     return _load_json(path, {})
 
 
@@ -168,7 +168,7 @@ def ingest_missing(cfg, progress=None) -> dict:
             target = paths.KNOWLEDGE_DIR / f"{slug}.json"
             if not target.exists() or target.stat().st_mtime < script.stat().st_mtime:
                 if progress:
-                    progress(f"Skript: {course.name}")
+                    progress(f"Lecture notes: {course.name}")
                 try:
                     ingest_script(script, course.name)
                     result["scripts"].append(course.name)
@@ -179,7 +179,7 @@ def ingest_missing(cfg, progress=None) -> dict:
             if pdf.stem in known_sheets:
                 continue
             if progress:
-                progress(f"Blatt: {pdf.stem}")
+                progress(f"Sheet: {pdf.stem}")
             try:
                 ingest_sheet(pdf, course.name)
                 result["sheets"].append(pdf.stem)

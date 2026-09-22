@@ -51,21 +51,21 @@ def _print(*args):
 def cmd_ingest_script(args):
     from . import store
     result = store.ingest_script(Path(args.pdf), args.course)
-    _print(f"'{result['course']}' eingelesen: {result['entries']} Wissenseinheiten "
+    _print(f"'{result['course']}' read in: {result['entries']} knowledge entries "
            f"-> {result['knowledge_path']}")
 
 
 def cmd_ingest_sheet(args):
     from . import store
     result = store.ingest_sheet(Path(args.pdf), args.course)
-    _print(f"'{result['sheet_id']}' ({result['course']}): {result['num_tasks']} Aufgaben eingelesen.")
+    _print(f"'{result['sheet_id']}' ({result['course']}): {result['num_tasks']} tasks read in.")
 
 
 def cmd_courses(args):
     from . import store
     courses = store.list_courses()
     if not courses:
-        _print("Keine Kurse eingelesen. Mit 'ingest-script' starten.")
+        _print("No courses read in yet. Start with 'ingest-script'.")
         return
     for slug, name in courses.items():
         _print(f"{slug}\t{name}")
@@ -75,12 +75,12 @@ def cmd_sheets(args):
     from . import store
     sheets = store.list_sheets(args.course)
     if not sheets:
-        _print("Keine Aufgabenblaetter gefunden.")
+        _print("No assignment sheets found.")
         return
     for s in sheets:
         _print(f"{s['sheet_id']}\t{s.get('course_slug', '?')}\t"
-               f"{s.get('num_tasks', '?')} Aufgaben\t"
-               f"Blatt {s.get('sheet_number', '?')}")
+               f"{s.get('num_tasks', '?')} tasks\t"
+               f"sheet {s.get('sheet_number', '?')}")
 
 
 def cmd_tasks(args):
@@ -94,10 +94,10 @@ def cmd_tasks(args):
 def cmd_context(args):
     if args.action == "show":
         ctx = context.get()
-        _print(json.dumps(ctx, ensure_ascii=False, indent=1) if ctx else "(kein Kontext gesetzt)")
+        _print(json.dumps(ctx, ensure_ascii=False, indent=1) if ctx else "(no context set)")
     elif args.action == "clear":
         context.clear()
-        _print("Kontext geloescht.")
+        _print("Context cleared.")
 
 
 def _resolve_solution(args) -> str | None:
@@ -122,7 +122,7 @@ def _build_from_args(args) -> str:
 
     sheet_id = args.sheet or context.course_state().get("sheet")
     if not sheet_id:
-        print("Kein Aufgabenblatt angegeben (--sheet) und kein aktueller Kontext gesetzt.",
+        print("No sheet given (--sheet) and no current context set.",
               file=sys.stderr)
         sys.exit(1)
     sheet = store.load_sheet(sheet_id)
@@ -132,11 +132,11 @@ def _build_from_args(args) -> str:
 
     task_num = args.task or saved.get("task")
     if not task_num:
-        print("Keine Aufgabe angegeben (--task).", file=sys.stderr)
+        print("No task given (--task).", file=sys.stderr)
         sys.exit(1)
     task = next((t for t in sheet["tasks"] if t["number"] == int(task_num)), None)
     if task is None:
-        print(f"Aufgabe {task_num} nicht in Blatt {sheet_id} gefunden.", file=sys.stderr)
+        print(f"Task {task_num} is not on sheet {sheet_id}.", file=sys.stderr)
         sys.exit(1)
 
     knowledge = store.load_knowledge(course_slug) if course_slug else []
@@ -170,10 +170,10 @@ def cmd_copy(args):
     ok, method = clipboard.copy(prompt)
     if ok:
         notify.send("Prompt kopiert", f"{len(prompt)} Zeichen (via {method})", glyph="📋")
-        _print(f"In Zwischenablage kopiert ({method}).")
+        _print(f"Copied to clipboard ({method}).")
     else:
-        notify.send("Zwischenablage nicht verfuegbar", f"Prompt gespeichert: {method}", glyph="⚠️")
-        _print(f"Kein Zwischenablage-Tool gefunden. Prompt gespeichert unter: {method}")
+        notify.send("No clipboard available", f"Prompt saved to: {method}", glyph="⚠")
+        _print(f"No clipboard tool found. Prompt saved to: {method}")
 
 
 # The bar glyph. A Nerd Font codepoint (nf-md-school), not an emoji: the bar
@@ -196,7 +196,7 @@ def cmd_waybar_status(args):
     state = context.course_state(course) if course else {}
     if not course or not state.get("task"):
         print(json.dumps({"text": BAR_ICON,
-                          "tooltip": "AssignmentVibe - keine Aufgabe gewaehlt"},
+                          "tooltip": "AssignmentVibe - no task selected"},
                          ensure_ascii=False))
         return
 
@@ -209,16 +209,16 @@ def cmd_waybar_status(args):
     sheet_text = sheet_id or "?"
     if sheet_id:
         try:
-            sheet_text = f"Blatt {store.load_sheet(sheet_id).get('sheet_number') or sheet_id}"
+            sheet_text = f"Sheet {store.load_sheet(sheet_id).get('sheet_number') or sheet_id}"
         except (FileNotFoundError, OSError):
             sheet_text = sheet_id
 
-    sections = ", ".join(state.get("sections") or []) or "automatisch nach Stichworten"
+    sections = ", ".join(state.get("sections") or []) or "picked automatically by keyword"
     print(json.dumps({
         "text": f"{BAR_ICON} {short} A{state['task']}",
-        "tooltip": (f"Kurs: {name}\n{sheet_text}, Aufgabe {state['task']}\n"
-                    f"Kapitel: {sections}\n\n"
-                    f"Links: Menue · Rechts: Nachfragen · Mitte: zuruecksetzen"),
+        "tooltip": (f"Course: {name}\n{sheet_text}, task {state['task']}\n"
+                    f"Chapters: {sections}\n\n"
+                    f"Left: menu · Right: follow-ups · Middle: reset"),
     }, ensure_ascii=False))
 
 
@@ -238,7 +238,7 @@ def cmd_open_browser(args):
     elif shutil.which("xdg-open"):
         subprocess.run(["xdg-open", url])
     else:
-        print(f"Kein Browser-Launcher gefunden. Oeffne manuell: {url}", file=sys.stderr)
+        print(f"No browser launcher found. Open it yourself: {url}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -252,8 +252,8 @@ def cmd_organize(args):
     _print(organizer_module.format_plan(moves))
 
     if not args.apply:
-        _print(f"\n(Dry run - nichts wurde veraendert. Mit --apply ausfuehren, "
-                f"Ziel-Bibliothek: {library_dir})")
+        _print(f"\n(Dry run - nothing changed. Use --apply to do it, "
+                f"target library: {library_dir})")
         return
 
     log = organizer_module.apply(moves, mode=args.mode)
@@ -273,7 +273,7 @@ def cmd_organize(args):
                 store.ingest_script(m.target_path, m.course_display_name)
             elif m.classification.doc_type == "sheet":
                 store.ingest_sheet(m.target_path, m.course_display_name)
-        _print("Automatisch eingelesen (--ingest).")
+        _print("Read in automatically (--ingest).")
 
 
 # --- The hub -----------------------------------------------------------------
@@ -306,11 +306,11 @@ def _chosen(choice: str | None, rows: list[tuple[str, object]]):
 
 
 ARROW = "▸"
-COPY_ROW = "▶  Prompt kopieren"
-FOLLOWUP_ROW = "💬 Nachfrage kopieren …"
-BROWSER_ROW = "🌐 Chat oeffnen"
-INGEST_ROW = "⟳  Neue Blaetter einlesen"
-SOLUTION_ROW = "📋 Teilloesung aus Zwischenablage"
+COPY_ROW = "▶  Copy prompt"
+FOLLOWUP_ROW = "💬 Copy a follow-up …"
+BROWSER_ROW = "🌐 Open chat"
+INGEST_ROW = "⟳  Read in new sheets"
+SOLUTION_ROW = "📋 Partial solution from clipboard"
 SEPARATOR = "───────────────────────────────"
 
 
@@ -369,7 +369,7 @@ def _sections_summary(course: str, state: dict) -> str:
     from .core import selection, toc
 
     if not state["sections"]:
-        return "automatisch nach Stichworten"
+        return "picked automatically by keyword"
 
     titles = store.load_section_titles(course)
     entries = selection.entries_in(store.load_knowledge(course), state["sections"],
@@ -387,14 +387,14 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
     task = _task_of(state)
     sheet = state["sheet"]
 
-    task_text = "keine"
+    task_text = "none"
     if task:
         title = f"  {task['title']}" if task.get("title") else ""
         task_text = f"{task['number']}{title}"
-    sheet_text = "keins eingelesen"
+    sheet_text = "none read in yet"
     if sheet:
         newest = _latest_sheet(state["sheets"])
-        suffix = "  (neuestes)" if newest and newest["sheet_id"] == sheet["sheet_id"] else ""
+        suffix = "  (newest)" if newest and newest["sheet_id"] == sheet["sheet_id"] else ""
         sheet_text = f"{sheet.get('sheet_number') or sheet['sheet_id']}{suffix}"
 
     rows = []
@@ -404,11 +404,11 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
     rows.append((BROWSER_ROW, "browser"))
     rows.append((SEPARATOR, None))
     rows += [
-        (f"   Aufgabe  {ARROW}  {task_text}", "task"),
-        (f"   Blatt    {ARROW}  {sheet_text}", "sheet"),
-        (f"   Kurs     {ARROW}  {course_name}", "course"),
-        (f"   Kapitel  {ARROW}  {_sections_summary(course, state)}", "sections"),
-        (f"   Beweise  {ARROW}  {'an' if state['proofs'] else 'aus'}", "proofs"),
+        (f"   Task      {ARROW}  {task_text}", "task"),
+        (f"   Sheet     {ARROW}  {sheet_text}", "sheet"),
+        (f"   Course    {ARROW}  {course_name}", "course"),
+        (f"   Chapters  {ARROW}  {_sections_summary(course, state)}", "sections"),
+        (f"   Proofs    {ARROW}  {'on' if state['proofs'] else 'off'}", "proofs"),
     ]
     rows.append((SEPARATOR + " ", None))
     rows.append((INGEST_ROW, "ingest"))
@@ -420,25 +420,25 @@ def _pick_course(cfg, current: str | None) -> str | None:
 
     courses = _semester_courses(cfg)
     if not courses:
-        notify.send("Keine Kurse", f"Semester '{cfg.active}' hat keine Kurse in der Config.",
-                    glyph="⚠️")
+        notify.send("No courses", f"Semester '{cfg.active}' has no courses in the config.",
+                    glyph="⚠")
         return None
     counts = {slug: len(store.list_sheets(slug)) for slug in courses}
     labels = {f"{'●' if slug == current else '○'} {name}  "
-              f"({counts[slug]} Blaetter)": slug
+              f"({counts[slug]} sheets)": slug
               for slug, name in courses.items()}
-    choice = menu.pick("Kurs", list(labels))
+    choice = menu.pick("Course", list(labels))
     return labels.get(choice) if choice else None
 
 
 def _pick_sheet(state: dict, current_id: str | None) -> dict | None:
     sheets = sorted(state["sheets"], key=lambda s: (s.get("sheet_number") or 0),
                     reverse=True)
-    labels = {f"{'●' if s['sheet_id'] == current_id else '○'} Blatt "
+    labels = {f"{'●' if s['sheet_id'] == current_id else '○'} Sheet "
               f"{s.get('sheet_number') or s['sheet_id']}  "
-              f"({s.get('num_tasks', '?')} Aufgaben)": s
+              f"({s.get('num_tasks', '?')} tasks)": s
               for s in sheets}
-    choice = menu.pick("Aufgabenblatt", list(labels))
+    choice = menu.pick("Sheet", list(labels))
     return labels.get(choice) if choice else None
 
 
@@ -446,8 +446,8 @@ def _pick_task(sheet: dict, current: int | None) -> int | None:
     labels = {}
     for t in sheet["tasks"]:
         title = f": {t['title']}" if t.get("title") else ""
-        labels[f"{'●' if t['number'] == current else '○'} Aufgabe {t['number']}{title}"] = t["number"]
-    choice = menu.pick("Aufgabe", list(labels))
+        labels[f"{'●' if t['number'] == current else '○'} Task {t['number']}{title}"] = t["number"]
+    choice = menu.pick("Task", list(labels))
     return labels.get(choice) if choice else None
 
 
@@ -458,34 +458,32 @@ def cmd_followup(args):
     from .core.prompts import FOLLOW_UPS
 
     labels = {f"{emoji} {label}": text for emoji, label, text in FOLLOW_UPS}
-    choice = menu.pick("Nachfrage", list(labels))
+    choice = menu.pick("Follow-up", list(labels))
     if not choice:
         return
     ok, method = clipboard.copy(labels[choice])
     if ok:
-        notify.send(choice, "In Zwischenablage kopiert.", glyph="💬")
+        notify.send(choice, "Copied to clipboard.", glyph="")
     else:
-        notify.send("Nachfrage", f"Zwischenablage nicht verfuegbar: {method}", glyph="⚠️")
+        notify.send("Follow-up", f"No clipboard available: {method}", glyph="⚠")
 
 
 def _do_ingest(cfg) -> None:
     from . import store
 
-    notify.send("Einlesen laeuft", "Neue Skripte und Blaetter werden verarbeitet.",
-                glyph="⟳")
+    notify.send("Reading in", "Processing new lecture notes and sheets.", glyph="⟳")
     result = store.ingest_missing(cfg)
     parts = []
     if result["scripts"]:
-        parts.append(f"{len(result['scripts'])} Skript(e)")
+        parts.append(f"{len(result['scripts'])} lecture note(s)")
     if result["sheets"]:
-        parts.append(f"{len(result['sheets'])} Blatt/Blaetter")
+        parts.append(f"{len(result['sheets'])} sheet(s)")
     if result["errors"]:
-        notify.send("Einlesen mit Fehlern", "\n".join(result["errors"][:3]), glyph="⚠️")
+        notify.send("Read in with errors", "\n".join(result["errors"][:3]), glyph="⚠")
     elif parts:
-        notify.send("Eingelesen", ", ".join(parts), glyph="✅")
+        notify.send("Read in", ", ".join(parts), glyph="✓")
     else:
-        notify.send("Nichts Neues", "Alle Blaetter des Semesters sind schon eingelesen.",
-                    glyph="🧮")
+        notify.send("Nothing new", "Every sheet this semester has already been read in.")
 
 
 def _copy_prompt(course: str, course_name: str, state: dict, solution: str | None) -> None:
@@ -502,11 +500,11 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
     )
     ok, method = clipboard.copy(prompt)
     if ok:
-        notify.send(f"Aufgabe {state['task']} kopiert",
-                    f"{len(prompt)} Zeichen - jetzt im Chat einfuegen.", glyph="📋")
+        notify.send(f"Task {state['task']} copied",
+                    f"{len(prompt)} characters - paste it into the chat.", glyph="")
     else:
-        notify.send("Prompt erstellt",
-                    f"Zwischenablage nicht verfuegbar, gespeichert: {method}", glyph="⚠️")
+        notify.send("Prompt built",
+                    f"No clipboard available, saved to: {method}", glyph="⚠")
 
 
 def cmd_pick(args):
@@ -517,15 +515,15 @@ def cmd_pick(args):
         # Only a warning, not a hard abort: the stdin fallback also works
         # without a TTY (e.g. in tests via a pipe), as long as data actually
         # arrives - see integrations/menu.py.
-        notify.send("Kein grafischer Picker gefunden",
-                    "Weder Walker/rofi/wofi/fzf verfuegbar - falls kein "
-                    "Terminal offen ist, passiert jetzt evtl. nichts.", glyph="⚠️")
+        notify.send("No graphical picker found",
+                    "None of Walker/rofi/wofi/fzf is available - with no terminal "
+                    "open, nothing may happen now.", glyph="⚠")
 
     cfg = _load_config_or_exit(args)
     courses = _semester_courses(cfg)
     if not courses:
-        notify.send("Keine Kurse", f"Semester '{cfg.active}' hat keine Kurse in der Config.",
-                    glyph="⚠️")
+        notify.send("No courses", f"Semester '{cfg.active}' has no courses in the config.",
+                    glyph="⚠")
         return
 
     course = context.current_course()
@@ -536,7 +534,7 @@ def cmd_pick(args):
     while True:
         state = _resolve_state(course)
         rows = _hub_rows(course, courses[course], state)
-        where = f"Aufgabe {state['task']}" if state["task"] is not None else "keine Aufgabe"
+        where = f"task {state['task']}" if state["task"] is not None else "no task"
         header = f"{courses[course]} · {where}"
         choice = menu.pick(header, [label for label, _ in rows])
         if choice is None:
@@ -572,9 +570,9 @@ def cmd_pick(args):
             continue
         if action == "task":
             if not state["sheet"]:
-                notify.send("Kein Aufgabenblatt",
-                            "Erst ein Blatt einlesen ('Neue Blaetter einlesen').",
-                            glyph="⚠️")
+                notify.send("No sheet",
+                            "Read a sheet in first ('Read in new sheets').",
+                            glyph="⚠")
                 continue
             picked = _pick_task(state["sheet"], state["task"])
             if picked is not None:
@@ -586,9 +584,9 @@ def cmd_pick(args):
         if action == "sections":
             entries = store.load_knowledge(course)
             if not entries:
-                notify.send("Keine Wissensbasis",
-                            f"Fuer '{courses[course]}' ist noch kein Skript eingelesen.",
-                            glyph="⚠️")
+                notify.send("No knowledge base",
+                            f"No lecture notes have been read in for '{courses[course]}' yet.",
+                            glyph="⚠")
                 continue
             picked = _pick_sections(entries, store.load_sections(course),
                                     state["sections"])
@@ -638,12 +636,12 @@ def cmd_config(args):
     if args.action == "init":
         target = Path(args.config).expanduser() if args.config else paths.CONFIG_FILE
         if target.exists() and not args.force:
-            print(f"{target} existiert bereits. Mit --force ueberschreiben.", file=sys.stderr)
+            print(f"{target} already exists. Use --force to overwrite.", file=sys.stderr)
             sys.exit(1)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(STARTER_CONFIG, encoding="utf-8")
-        _print(f"Vorlage angelegt: {target}")
-        _print("Jetzt Kurse und Dateinamen eintragen, dann: assignmentvibe sort")
+        _print(f"Template written: {target}")
+        _print("Now fill in your courses and filenames, then: assignmentvibe sort")
         return
 
     if args.action == "path":
@@ -669,7 +667,7 @@ def cmd_sort(args):
 
     cfg = _load_config_or_exit(args)
     if not cfg.downloads.is_dir():
-        print(f"Downloads-Ordner nicht gefunden: {cfg.downloads}", file=sys.stderr)
+        print(f"Downloads folder not found: {cfg.downloads}", file=sys.stderr)
         sys.exit(1)
 
     items, ignored = sorter.plan(cfg)
@@ -680,7 +678,7 @@ def cmd_sort(args):
             # Distinct exit code so bin/uni-sort can skip the "move it?" prompt
             # when there is nothing to move.
             sys.exit(NOTHING_TO_DO)
-        _print("\n(Vorschau - nichts veraendert. Mit --apply wirklich verschieben.)")
+        _print("\n(Preview - nothing changed. Use --apply to actually move them.)")
         return
 
     _print("")
@@ -698,25 +696,25 @@ def cmd_launcher(args, cfg=None, quiet=False):
     written, removed = launcher.sync(cfg)
 
     if quiet:
-        _print(f"Launcher aktualisiert: {len(written)} Eintraege.")
+        _print(f"Launcher updated: {len(written)} entries.")
         return
     for name in written:
         _print(f"  {name}")
     for name in removed:
-        _print(f"  entfernt: {name}")
+        _print(f"  removed: {name}")
     if not written:
-        _print("Keine Eintraege erzeugt - passen die Dateinamen in der Config "
-               "zu dem, was in den Kurs-Ordnern liegt? (assignmentvibe config show)")
+        _print("No entries written - do the filenames in the config match what is "
+               "actually in the course folders? (assignmentvibe config show)")
     else:
-        _print(f"\n{len(written)} Eintraege in {paths.APPLICATIONS_DIR}. "
-               f"Mit Super+Space suchbar.")
+        _print(f"\n{len(written)} entries in {paths.APPLICATIONS_DIR}, "
+               f"searchable with Super+Space.")
 
 
 # --- Script context: which sections of the script go into the prompt --------
 
-DONE_LABEL = "── FERTIG ──"
-PROOF_LABEL = "── Beweise: {state} ──"
-ALGO_LABEL = "── Algorithmen: {state} ──"
+DONE_LABEL = "── DONE ──"
+PROOF_LABEL = "── Proofs: {state} ──"
+ALGO_LABEL = "── Algorithms: {state} ──"
 
 
 # How many rows the picker may show. The list is walked with arrow keys and
@@ -825,12 +823,12 @@ def _pick_sections(entries: list[dict], nodes: list[dict],
         chosen_entries = selection.entries_in(entries, sorted(selected),
                                               include_algorithms)
         size = sum(len(e["text"]) for e in chosen_entries)
-        proof_label = PROOF_LABEL.format(state="an" if include_proofs else "aus")
-        algo_label = ALGO_LABEL.format(state="an" if include_algorithms else "aus")
-        done_label = f"── FERTIG: {len(chosen_entries)} Aussagen, {size} Zeichen ──"
+        proof_label = PROOF_LABEL.format(state="on" if include_proofs else "off")
+        algo_label = ALGO_LABEL.format(state="on" if include_algorithms else "off")
+        done_label = f"── DONE: {len(chosen_entries)} statements, {size} characters ──"
 
         labels = [done_label, proof_label, algo_label] + [label for label, _ in rows]
-        choice = menu.pick("Skript-Kontext", labels)
+        choice = menu.pick("Lecture notes context", labels)
 
         if choice is None:
             return None
@@ -863,12 +861,12 @@ def cmd_sections(args):
 
     course = args.course or context.get().get("course")
     if not course:
-        print("Kein Kurs angegeben (--course) und kein Kontext gesetzt.", file=sys.stderr)
+        print("No course given (--course) and no context set.", file=sys.stderr)
         sys.exit(1)
 
     entries = store.load_knowledge(course)
     if not entries:
-        print(f"Keine Wissensbasis fuer '{course}'. Erst 'ingest-script' ausfuehren.",
+        print(f"No knowledge base for '{course}'. Run 'ingest-script' first.",
               file=sys.stderr)
         sys.exit(1)
 
@@ -877,72 +875,72 @@ def cmd_sections(args):
                                      max_rows=0 if args.all else MAX_PICKER_ROWS):
         _print(label.replace("[ ] ", "  ", 1))
     total = len(selection.statements(entries, args.algorithms))
-    kinds = "Definitionen/Saetze" + ("/Algorithmen" if args.algorithms else "")
-    _print(f"\n{total} Aussagen ({kinds}) von {len(entries)} Eintraegen gesamt, "
-           f"{len(nodes)} Abschnitte.")
+    kinds = "definitions/theorems" + "/algorithms" * args.algorithms
+    _print(f"\n{total} statements ({kinds}) out of {len(entries)} entries, "
+           f"{len(nodes)} sections.")
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="assignmentvibe")
     sub = p.add_subparsers(dest="command", required=True)
 
-    p_cfg = sub.add_parser("config", help="Semester-Konfiguration")
+    p_cfg = sub.add_parser("config", help="per-semester configuration")
     p_cfg.add_argument("action", choices=["show", "init", "path"], nargs="?", default="show")
-    p_cfg.add_argument("--config", default=None, help="andere Config-Datei benutzen")
-    p_cfg.add_argument("--force", action="store_true", help="bei 'init' ueberschreiben")
+    p_cfg.add_argument("--config", default=None, help="use a different config file")
+    p_cfg.add_argument("--force", action="store_true", help="overwrite on 'init'")
     p_cfg.set_defaults(func=cmd_config)
 
-    p_sort = sub.add_parser("sort", help="Downloads laut Config in ~/Uni einsortieren")
-    p_sort.add_argument("--apply", action="store_true", help="wirklich verschieben (sonst nur Vorschau)")
+    p_sort = sub.add_parser("sort", help="file downloads into ~/Uni as the config says")
+    p_sort.add_argument("--apply", action="store_true", help="actually move them (otherwise preview only)")
     p_sort.add_argument("--mode", choices=["move", "copy"], default="move")
     p_sort.add_argument("--config", default=None)
     p_sort.add_argument("--no-launcher", action="store_true",
-                        help="nach --apply die Launcher-Eintraege nicht aktualisieren")
+                        help="do not refresh the launcher entries after --apply")
     p_sort.set_defaults(func=cmd_sort)
 
-    p_launch = sub.add_parser("launcher", help="Kurse in die Super+Space-Suche eintragen")
+    p_launch = sub.add_parser("launcher", help="put the courses into the Super+Space search")
     p_launch.add_argument("--config", default=None)
     p_launch.set_defaults(func=cmd_launcher)
 
-    p_org = sub.add_parser("organize", help="Downloads-Ordner in die Bibliotheks-Struktur sortieren")
-    p_org.add_argument("source", help="Ordner, der durchsucht wird (z.B. ~/Downloads)")
+    p_org = sub.add_parser("organize", help="older heuristic sorter for a downloads folder")
+    p_org.add_argument("source", help="folder to scan (e.g. ~/Downloads)")
     p_org.add_argument("--target", default=None,
                         help=f"Ziel-Bibliothek (default: {paths.DEFAULT_LIBRARY_DIR})")
-    p_org.add_argument("--apply", action="store_true", help="Tatsaechlich verschieben/kopieren (sonst nur Vorschau)")
+    p_org.add_argument("--apply", action="store_true", help="actually move/copy (otherwise preview only)")
     p_org.add_argument("--mode", choices=["copy", "move"], default="copy")
     p_org.add_argument("--ingest", action="store_true",
-                        help="Nach --apply automatisch in die Wissensbasis einlesen")
+                        help="read into the knowledge base after --apply")
     p_org.set_defaults(func=cmd_organize)
 
-    p_is = sub.add_parser("ingest-script", help="Skript-PDF -> Wissensbasis")
+    p_is = sub.add_parser("ingest-script", help="lecture notes PDF -> knowledge base")
     p_is.add_argument("pdf")
     p_is.add_argument("--course", required=True)
     p_is.set_defaults(func=cmd_ingest_script)
 
-    p_ish = sub.add_parser("ingest-sheet", help="Aufgabenblatt-PDF einlesen")
+    p_ish = sub.add_parser("ingest-sheet", help="read in an assignment sheet PDF")
     p_ish.add_argument("pdf")
     p_ish.add_argument("--course", required=True)
     p_ish.set_defaults(func=cmd_ingest_sheet)
 
-    p_courses = sub.add_parser("courses", help="Kurse auflisten")
+    p_courses = sub.add_parser("courses", help="list the courses")
     p_courses.set_defaults(func=cmd_courses)
 
-    p_sheets = sub.add_parser("sheets", help="Aufgabenblaetter auflisten")
-    p_sheets.add_argument("--course", default=None, help="Kurs-Slug filtern")
+    p_sheets = sub.add_parser("sheets", help="list the assignment sheets")
+    p_sheets.add_argument("--course", default=None, help="filter by course slug")
     p_sheets.set_defaults(func=cmd_sheets)
 
-    p_sec = sub.add_parser("sections", help="Skript-Abschnitte eines Kurses auflisten")
-    p_sec.add_argument("--course", default=None, help="Kurs-Slug (default: aktueller Kontext)")
-    p_sec.add_argument("--algorithms", action="store_true", help="Algorithmen mitzaehlen")
+    p_sec = sub.add_parser("sections", help="list a course's lecture-notes sections")
+    p_sec.add_argument("--course", default=None, help="course slug (default: the current context)")
+    p_sec.add_argument("--algorithms", action="store_true", help="count algorithms too")
     p_sec.add_argument("--all", action="store_true",
-                       help="Vollen Baum zeigen, nicht nur die Ebenen des Pickers")
+                       help="show the full tree, not just the picker's levels")
     p_sec.set_defaults(func=cmd_sections)
 
-    p_tasks = sub.add_parser("tasks", help="Aufgaben eines Blatts auflisten")
+    p_tasks = sub.add_parser("tasks", help="list the tasks on a sheet")
     p_tasks.add_argument("sheet_id")
     p_tasks.set_defaults(func=cmd_tasks)
 
-    p_ctx = sub.add_parser("context", help="Aktueller Kontext")
+    p_ctx = sub.add_parser("context", help="the current context")
     p_ctx.add_argument("action", choices=["show", "clear"])
     p_ctx.set_defaults(func=cmd_context)
 
@@ -954,27 +952,27 @@ def build_arg_parser() -> argparse.ArgumentParser:
         pb.add_argument("--solution-file", default=None)
         pb.add_argument("--solution-image", default=None)
         pb.add_argument("--sections", nargs="*", default=None,
-                        help="Skript-Abschnitte, z.B. --sections 3.1 3.2 (oder '3' fuer ein ganzes Kapitel)")
+                        help="sections, e.g. --sections 3.1 3.2 (or '3' for a whole chapter)")
         pb.add_argument("--proofs", action="store_true", default=None,
-                        help="Beweise mitgeben (Standard: aus bei hint/next_step)")
+                        help="include proofs (default: off)")
         pb.add_argument("--algorithms", action="store_true", default=None,
-                        help="Algorithmen mitgeben (Standard: aus)")
+                        help="include algorithms (default: off)")
         pb.set_defaults(func=fn)
 
-    p_fu = sub.add_parser("followup", help="Typische Nachfrage in die Zwischenablage kopieren")
+    p_fu = sub.add_parser("followup", help="copy a canned follow-up to the clipboard")
     p_fu.set_defaults(func=cmd_followup)
 
-    p_pick = sub.add_parser("pick", help="Das Hub-Menue (fuer den Top-Bar-Klick)")
-    p_pick.add_argument("--config", default=None, help="andere Config-Datei benutzen")
+    p_pick = sub.add_parser("pick", help="the hub menu (what the top-bar click opens)")
+    p_pick.add_argument("--config", default=None, help="use a different config file")
     p_pick.add_argument("--provider", default="claude",
                         choices=["claude", "chatgpt", "gemini"],
-                        help="Welcher Chat bei 'Chat oeffnen' aufgeht")
+                        help="which chat 'Open chat' opens")
     p_pick.set_defaults(func=cmd_pick)
 
-    p_wb = sub.add_parser("waybar-status", help="JSON-Status fuers Waybar-Custom-Modul")
+    p_wb = sub.add_parser("waybar-status", help="JSON status for the bar widget")
     p_wb.set_defaults(func=cmd_waybar_status)
 
-    p_ob = sub.add_parser("open-browser", help="Chat-Webseite oeffnen")
+    p_ob = sub.add_parser("open-browser", help="open the chat website")
     p_ob.add_argument("--provider", default="claude", choices=["claude", "chatgpt", "gemini"])
     p_ob.set_defaults(func=cmd_open_browser)
 

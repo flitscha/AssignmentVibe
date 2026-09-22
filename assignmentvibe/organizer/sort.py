@@ -202,20 +202,20 @@ def apply(items: list[Item], mode: str = "move") -> list[str]:
     log = []
     for item in items:
         if item.status == AMBIGUOUS:
-            log.append(f"uebersprungen (mehrere Kurse): {item.source.name}")
+            log.append(f"skipped (matches several courses): {item.source.name}")
             continue
 
         if item.status in (DUPLICATE, SUPERSEDED):
             if mode == "copy":
-                log.append(f"uebersprungen ({item.status}): {item.source.name}")
+                log.append(f"skipped ({item.status}): {item.source.name}")
                 continue
             _trash(item.source)
-            log.append(f"Papierkorb (schon vorhanden): {item.source.name}")
+            log.append(f"trashed (already filed): {item.source.name}")
             continue
 
         for old in item.replaces:
             _trash(old)
-            log.append(f"Papierkorb (ersetzt): {old.name}")
+            log.append(f"trashed (replaced): {old.name}")
 
         item.target.parent.mkdir(parents=True, exist_ok=True)
         if mode == "copy":
@@ -223,7 +223,7 @@ def apply(items: list[Item], mode: str = "move") -> list[str]:
         else:
             shutil.move(str(item.source), str(item.target))
 
-        renamed = "" if item.source.name == item.target.name else f"  [umbenannt]"
+        renamed = "" if item.source.name == item.target.name else "  [renamed]"
         log.append(f"{item.source.name}  ->  {item.target}{renamed}")
 
     return log
@@ -231,19 +231,19 @@ def apply(items: list[Item], mode: str = "move") -> list[str]:
 
 def format_plan(cfg: Config, items: list[Item], ignored: int) -> str:
     if not items:
-        return (f"Nichts zu sortieren. {ignored} Datei(en) in {cfg.downloads} "
-                f"passen auf kein Muster in {cfg.path.name}.")
+        return (f"Nothing to file. {ignored} file(s) in {cfg.downloads} "
+                f"match no pattern in {cfg.path.name}.")
 
     lines, moving = [], 0
     for item in items:
         if item.status not in (NEW, REPLACE):
             continue
         moving += 1
-        rename = f"   (als {item.target.name})" if item.source.name != item.target.name else ""
+        rename = f"   (as {item.target.name})" if item.source.name != item.target.name else ""
         lines.append(f"  {item.source.name}{rename}")
         lines.append(f"      -> {item.course.name} / {item.category}  ({item.target.parent})")
         for old in item.replaces:
-            lines.append(f"      ersetzt {old.name}  (-> Papierkorb)")
+            lines.append(f"      replaces {old.name}  (-> trash)")
 
     def group(status: str, label: str) -> None:
         chosen = [i for i in items if i.status == status]
@@ -253,10 +253,10 @@ def format_plan(cfg: Config, items: list[Item], ignored: int) -> str:
         lines.append(label)
         lines.extend(f"  {i.source.name}  ({i.course.name})" for i in chosen)
 
-    group(DUPLICATE, "Schon einsortiert, Download kommt in den Papierkorb:")
-    group(SUPERSEDED, "Aeltere Version desselben Downloads, kommt in den Papierkorb:")
-    group(AMBIGUOUS, "Passt auf mehrere Kurse - Muster in der Config schaerfen:")
+    group(DUPLICATE, "Already filed, the download goes to the trash:")
+    group(SUPERSEDED, "Older version of the same download, goes to the trash:")
+    group(AMBIGUOUS, "Matches several courses - sharpen the patterns in the config:")
 
     lines.append("")
-    lines.append(f"{moving} zu verschieben, {ignored} ignoriert.")
+    lines.append(f"{moving} to move, {ignored} ignored.")
     return "\n".join(lines)

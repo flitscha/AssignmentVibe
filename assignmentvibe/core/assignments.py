@@ -23,7 +23,9 @@ import re
 import sys
 from pathlib import Path
 
-import pymupdf
+# pymupdf is imported where it is used, not here. It costs ~350ms to load,
+# and the bar asks for the status every few seconds while none of that path
+# opens a PDF - that import was most of what made the tool feel slow.
 
 from .pdf_text import normalize
 
@@ -36,6 +38,8 @@ TITLE_END_RE = re.compile(r"[.:]\s")
 
 
 def extract_pdf_text(pdf_path: Path) -> str:
+    import pymupdf
+
     doc = pymupdf.open(pdf_path)
     return "\n".join(normalize(p.get_text("text")) for p in doc)
 

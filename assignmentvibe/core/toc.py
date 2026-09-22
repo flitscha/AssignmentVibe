@@ -36,7 +36,9 @@ import re
 from collections import Counter
 from pathlib import Path
 
-import pymupdf
+# pymupdf is imported where it is used, not here. It costs ~350ms to load,
+# and the bar asks for the status every few seconds while none of that path
+# opens a PDF - that import was most of what made the tool feel slow.
 
 # A title that numbers itself ("1. Graphs", "2.3 Bipartite graphs"). The node
 # carries its own key, so the duplicate leading number is dropped.
@@ -50,6 +52,8 @@ def _clean(title: str) -> str:
 def outline_tree(pdf_path: Path) -> list[dict]:
     """The PDF's bookmarks as [{"key", "level", "title", "page"}], in reading
     order. Empty when the PDF has no outline."""
+    import pymupdf
+
     try:
         raw = pymupdf.open(pdf_path).get_toc()
     except Exception:

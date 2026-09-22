@@ -8,12 +8,12 @@ with no outline at all. A change to the chunking is only believable if this
 table stays healthy across all of them.
 
 What to look at:
-  Abschn.   how many sections the script chunks into. Roughly one per 5-25
+  sections  how many sections the script chunks into. Roughly one per 5-25
             statements is a usable picker; one per 1-2 means the numbering was
             misread and the chunking has collapsed.
-  platziert entries that landed in a section. Anything below 100% means the
+  placed    entries that landed in a section. Anything below 100% means the
             outline and the pages disagree somewhere.
-  Leaks     statements whose text still contains a proof. Must be 0 - a leak
+  leaks     statements whose text still contains a proof. Must be 0 - a leak
             is a proof reaching a hint prompt.
 
     python scripts/check_corpus.py [name-fragment ...]
@@ -61,7 +61,7 @@ def main() -> None:
     pdfs = sorted(p for p in CORPUS.glob("*.pdf")
                   if not wanted or any(w in p.name.lower() for w in wanted))
     if not pdfs:
-        print(f"Keine PDFs in {CORPUS}", file=sys.stderr)
+        print(f"No PDFs in {CORPUS}", file=sys.stderr)
         sys.exit(1)
 
     rows = []
@@ -87,32 +87,32 @@ def main() -> None:
         })
 
     print()
-    head = (f"{'Skript':34s} {'Eintr.':>6s} {'Aussagen':>8s} {'Abschn.':>7s} "
-            f"{'genutzt':>7s} {'platziert':>9s} {'Beweise':>7s} {'groesster':>9s} {'Leaks':>5s}")
+    head = (f"{'script':34s} {'entries':>7s} {'stmts':>6s} {'sections':>8s} "
+            f"{'used':>5s} {'placed':>7s} {'proofs':>7s} {'biggest':>8s} {'leaks':>6s}")
     print(head)
     print("-" * len(head))
     for r in rows:
         pct = 100 * r["placed"] // max(1, r["entries"])
         flag = "" if r["leaks"] == 0 else "  <-- LEAK"
-        print(f"{r['name']:34s} {r['entries']:6d} {r['stmts']:8d} {r['sections']:7d} "
-              f"{r['used']:7d} {str(pct) + '%':>9s} {r['proofs']:7d} {r['biggest']:9d} "
-              f"{r['leaks']:5d}{flag}")
+        print(f"{r['name']:34s} {r['entries']:7d} {r['stmts']:6d} {r['sections']:8d} "
+              f"{r['used']:5d} {str(pct) + '%':>7s} {r['proofs']:7d} {r['biggest']:8d} "
+              f"{r['leaks']:6d}{flag}")
 
-    print("\nAussagetypen je Skript:")
+    print("\nStatement types per script:")
     for r in rows:
         print(f"  {r['name']:34s} {', '.join(f'{t} {c}' for t, c in r['types'].most_common())}")
 
     total_leaks = sum(r["leaks"] for r in rows)
-    print(f"\n{len(rows)} Skripte, {sum(r['entries'] for r in rows)} Eintraege, "
-          f"{total_leaks} Beweis-Leaks.")
+    print(f"\n{len(rows)} scripts, {sum(r['entries'] for r in rows)} entries, "
+          f"{total_leaks} leaked proofs.")
 
     over = [(r["name"], r["leaks"], KNOWN_LEAKS.get(r["name"], 0))
             for r in rows if r["leaks"] > KNOWN_LEAKS.get(r["name"], 0)]
     if over:
         for name, got, expected in over:
-            print(f"  REGRESSION {name}: {got} Leaks, erwartet hoechstens {expected}")
+            print(f"  REGRESSION {name}: {got} leaks, expected at most {expected}")
     else:
-        print("Keine Regression gegenueber den bekannten Grenzfaellen.")
+        print("No regression against the known edge cases.")
     sys.exit(1 if over else 0)
 
 

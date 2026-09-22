@@ -1,17 +1,17 @@
-Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten.
+Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
 
-# Kontext: Algebra I
-Aufgabenblatt None, Besprechung: Di. 21. November 2024
+# Course: Algebra I
+Sheet None, due: Di. 21. November 2024
 
-# Aufgabe 1
+# Task 1
 Bestimmen Sie alle ganzzahligen Lösungen des folgenden Systems linearer Kon-
 gruenzen:
 x ≡1 mod 3
 x ≡2 mod 7
 x ≡3 mod 4.
 
-# Aus dem Skriptum: Abschnitt 4.3 Lösung der antiken Konstruktionsprobleme
-(alle Definitionen und Saetze dieser Abschnitte, ohne Beweise)
+# From the lecture notes: section 4.3 Lösung der antiken Konstruktionsprobleme
+(every definition and theorem of these sections, proofs omitted)
 
 Proposition 4.3.1:
 Sei L ⊆C ein unter komplexer Konjugation abgeschlossener Körper.
@@ -51,5 +51,5 @@ Satz 4.3.6 (Konstruktion regelmäßiger p-Ecke):
 ßigep-EckmitZirkelundLinealkonstruierbar,soistp−1eineZweierpotenz.Insbesondere
 kann man ein regelmäßiges 7-Eck nicht mit Zirkel und Lineal konstruieren.
 
-# Meine bisherige Teilloesung
+# What I have so far
 x=1 mod 3 und x=3 mod 4 ergibt zusammen x=9 mod 12 (CRT fuer 3 und 4, da teilerfremd). Jetzt noch x=2 mod 7 kombinieren: ich setze x=9+12k und loese 9+12k=2 mod 7, also 12k=-7=0 mod 7, also k=0 mod 7 (da 12=5 mod 7 und 5 invertierbar). Also x=9 mod 84 als einzige Loesung.

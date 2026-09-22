@@ -7,10 +7,10 @@
 # leaving an empty gap in the bar with no hint why.
 #
 # Left click opens the menu (pick a task, pick the chapters, copy the prompt),
-# right click goes straight to the canned replies - those are needed mid-chat,
-# where walking through the menu first is exactly the wrong thing.
+# right click goes straight to the canned follow-ups - those are needed
+# mid-chat, where walking through the menu first is exactly the wrong thing.
 if ! command -v assignmentvibe >/dev/null; then
-  printf '{"text":"󰷉","tooltip":"assignmentvibe nicht im PATH"}\n'
+  printf '{"text":"󰷉","tooltip":"assignmentvibe is not on PATH"}\n'
   exit 0
 fi
 assignmentvibe waybar-status

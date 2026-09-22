@@ -8,10 +8,9 @@ retrieval, but it demonstrates that automatic chapter/theorem selection
 works in principle. Replace with real embedding search for a production
 version.
 
-Note: the instruction text and the prompt template strings further
-down are deliberately kept in German - this is product content sent to an
-LLM on behalf of a German-speaking student working through German course
-material, not internal code. Only identifiers/comments are English here.
+The prompt itself is English while the material it carries (task text,
+definitions, theorems) is whatever language the course is in. That mix is
+deliberate: the instruction is the tool talking, the rest is quoted source.
 
 Depends on nothing else in this project (pure functions over plain dicts).
 """
@@ -29,10 +28,10 @@ from pathlib import Path
 # step, see the idea, and stop. What the modes were really for lives on in
 # FOLLOW_UPS below, where it costs one click at the moment you know you need it.
 SOLVE_INSTRUCTION = (
-    "Loese die folgende Aufgabe. Rechne die Schritte einzeln und nachvollziehbar "
-    "vor und benenne bei jedem Schritt, welche Definition oder welcher Satz aus "
-    "dem Skriptum unten ihn rechtfertigt. Halte dich an die Notation des "
-    "Skriptums. Wenn etwas in der Angabe unklar ist, sag das, statt es zu raten."
+    "Solve the task below. Work through it one step at a time, and for each step "
+    "name the definition or theorem from the lecture notes below that justifies "
+    "it. Stick to the notation used in the notes. If anything in the task is "
+    "ambiguous, say so instead of guessing."
 )
 
 # Canned replies to paste back into the chat. The point is the keyboard: these
@@ -41,34 +40,32 @@ SOLVE_INSTRUCTION = (
 # alone as a chat message - no placeholders to fill in, nothing to edit after
 # pasting - which is why none of them name a step number or a symbol.
 FOLLOW_UPS = [
-    ("\U0001F50E", "Letzten Schritt genauer",
-     "Erklaere den letzten Schritt ausfuehrlicher. Was genau passiert da, und "
-     "warum ist er erlaubt?"),
-    ("\U0001F4CF", "Schritt fuer Schritt",
-     "Mach das kleinschrittiger. Lass keinen Zwischenschritt aus, auch nicht die, "
-     "die offensichtlich wirken."),
-    ("\U0001F4D6", "An das Skript halten",
-     "Benutze ausschliesslich die Definitionen und Saetze aus dem Skriptum oben. "
-     "Wenn du etwas brauchst, das dort nicht steht, sag es, statt es zu verwenden."),
-    ("\U0001F4A1", "Nur ein Hinweis",
-     "Verrate mir die Loesung noch nicht. Gib mir nur einen Hinweis, wie ich "
-     "selbst auf die Idee komme."),
-    ("\u27A1\uFE0F", "Nur der naechste Schritt",
-     "Nur der naechste Schritt, nicht die ganze weitere Loesung."),
-    ("\u2753", "Warum gilt das?",
-     "Warum gilt das? Nenne mir die Definition oder den Satz, der diesen Schritt "
-     "rechtfertigt, und erklaere, warum seine Voraussetzungen hier erfuellt sind."),
-    ("\U0001F50D", "Fehler suchen",
-     "Pruefe das noch einmal nach. Falls ein Fehler drin ist, sag mir, an welcher "
-     "Stelle - und korrigiere nur diese Stelle, nicht die ganze Rechnung."),
-    ("\U0001F9E0", "Idee dahinter",
-     "Lass die Rechnung kurz beiseite: was ist die Idee hinter diesem Vorgehen, "
-     "und woran haette ich selbst erkennen koennen, dass es hier passt?"),
-    ("\u2702\uFE0F", "Kuerzer",
-     "Zu ausfuehrlich. Fasse es kurz: nur die Rechnung und das Ergebnis."),
-    ("\U0001F9EA", "Beispiel dazu",
-     "Gib mir ein kleines konkretes Beispiel dazu, an dem ich nachvollziehen "
-     "kann, dass das stimmt."),
+    ("\U0001F50E", "Expand last step",
+     "Expand on that last step. What exactly happens there, and why is it allowed?"),
+    ("\U0001F4CF", "Step by step",
+     "Break that down further. Do not skip any intermediate step, including the "
+     "ones that look obvious."),
+    ("\U0001F4D6", "Stick to the notes",
+     "Use only the definitions and theorems from the lecture notes above. If you "
+     "need something that is not in them, say so instead of using it."),
+    ("\U0001F4A1", "Just a hint",
+     "Do not give me the solution yet. Just give me a hint so I can get to the "
+     "idea myself."),
+    ("\u27A1\uFE0F", "Only the next step",
+     "Only the next step, not the rest of the solution."),
+    ("\u2753", "Why does that hold?",
+     "Why does that hold? Name the definition or theorem that justifies this step, "
+     "and explain why its conditions are met here."),
+    ("\U0001F50D", "Find the mistake",
+     "Check that again. If there is a mistake, tell me where it is - and fix only "
+     "that spot, not the whole calculation."),
+    ("\U0001F9E0", "Idea behind it",
+     "Set the calculation aside for a moment: what is the idea behind this "
+     "approach, and how could I have recognised myself that it fits here?"),
+    ("\u2702\uFE0F", "Shorter",
+     "Too long-winded. Keep it short: just the calculation and the result."),
+    ("\U0001F9EA", "Give an example",
+     "Give me a small concrete example I can follow to see that this is true."),
 ]
 
 # German stopwords - the source material and task texts are German, so the
@@ -172,7 +169,7 @@ def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
         header += f" ({e['name']})"
     out = f"{header}:\n{e['text']}"
     if include_proof and e.get("proof"):
-        out += f"\nBeweis: {e['proof']}"
+        out += f"\nProof: {e['proof']}"
     return out
 
 
@@ -202,12 +199,12 @@ def build_prompt(
     lines = []
     lines.append(SOLVE_INSTRUCTION)
     lines.append("")
-    lines.append(f"# Kontext: {course_name}")
+    lines.append(f"# Course: {course_name}")
     if sheet_meta.get("discussion_date"):
-        lines.append(f"Aufgabenblatt {sheet_meta.get('sheet_number', '?')}, "
-                      f"Besprechung: {sheet_meta['discussion_date']}")
+        lines.append(f"Sheet {sheet_meta.get('sheet_number', '?')}, "
+                      f"due: {sheet_meta['discussion_date']}")
     lines.append("")
-    lines.append(f"# Aufgabe {task['number']}"
+    lines.append(f"# Task {task['number']}"
                   + (f": {task['title']}" if task.get("title") else ""))
     lines.append(task["text"])
     lines.append("")
@@ -217,20 +214,20 @@ def build_prompt(
         # context covers - and, just as usefully, what it does not.
         where = (", ".join(section_label(section_titles, s) for s in used_sections)
                  if used_sections else "?")
-        lines.append(f"# Aus dem Skriptum: Abschnitt {where}")
-        contents = "alle Definitionen und Saetze dieser Abschnitte"
+        lines.append(f"# From the lecture notes: section {where}")
+        contents = "every definition and theorem of these sections"
         if include_algorithms:
-            contents += " samt Algorithmen"
+            contents += ", algorithms included"
         if not include_proofs:
-            contents += ", ohne Beweise"
+            contents += ", proofs omitted"
         lines.append(f"({contents})")
         for e in context:
             lines.append("")
             lines.append(format_knowledge_entry(e, include_proof=include_proofs))
         lines.append("")
 
-    lines.append("# Meine bisherige Teilloesung")
-    lines.append(partial_solution.strip() if partial_solution else "(noch nichts probiert)")
+    lines.append("# What I have so far")
+    lines.append(partial_solution.strip() if partial_solution else "(nothing yet)")
 
     return "\n".join(lines)
 
