@@ -33,7 +33,7 @@ import sys
 from pathlib import Path
 
 from . import context, paths, uniconfig
-from .core.prompts import USE_CASES, build_prompt
+from .core.prompts import USE_CASES, build_prompt, format_knowledge_entry
 from .integrations import clipboard, menu, notify, ocr
 
 USE_CASE_LABELS = {key: f"{v['emoji']} {v['label']}" for key, v in USE_CASES.items()}
@@ -478,10 +478,54 @@ PROOF_LABEL = "── Beweise: {state} ──"
 ALGO_LABEL = "── Algorithmen: {state} ──"
 
 
+# How many rows the picker may show. The list is walked with arrow keys and
+# every row is a decision, so depth is spent where it buys something: a script
+# whose chapters fit is offered by chapter, and only one that would otherwise
+# hand over unusably large pieces is opened up further. Nothing is lost by the
+# coarser view - a parent key selects everything nested under it either way.
+MAX_PICKER_ROWS = 10
+
+# ...except that row count alone picks the wrong level for a script whose
+# outline starts above the chapters. Stochastik's top level is three PARTS of a
+# two-semester course, so the row budget alone stops there and offers three
+# chunks of 46k-72k characters - a whole semester dumped in as "context". Its
+# chapters are one level further down. The chunk budget is what notices that:
+# roughly four thousand tokens, past which a section has stopped being context
+# for a task and started being a book.
+MAX_CHUNK_CHARS = 15_000
+
+
+def _median(values: list[int]) -> int:
+    return sorted(values)[len(values) // 2] if values else 0
+
+
+def _display_depth(rows: list[tuple[int, int]],
+                   max_rows: int = MAX_PICKER_ROWS,
+                   max_chunk: int = MAX_CHUNK_CHARS) -> int:
+    """The outline level to cut the picker off at, given (level, characters) for
+    every node that has statements in it.
+
+    Go one level deeper while either the rows still fit in the budget, or the
+    level reached so far is still handing over chunks too big to be context.
+    The typical chunk decides that, not the largest: a whole chapter stays
+    selectable in one keystroke and is supposed to be big."""
+    deepest = max((level for level, _ in rows), default=1)
+    depth = 1
+    for candidate in range(2, deepest + 1):
+        fits = sum(1 for level, _ in rows if level <= candidate) <= max_rows
+        too_coarse = _median([c for level, c in rows if level <= depth]) > max_chunk
+        if not (fits or too_coarse):
+            break
+        depth = candidate
+    return depth
+
+
 def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
-                  include_algorithms: bool = False) -> list[tuple[str, str]]:
-    """(menu label, section key) for every node of the script's outline that has
-    statements somewhere beneath it, indented by its depth.
+                  include_algorithms: bool = False,
+                  max_rows: int = MAX_PICKER_ROWS) -> list[tuple[str, str]]:
+    """(menu label, section key) for the nodes of the script's outline that have
+    statements beneath them, indented by depth and cut off at the depth that
+    fits the row and chunk budgets (max_rows=0 shows all of them).
 
     Parents are offered alongside their children, so "give me all of chapter 3"
     is one keystroke rather than four - selection.entries_in treats a parent key
@@ -492,12 +536,25 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
     grouped = selection.group_by_section(entries, include_algorithms)
     titles = {n["key"]: n["title"] for n in nodes if n.get("title")}
 
-    rows = []
+    filled = []
     for node in nodes:
-        key = node["key"]
-        total = sum(len(v) for k, v in grouped.items() if selection.covers(key, k))
-        if not total:
+        inside = [e for k, v in grouped.items() if selection.covers(node["key"], k)
+                  for e in v]
+        if inside:
+            # The size the row actually costs a prompt, which is the formatted
+            # statements without their proofs - not the raw entries.
+            size = sum(len(format_knowledge_entry(e, include_proof=False)) + 1
+                       for e in inside)
+            filled.append((node, len(inside), size))
+
+    depth = (_display_depth([(n["level"], size) for n, _, size in filled], max_rows)
+             if max_rows else None)
+
+    rows = []
+    for node, count, size in filled:
+        if depth is not None and node["level"] > depth:
             continue
+        key = node["key"]
         mark = "✓" if any(selection.covers(s, key) for s in selected) else " "
         indent = "   " * (node["level"] - 1)
         # Without an outline there are no titles, only numbers - and then the
@@ -506,7 +563,7 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
             name = toc.label(titles, key)
         else:
             name = f"{'Kapitel' if node['level'] == 1 else 'Abschnitt'} {key}"
-        rows.append((f"[{mark}] {indent}{name}  ({total})", key))
+        rows.append((f"[{mark}] {indent}{name}  ({count}, {size // 1000}k)", key))
     return rows
 
 
@@ -575,7 +632,8 @@ def cmd_sections(args):
         sys.exit(1)
 
     nodes = store.load_sections(course)
-    for label, _key in _section_tree(entries, nodes, set(), args.algorithms):
+    for label, _key in _section_tree(entries, nodes, set(), args.algorithms,
+                                     max_rows=0 if args.all else MAX_PICKER_ROWS):
         _print(label.replace("[ ] ", "  ", 1))
     total = len(selection.statements(entries, args.algorithms))
     kinds = "Definitionen/Saetze" + ("/Algorithmen" if args.algorithms else "")
@@ -635,6 +693,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p_sec = sub.add_parser("sections", help="Skript-Abschnitte eines Kurses auflisten")
     p_sec.add_argument("--course", default=None, help="Kurs-Slug (default: aktueller Kontext)")
     p_sec.add_argument("--algorithms", action="store_true", help="Algorithmen mitzaehlen")
+    p_sec.add_argument("--all", action="store_true",
+                       help="Vollen Baum zeigen, nicht nur die Ebenen des Pickers")
     p_sec.set_defaults(func=cmd_sections)
 
     p_tasks = sub.add_parser("tasks", help="Aufgaben eines Blatts auflisten")
