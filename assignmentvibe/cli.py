@@ -138,9 +138,29 @@ def _build_from_args(args) -> str:
 
     solution = _resolve_solution(args)
 
+    # Read the remembered selection BEFORE overwriting the context below, and
+    # only when it belongs to this sheet's course - section keys mean different
+    # chapters in different scripts, so carrying them across a course switch
+    # would quietly fill the prompt with another subject's definitions.
+    previous = context.get()
+    same_course = previous.get("course") == course_slug
+    remembered = previous.get("sections") if same_course else None
+    if not same_course:
+        # Otherwise the old course's keys stay behind next to the new course and
+        # would be taken as "remembered" on the following build.
+        context.drop("sections")
+
     context.set(sheet=sheet_id, task=int(task_num), use_case=use_case, course=course_slug)
 
-    return build_prompt(use_case, task, sheet, knowledge, solution, course_name)
+    sections = getattr(args, "sections", None) or remembered
+    proofs = getattr(args, "proofs", None)
+    algorithms = bool(getattr(args, "algorithms", None))
+
+    return build_prompt(use_case, task, sheet, knowledge, solution, course_name,
+                        sections=sections, include_proofs=proofs,
+                        include_algorithms=algorithms,
+                        section_titles=store.load_section_titles(course_slug)
+                        if course_slug else {})
 
 
 def cmd_build(args):
@@ -274,6 +294,26 @@ def cmd_pick(args):
         return
     use_case = LABEL_TO_KEY[use_case_label]
 
+    # Which part of the script to hand over. Pre-selected from the sections used
+    # last time for this course, or - on the first run - from what the keyword
+    # ranking suggests, so the common case is a single confirming keystroke.
+    course_slug = sheet.get("course_slug")
+    knowledge = store.load_knowledge(course_slug) if course_slug else []
+    sections, proofs, algorithms = None, None, None
+    if knowledge:
+        from .core import selection
+
+        task = next(t for t in sheet["tasks"] if t["number"] == task_num)
+        ctx = context.get()
+        remembered = ctx.get("sections") if ctx.get("course") == course_slug else None
+        preselected = remembered or selection.suggest_sections(task["text"], knowledge)
+        picked = _pick_sections(knowledge, store.load_sections(course_slug), preselected)
+        if picked is None:
+            notify.send("Abgebrochen", "Kein Skript-Kontext ausgewaehlt.", glyph="🧮")
+            return
+        sections, proofs, algorithms = picked
+        context.set(course=course_slug, sections=sections)
+
     solution_choice = menu.pick(
         "Teilloesung",
         ["Keine", "Aus Zwischenablage uebernehmen", "Aus Bild (OCR)"],
@@ -299,6 +339,9 @@ def cmd_pick(args):
     fake_args.solution = solution
     fake_args.solution_file = None
     fake_args.solution_image = None
+    fake_args.sections = sections
+    fake_args.proofs = proofs
+    fake_args.algorithms = algorithms
 
     prompt = _build_from_args(fake_args)
     ok, method = clipboard.copy(prompt)
@@ -428,6 +471,118 @@ def cmd_launcher(args, cfg=None, quiet=False):
                f"Mit Super+Space suchbar.")
 
 
+# --- Script context: which sections of the script go into the prompt --------
+
+DONE_LABEL = "── FERTIG ──"
+PROOF_LABEL = "── Beweise: {state} ──"
+ALGO_LABEL = "── Algorithmen: {state} ──"
+
+
+def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
+                  include_algorithms: bool = False) -> list[tuple[str, str]]:
+    """(menu label, section key) for every node of the script's outline that has
+    statements somewhere beneath it, indented by its depth.
+
+    Parents are offered alongside their children, so "give me all of chapter 3"
+    is one keystroke rather than four - selection.entries_in treats a parent key
+    as everything nested under it. Nodes with nothing in them are left out; a
+    bibliography or a foreword is not something to hand to the model."""
+    from .core import selection, toc
+
+    grouped = selection.group_by_section(entries, include_algorithms)
+    titles = {n["key"]: n["title"] for n in nodes if n.get("title")}
+
+    rows = []
+    for node in nodes:
+        key = node["key"]
+        total = sum(len(v) for k, v in grouped.items() if selection.covers(key, k))
+        if not total:
+            continue
+        mark = "✓" if any(selection.covers(s, key) for s in selected) else " "
+        indent = "   " * (node["level"] - 1)
+        # Without an outline there are no titles, only numbers - and then the
+        # row has to say what the number counts.
+        if titles:
+            name = toc.label(titles, key)
+        else:
+            name = f"{'Kapitel' if node['level'] == 1 else 'Abschnitt'} {key}"
+        rows.append((f"[{mark}] {indent}{name}  ({total})", key))
+    return rows
+
+
+def _pick_sections(entries: list[dict], nodes: list[dict],
+                   preselected: list[str]) -> tuple[list[str], bool, bool] | None:
+    """The selection loop. Returns (sections, include_proofs, include_algorithms),
+    or None if the user aborted. A loop rather than a multi-select widget because
+    the picker chain (Walker, wofi, fzf, stdin) only ever returns ONE choice -
+    see integrations/menu.py."""
+    from .core import selection, toc
+
+    selected = set(preselected)
+    include_proofs = False
+    include_algorithms = False
+
+    while True:
+        rows = _section_tree(entries, nodes, selected, include_algorithms)
+        chosen_entries = selection.entries_in(entries, sorted(selected),
+                                              include_algorithms)
+        size = sum(len(e["text"]) for e in chosen_entries)
+        proof_label = PROOF_LABEL.format(state="an" if include_proofs else "aus")
+        algo_label = ALGO_LABEL.format(state="an" if include_algorithms else "aus")
+        done_label = f"── FERTIG: {len(chosen_entries)} Aussagen, {size} Zeichen ──"
+
+        labels = [done_label, proof_label, algo_label] + [label for label, _ in rows]
+        choice = menu.pick("Skript-Kontext", labels)
+
+        if choice is None:
+            return None
+        if choice == done_label:
+            return (sorted(selected, key=toc.sort_key), include_proofs,
+                    include_algorithms)
+        if choice == proof_label:
+            include_proofs = not include_proofs
+            continue
+        if choice == algo_label:
+            include_algorithms = not include_algorithms
+            continue
+
+        key = next((k for label, k in rows if label == choice), None)
+        if key is None:
+            continue
+        # Toggling a parent clears its children too, so the two cannot disagree
+        # about what is selected.
+        if key in selected:
+            selected.discard(key)
+        else:
+            selected.add(key)
+            selected -= {s for s in list(selected)
+                         if s != key and selection.covers(key, s)}
+
+
+def cmd_sections(args):
+    from . import store
+    from .core import selection
+
+    course = args.course or context.get().get("course")
+    if not course:
+        print("Kein Kurs angegeben (--course) und kein Kontext gesetzt.", file=sys.stderr)
+        sys.exit(1)
+
+    entries = store.load_knowledge(course)
+    if not entries:
+        print(f"Keine Wissensbasis fuer '{course}'. Erst 'ingest-script' ausfuehren.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    nodes = store.load_sections(course)
+    for label, _key in _section_tree(entries, nodes, set(), args.algorithms):
+        _print(label.replace("[ ] ", "  ", 1))
+    total = len(selection.statements(entries, args.algorithms))
+    kinds = "Definitionen/Saetze" + ("/Algorithmen" if args.algorithms else "")
+    _print(f"\n{total} Aussagen ({kinds}) von {len(entries)} Eintraegen gesamt, "
+           f"{len(nodes)} Abschnitte.")
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="assignmentvibe")
     sub = p.add_subparsers(dest="command", required=True)
@@ -477,6 +632,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p_sheets.add_argument("--course", default=None, help="Kurs-Slug filtern")
     p_sheets.set_defaults(func=cmd_sheets)
 
+    p_sec = sub.add_parser("sections", help="Skript-Abschnitte eines Kurses auflisten")
+    p_sec.add_argument("--course", default=None, help="Kurs-Slug (default: aktueller Kontext)")
+    p_sec.add_argument("--algorithms", action="store_true", help="Algorithmen mitzaehlen")
+    p_sec.set_defaults(func=cmd_sections)
+
     p_tasks = sub.add_parser("tasks", help="Aufgaben eines Blatts auflisten")
     p_tasks.add_argument("sheet_id")
     p_tasks.set_defaults(func=cmd_tasks)
@@ -493,6 +653,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
         pb.add_argument("--solution", default=None)
         pb.add_argument("--solution-file", default=None)
         pb.add_argument("--solution-image", default=None)
+        pb.add_argument("--sections", nargs="*", default=None,
+                        help="Skript-Abschnitte, z.B. --sections 3.1 3.2 (oder '3' fuer ein ganzes Kapitel)")
+        pb.add_argument("--proofs", action="store_true", default=None,
+                        help="Beweise mitgeben (Standard: aus bei hint/next_step)")
+        pb.add_argument("--algorithms", action="store_true", default=None,
+                        help="Algorithmen mitgeben (Standard: aus)")
         pb.set_defaults(func=fn)
 
     p_pick = sub.add_parser("pick", help="Interaktiver Auswahl-Flow (fuer Top-Bar-Klick)")

@@ -53,9 +53,13 @@ def main() -> None:
         sheet = _load(REPO_ROOT / "data" / "assignments" / f"{sheet_id}.json")
         task = next(t for t in sheet["tasks"] if t["number"] == task_number)
         knowledge_name = KNOWLEDGE_FOR_SHEET[sheet_id[0]]
-        entries = _load(REPO_ROOT / "data" / "knowledge" / f"{knowledge_name}.json")["entries"]
+        knowledge = _load(REPO_ROOT / "data" / "knowledge" / f"{knowledge_name}.json")
+        entries = knowledge["entries"]
+        titles = {n["key"]: n["title"] for n in knowledge.get("sections", [])
+                  if n.get("title")}
 
-        prompt = build_prompt(use_case, task, sheet, entries, solution, course)
+        prompt = build_prompt(use_case, task, sheet, entries, solution, course,
+                              section_titles=titles)
         out_path = OUT_DIR / f"{name}.txt"
         out_path.write_text(prompt + "\n", encoding="utf-8")
         print(f"{out_path.relative_to(REPO_ROOT)}  ({len(prompt)} Zeichen)")

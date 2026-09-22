@@ -35,26 +35,45 @@ import pymupdf
 
 from .pdf_text import normalize
 
+# German and English side by side: the corpus contains both (notes48.pdf and
+# the spectral graph theory book are English), and a script never mixes the two,
+# so carrying both lists costs nothing and needs no language detection.
+# "Lemma" and "Proposition" happen to be spelled the same in both - which is
+# why those two, and only those two, used to come through on English scripts.
 TYPE_WORDS = [
     "Definition", "Satz", "Lemma", "Korollar", "Proposition",
     "Bemerkung", "Beispiel", "Algorithmus", "Beweis", "Konstruktion",
+    "Theorem", "Corollary", "Remark", "Example", "Algorithm",
+    "Proof", "Exercise", "Notation", "Claim", "Construction",
 ]
 
 # Usually there is a space between the type word and the number ("Definition
 # 7.1.1"), but in at least one section of Algebra.pdf the PDF is missing that
 # kerning/space ("Definition7.4.4" as ONE word/span) - hence a lookahead
 # instead of \b, which also allows immediately-following digits.
-TYPE_PREFIX_RE = re.compile(r"^(" + "|".join(TYPE_WORDS) + r")(?=[\s\d.]|$)")
+# The colon is in there for the scripts that punctuate headers as "Beweis:"
+# (complex_analysis_alles, Stochastik): without it the span was not recognised
+# as a header at all, the regex match got rejected for lack of a styled
+# counterpart, and the proof stayed inside the theorem it proves.
+TYPE_PREFIX_RE = re.compile(r"^(" + "|".join(TYPE_WORDS) + r")(?=[\s\d.:]|$)")
 
 BOLD_FLAG = 2 ** 4
 ITALIC_FLAG = 2 ** 1
+
+# Small caps is the third convention, alongside bold and italic. It carries no
+# flag of its own - PyMuPDF reports CMCSC10 as plain serif, flags=4 - so it can
+# only be seen in the font name. Analysis_4_Notes.pdf sets its theorem headers
+# in CMBX12 but every single "Beweis." in CMCSC10; without this, all 106 of its
+# proofs went undetected and stayed glued inside the theorems they prove.
+SMALL_CAPS_MARKERS = ("CSC", "SmallCaps", "Smallcaps", "-SC", "SC10")
 
 
 def is_styled(span: dict) -> bool:
     font = span.get("font", "")
     bold = bool(span["flags"] & BOLD_FLAG) or "Bold" in font or "-BX" in font or font.endswith("BX10")
     italic = bool(span["flags"] & ITALIC_FLAG) or "Italic" in font or "-TI" in font or font.endswith("TI10")
-    return bold or italic
+    small_caps = any(marker in font for marker in SMALL_CAPS_MARKERS)
+    return bold or italic or small_caps
 
 
 def styled_type_words_per_page(pdf_path: Path) -> list[list[str]]:

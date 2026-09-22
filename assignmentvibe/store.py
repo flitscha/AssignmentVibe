@@ -54,15 +54,31 @@ def ingest_script(pdf_path: Path, course_name: str) -> dict:
     knowledge_path = paths.KNOWLEDGE_DIR / f"{slug}.json"
 
     pdf_text.extract_to_json(pdf_path, raw_path)
+    # core.knowledge writes the section tree alongside the entries: which
+    # chapter an entry belongs to is decided there, from the PDF's outline.
     knowledge_core.run(raw_path, knowledge_path, pdf_path)
-    saved = _load_json(knowledge_path, {"entries": []})
+    saved = _load_json(knowledge_path, {"entries": [], "sections": []})
 
     return {
         "course": course_name,
         "slug": slug,
         "entries": len(saved["entries"]),
         "knowledge_path": str(knowledge_path),
+        "sections": len(saved["sections"]),
     }
+
+
+def load_sections(course_slug: str) -> list[dict]:
+    """A course's section tree: [{"key", "level", "title", "page"}, ...] in
+    reading order. Empty for a script ingested before the tree existed."""
+    path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
+    return _load_json(path, {}).get("sections", [])
+
+
+def load_section_titles(course_slug: str) -> dict[str, str]:
+    """key -> title, for labelling. A script whose PDF had no bookmarks has
+    keys but no titles, and the picker then shows the bare numbers."""
+    return {n["key"]: n["title"] for n in load_sections(course_slug) if n.get("title")}
 
 
 def ingest_sheet(pdf_path: Path, course_name: str) -> dict:

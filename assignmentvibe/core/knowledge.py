@@ -2,10 +2,11 @@
 Step 2: raw text -> structured knowledge base (definitions, theorems, lemmas,
 corollaries, examples, remarks, proofs).
 
-The German math scripts used here consistently use amsthm-style numbering
-"<chapter>.<section>.<index>" (e.g. "Satz 1.3.4"). We exploit that: chapter
-and section are derived directly from the number, no separate heading
-detection needed.
+Numbering is NOT interpreted here. "Satz 1.3.4" keeps its number verbatim;
+which chapter and section that entry belongs to is decided by core.toc from the
+PDF's outline, because the depth of the numbering varies between scripts and
+reading "Satz 1.2" as section 1.2 shatters a script into pseudo-sections (see
+core.toc for the measurements).
 
 A plain line-start regex is NOT enough though: a back-reference like
 "Satz 1.3.3" inside a later proof can end up at the start of a line by pure
@@ -17,7 +18,7 @@ against the bold/italic detection from font_styles.py (see there) - only
 genuinely styled headers count as a block boundary, everything else stays
 part of the surrounding block.
 
-Depends only on core.font_styles (and, transitively, core.pdf_text).
+Depends on core.font_styles and core.toc (and, transitively, core.pdf_text).
 """
 
 import json
@@ -25,6 +26,7 @@ import re
 import sys
 from pathlib import Path
 
+from . import toc
 from .font_styles import styled_type_words_per_page
 
 # Literal German theorem-type words - see font_styles.py for why these are
@@ -40,6 +42,18 @@ NUMBERED_TYPES = [
     "Beispiel",
     "Algorithmus",
     "Konstruktion",
+    # English scripts. Longest-first matters inside the alternation only for
+    # prefixes of one another, which these are not; order otherwise follows the
+    # German list so the two stay readable side by side.
+    "Theorem",
+    "Corollary",
+    "Remark",
+    "Example",
+    "Algorithm",
+    "Exercise",
+    "Notation",
+    "Claim",
+    "Construction",
 ]
 
 # \s* instead of \s+ between type and number: in at least one spot in the
@@ -51,10 +65,30 @@ NUMBERED_RE = re.compile(
     r"(?:\s*\((?P<name>[^)]{1,80})\))?"
 )
 
+# How the corpus actually writes a proof header, all of which have to match:
+#   "Beweis."            everywhere            "Proof."       notes48, graphs
+#   "Beweis:"            complex_analysis, Stochastik
+#   "Beweis von Satz 1.2."       Stochastik, geom-tb - the reference eats the
+#                                dot, so a second mandatory one made these fail
+#   "Beweis (Satz von Thales)"   geom-tb - a parenthesised name instead
+#
+# The closing punctuation is only optional after a parenthesised name. A bare
+# reference does NOT excuse it: "wie im Beweis von Satz 3.2.5 gezeigt" wraps
+# onto a line start in Algebra, matches the reference form exactly, and then
+# consumes the page's one styled "Beweis." - which rejected the real proof
+# below it. Real headers end the line there, running text carries on. Dropping it unconditionally looked harmless and was
+# not: "Beweis ist dann klar" and "Beweis gezeigt werden kann" wrap onto a line
+# start in running text often enough, and each false match CONSUMES the page's
+# styled "Beweis." header, so the real proof right below it was then rejected
+# and stayed inside its theorem - five leaks in Algebra and Analysis_4_Notes
+# that the stricter form does not have. (?!\w) keeps "Beweise" out either way.
 PROOF_RE = re.compile(
-    r"(?m)^(?P<type>Beweis)"
-    r"(?:\s+(?:von\s+)?(?P<ref>Satz|Lemma|Korollar|Proposition)\s+(?P<refnum>\d+\.\d+(?:\.\d+)?)\.?)?"
-    r"\s*\."
+    r"(?m)^(?P<type>Beweis|Proof)(?!\w)"
+    r"(?:"
+    r"\s*\([^)]{1,80}\)\s*[.:]?"
+    r"|(?:\s+(?:von\s+|of\s+)?(?P<ref>Satz|Lemma|Korollar|Proposition|Theorem|Corollary)"
+    r"\s+(?P<refnum>\d+(?:\.\d+)+))?\s*[.:]"
+    r")"
 )
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
@@ -66,8 +100,9 @@ PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 # would get appended to the last Satz/Lemma of the chapter as its "text"
 # (observed: "Satz 4.2.6" got inflated to over 100 lines this way).
 SECTION_BOUNDARY_RE = re.compile(
-    r"(?m)^(?:\d+\.\d+\s+(?:Aufgaben|Literatur und Ausblick)"
-    r"|Literaturverzeichnis|Übungsaufgaben|Index)\s*$"
+    r"(?m)^(?:\d+\.\d+\s+(?:Aufgaben|Literatur und Ausblick|Exercises|Notes)"
+    r"|Literaturverzeichnis|Übungsaufgaben|Index"
+    r"|Literatur|References|Bibliography)\s*$"
 )
 
 
@@ -96,8 +131,25 @@ def page_at(offset: int, page_marks: list[tuple[int, int]]) -> int:
 
 class HeaderVerifier:
     """Verifies regex matches against the font-style-detected real headers
-    (in reading order per page). "Bemerkung/Beispiel" is accepted as its own
-    combined type when "Bemerkung" and "Beispiel" appear bold back-to-back."""
+    (per page). "Bemerkung/Beispiel" is accepted as its own combined type when
+    "Bemerkung" and "Beispiel" appear bold back-to-back.
+
+    A styled word is matched ANYWHERE in its page's queue, not just at the head.
+    Strict head matching assumed the two detectors see exactly the same headers
+    in exactly the same order, and one disagreement then poisoned the whole rest
+    of the page: on page 65 of VO3_Optimierung the styled reading order is
+    [Beweis, Bemerkung, Satz, Algorithmus, Beweis] while the text regex finds
+    [Beweis, Bemerkung 4.1.3, Satz 4.1.4, Beweis] - the algorithm header sits in
+    a float and never reaches the text stream at a line start. The head-matching
+    queue stalled on it and rejected the trailing Beweis, so the proof of Satz
+    4.1.4 stayed glued inside the theorem's own text, where include_proof=False
+    cannot reach it and it leaked into hint prompts.
+
+    Matching anywhere still requires a styled header of that exact type to exist
+    on that page and consumes it, so a back-reference in running text is only
+    accepted when the page genuinely has an unclaimed header of its type - the
+    false positives this was built to reject (6 across the corpus) stay rejected,
+    while 6 wrongly-swallowed proofs and 6 lost entries come back."""
 
     def __init__(self, styled_words_per_page: list[list[str]]):
         self._queues = [list(words) for words in styled_words_per_page]
@@ -108,12 +160,13 @@ class HeaderVerifier:
             return False
         queue = self._queues[idx]
         if type_ == "Bemerkung/Beispiel":
-            if len(queue) >= 2 and queue[0] == "Bemerkung" and queue[1] == "Beispiel":
-                del queue[0:2]
-                return True
+            for i in range(len(queue) - 1):
+                if queue[i] == "Bemerkung" and queue[i + 1] == "Beispiel":
+                    del queue[i:i + 2]
+                    return True
             return False
-        if queue and queue[0] == type_:
-            queue.pop(0)
+        if type_ in queue:
+            queue.remove(type_)
             return True
         return False
 
@@ -140,7 +193,17 @@ def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> tupl
             matches.append((kind, m))
             continue
         page = page_at(m.start(), page_marks)
-        if verifier.consume(page, m.group("type")):
+        # A proof header that names what it proves ("Beweis von Satz 3.2.3 bzw.
+        # Lemma 2.1.5.") is self-evidencing and does not need the font to agree.
+        # Algebra sets exactly that line in the regular weight while the ordinary
+        # "Beweis." above it is italic, so the page offers one styled proof word
+        # for two real headers - and the styled one was spent on the first,
+        # leaving the second glued inside its theorem. Running text cannot fake
+        # this form: it has to close with punctuation straight after the number,
+        # which "wie im Beweis von Satz 3.2.5 gezeigt" does not.
+        if kind == "proof" and m.group("ref"):
+            matches.append((kind, m))
+        elif verifier.consume(page, m.group("type")):
             matches.append((kind, m))
         else:
             rejected += 1
@@ -162,10 +225,12 @@ def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> tupl
         }
         if kind == "numbered":
             num = m.group("num")
-            parts = num.split(".")
             entry["number"] = num
-            entry["chapter"] = int(parts[0])
-            entry["section"] = f"{parts[0]}.{parts[1]}" if len(parts) > 1 else None
+            entry["chapter"] = int(num.split(".")[0])
+            # "section" is filled in by core.toc, which knows the outline; the
+            # number alone cannot say whether "1.2" means section 2 of chapter 1
+            # or item 2 of chapter 1.
+            entry["section"] = None
             entry["name"] = m.group("name")
         else:
             entry["number"] = None
@@ -198,18 +263,22 @@ def run(in_path: Path, out_path: Path, pdf_path: Path) -> None:
     styled_words_per_page = styled_type_words_per_page(pdf_path)
     blocks, rejected = extract_knowledge(text, styled_words_per_page)
     results = attach_proofs(blocks)
+    sections = toc.build(pdf_path, results)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
-        json.dumps({"source": source, "entries": results}, ensure_ascii=False, indent=1),
+        json.dumps({"source": source, "sections": sections, "entries": results},
+                   ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
 
     by_type = {}
     for b in results:
         by_type[b["type"]] = by_type.get(b["type"], 0) + 1
+    placed = sum(1 for b in results if b.get("section"))
     print(f"{source}: {len(results)} knowledge entries -> {out_path} "
-          f"({rejected} false-positive line-starts rejected)")
+          f"({rejected} false-positive line-starts rejected; "
+          f"{placed}/{len(results)} placed in {len(sections)} sections)")
     for t, c in sorted(by_type.items()):
         print(f"   {t}: {c}")
 

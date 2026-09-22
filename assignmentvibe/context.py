@@ -25,6 +25,20 @@ def set(**kwargs) -> dict:
     return current
 
 
+def drop(*keys: str) -> dict:
+    """Forget individual keys. set() cannot do this: it ignores None so that a
+    caller can pass through unset arguments without wiping what is stored."""
+    current = get()
+    if not any(k in current for k in keys):
+        return current
+    for k in keys:
+        current.pop(k, None)
+    paths.ensure_dirs()
+    paths.CONTEXT_FILE.write_text(json.dumps(current, ensure_ascii=False, indent=1),
+                                  encoding="utf-8")
+    return current
+
+
 def clear() -> None:
     if paths.CONTEXT_FILE.exists():
         paths.CONTEXT_FILE.unlink()

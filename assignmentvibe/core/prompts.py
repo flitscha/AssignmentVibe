@@ -199,9 +199,24 @@ def build_prompt(
     knowledge_entries: list[dict],
     partial_solution: str | None = None,
     course_name: str = "",
+    sections: list[str] | None = None,
+    include_proofs: bool | None = None,
+    include_algorithms: bool = False,
+    section_titles: dict[str, str] | None = None,
 ) -> str:
+    """`sections` selects script sections to include in full (see
+    core.selection); without it, the sections its keyword ranking suggests are
+    used. `include_proofs` defaults to off for the use cases that must not give
+    the answer away."""
+    from . import selection
+    from .toc import label as section_label
+
+    section_titles = section_titles or {}
     uc = USE_CASES[use_case]
-    context = select_context(task["text"], knowledge_entries, top_k=3)
+    context, used_sections = selection.select(
+        task["text"], knowledge_entries, sections, include_algorithms)
+    if include_proofs is None:
+        include_proofs = use_case not in SPOILER_SENSITIVE_USE_CASES
 
     lines = []
     lines.append(f"Use-Case: {uc['emoji']} {uc['label']}")
@@ -219,12 +234,20 @@ def build_prompt(
     lines.append("")
 
     if context:
-        lines.append("# Relevante Definitionen/Saetze aus dem Skriptum")
-        lines.append("(automatisch per Keyword-Ueberschneidung ausgewaehlt - bei Bedarf ignorieren)")
+        # Naming the sections lets the reader (and the model) see what the
+        # context covers - and, just as usefully, what it does not.
+        where = (", ".join(section_label(section_titles, s) for s in used_sections)
+                 if used_sections else "?")
+        lines.append(f"# Aus dem Skriptum: Abschnitt {where}")
+        contents = "alle Definitionen und Saetze dieser Abschnitte"
+        if include_algorithms:
+            contents += " samt Algorithmen"
+        if not include_proofs:
+            contents += ", ohne Beweise"
+        lines.append(f"({contents})")
         for e in context:
             lines.append("")
-            lines.append(format_knowledge_entry(
-                e, include_proof=use_case not in SPOILER_SENSITIVE_USE_CASES))
+            lines.append(format_knowledge_entry(e, include_proof=include_proofs))
         lines.append("")
 
     lines.append("# Meine bisherige Teilloesung")

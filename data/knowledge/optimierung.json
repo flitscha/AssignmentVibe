@@ -1,5 +1,271 @@
 {
  "source": "VO3_Optimierung.pdf",
+ "sections": [
+  {
+   "key": "1",
+   "level": 1,
+   "title": "Geometrie linearer Ungleichungen",
+   "page": 5
+  },
+  {
+   "key": "1.1",
+   "level": 2,
+   "title": "Polyeder und Polytope",
+   "page": 5
+  },
+  {
+   "key": "1.2",
+   "level": 2,
+   "title": "Ecken, Kanten und Seitenflächen",
+   "page": 11
+  },
+  {
+   "key": "1.3",
+   "level": 2,
+   "title": "Lösbarkeit von linearen Ungleichungssystemen",
+   "page": 14
+  },
+  {
+   "key": "1.4",
+   "level": 2,
+   "title": "Extrema linearer Abbildungen auf Polyedern",
+   "page": 19
+  },
+  {
+   "key": "1.5",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 20
+  },
+  {
+   "key": "1.6",
+   "level": 2,
+   "title": "Aufgaben",
+   "page": 21
+  },
+  {
+   "key": "2",
+   "level": 1,
+   "title": "Der Simplexalgorithmus",
+   "page": 29
+  },
+  {
+   "key": "2.1",
+   "level": 2,
+   "title": "Basislösungen",
+   "page": 29
+  },
+  {
+   "key": "2.2",
+   "level": 2,
+   "title": "Der Simplexschritt",
+   "page": 30
+  },
+  {
+   "key": "2.2.1",
+   "level": 3,
+   "title": "Fall 1: cKT-cBTAB-1AK0",
+   "page": 32
+  },
+  {
+   "key": "2.2.2",
+   "level": 3,
+   "title": "Fall 2: cKT-cBTAB-1AK hat eine negative Komponente",
+   "page": 33
+  },
+  {
+   "key": "2.3",
+   "level": 2,
+   "title": "Zusammenfassung und Erfolgsgarantie",
+   "page": 37
+  },
+  {
+   "key": "2.4",
+   "level": 2,
+   "title": "Bestimmung einer zulässigen Basislösung",
+   "page": 43
+  },
+  {
+   "key": "2.5",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 45
+  },
+  {
+   "key": "2.6",
+   "level": 2,
+   "title": "Aufgaben",
+   "page": 45
+  },
+  {
+   "key": "3",
+   "level": 1,
+   "title": "Konvexe Funktionen und deren Minima",
+   "page": 49
+  },
+  {
+   "key": "3.1",
+   "level": 2,
+   "title": "Konvexe Funktionen",
+   "page": 49
+  },
+  {
+   "key": "3.2",
+   "level": 2,
+   "title": "Optimalitätsbedigungen",
+   "page": 53
+  },
+  {
+   "key": "3.3",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 57
+  },
+  {
+   "key": "3.4",
+   "level": 2,
+   "title": "Aufgaben",
+   "page": 57
+  },
+  {
+   "key": "4",
+   "level": 1,
+   "title": "Nichtlineare Optimierung ohne Nebenbedingungen",
+   "page": 63
+  },
+  {
+   "key": "4.1",
+   "level": 2,
+   "title": "Abstiegsverfahren",
+   "page": 64
+  },
+  {
+   "key": "4.1.1",
+   "level": 3,
+   "title": "Gradientenverfahren mit Liniensuche",
+   "page": 64
+  },
+  {
+   "key": "4.1.2",
+   "level": 3,
+   "title": "Subgradientenverfahren",
+   "page": 66
+  },
+  {
+   "key": "4.2",
+   "level": 2,
+   "title": "Newton-Verfahren",
+   "page": 70
+  },
+  {
+   "key": "4.3",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 73
+  },
+  {
+   "key": "4.4",
+   "level": 2,
+   "title": "Aufgaben",
+   "page": 73
+  },
+  {
+   "key": "5",
+   "level": 1,
+   "title": "Verfahren zur konvexen Optimierung mit Nebenbedingungen",
+   "page": 77
+  },
+  {
+   "key": "5.1",
+   "level": 2,
+   "title": "Projektionsverfahren",
+   "page": 77
+  },
+  {
+   "key": "5.2",
+   "level": 2,
+   "title": "Straffunktionen und Penalty-Verfahren",
+   "page": 87
+  },
+  {
+   "key": "5.3",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 91
+  },
+  {
+   "key": "5.4",
+   "level": 2,
+   "title": "Aufgaben",
+   "page": 91
+  },
+  {
+   "key": "6",
+   "level": 1,
+   "title": "Dualität",
+   "page": 97
+  },
+  {
+   "key": "6.1",
+   "level": 2,
+   "title": "Dualität in linearen Programmen",
+   "page": 97
+  },
+  {
+   "key": "6.2",
+   "level": 2,
+   "title": "Lagrange-Dualität",
+   "page": 101
+  },
+  {
+   "key": "6.3",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 103
+  },
+  {
+   "key": "6.4",
+   "level": 2,
+   "title": "Aufgaben",
+   "page": 104
+  },
+  {
+   "key": "7",
+   "level": 1,
+   "title": "Kombinatorische Optimierung",
+   "page": 105
+  },
+  {
+   "key": "7.1",
+   "level": 2,
+   "title": "Lösbarkeit ganzzahliger linearer Ungleichungssysteme",
+   "page": 105
+  },
+  {
+   "key": "7.2",
+   "level": 2,
+   "title": "Branch and Bound",
+   "page": 108
+  },
+  {
+   "key": "7.3",
+   "level": 2,
+   "title": "Literatur und Ausblick",
+   "page": 111
+  },
+  {
+   "key": "8",
+   "level": 1,
+   "title": "Innere Punkte Verfahren: ein Ausblick",
+   "page": 113
+  },
+  {
+   "key": "8.1",
+   "level": 2,
+   "title": "Ausblick und Literatur",
+   "page": 119
+  }
+ ],
  "entries": [
   {
    "kind": "numbered",
@@ -146,12 +412,23 @@
   },
   {
    "kind": "numbered",
+   "type": "Beispiel",
+   "page": 10,
+   "text": "Wir starten mit dem linearen Ungleichungssytem\nx + y ≤1\nx ≥0\ny ≥0,\ndas wir in\n\n\n1\n1\n−1\n0\n0\n−1\n\n\nx\ny\n\n≤\n\n\n1\n0\n0\n\n\numschreiben. Wir verwenden, die in Beispiel 1.1.11 gesehene Konstruktion, um einen\nKegel zu bekommen, dessen Schnitt mit der Ebene z = 1 gerade der Lösungsmenge\ndes obigen Systems entspricht. Dieser Kegel wird durch das Ungleichungssystem\n\n\n\n\n1\n1\n−1\n−1\n0\n0\n0\n−1\n0\n0\n0\n−1\n\n\n\n\n\n\nx\ny\nz\n\n≤\n\n\n\n\n0\n0\n0\n0\n\n\n\n\n6\n\n1.2 Ecken, Kanten und Seitenflächen\nbeschrieben. Durch Lösen der linearen Gleichungssysteme, die wir erhalten, indem\nwir auf der linken Seite eine Matrix setzen, die aus 3 linear unabhängigen Zeilen der\nMatrix\n\n\n\n\n\n\n\n\n\n\n1\n1\n−1\n−1\n0\n0\n0\n−1\n0\n0\n0\n−1\n1\n0\n0\n0\n1\n0\n0\n0\n1\n\n\n\n\n\n\n\n\n\n\nbesteht und auf der rechten Seite jeweils einen der Vektoren ±ei setzen, erhalten wir\nals im Kegel liegende Lösungen\n\n\n0\n0\n1\n\n,\n\n\n0\n1\n1\n\n\nund\n\n\n1\n0\n1\n\n.\nDies entspricht gerade den Punkten (0, 0), (1, 0), (0, 1) in der Ebene. Deren konvexe\nHülle bildet gerade die Lösungsmenge des ursprünglichen Ungleichungssystems.\nAus Satz 1.1.12 erhalten wir unmittelbar die folgende Charakterisierung von un-\nbeschränkten Polyedern.",
+   "number": "1.1.14",
+   "chapter": 1,
+   "section": "1.1",
+   "name": null,
+   "proof": null
+  },
+  {
+   "kind": "numbered",
    "type": "Korollar",
    "page": 11,
    "text": "Ein Polyeder P ist genau dann unbeschränkt, wenn es einen\nHalbstrahl v + R+u enthält.\n1.2 Ecken, Kanten und Seitenflächen\nAnalog zur konvexen Hülle betrachten wir auch die affine Hülle einer Teilmenge\ndes euklidischen Raums. In der linearen Algebra wurde die Dimension eines affinen\nUnterraums als die Dimension des dazu parallelen Untervektorraums definiert. Wir\nverwenden und diese beiden Konzepte, um von der Dimension von konvexen Mengen\nsprechen zu können.",
    "number": "1.1.15",
    "chapter": 1,
-   "section": "1.1",
+   "section": "1.2",
    "name": null,
    "proof": null
   },
@@ -338,7 +615,7 @@
    "text": "Auch wenn jede zulässige Basislösung einer Ecke und jede Ecke\neiner zulässigen Basislösung entspricht, ist die entsprechende Zuordnung nicht not-\nwendigerweise eindeutig. Hat man eine zulässige Basislösung x ∈Rn zu einer Basis\nB mit xj = 0 für ein j ∈B, kann es sein, dass es sich auch um eine Basislösung\nzu einer anderen Basis handelt. In diesem Fall entsprechen beide Basislösungen der\ngleichen Ecke des Polyeders.",
    "number": "2.1.3",
    "chapter": 2,
-   "section": "2.1",
+   "section": "2.2",
    "name": null,
    "proof": null
   },
@@ -349,7 +626,7 @@
    "text": "Wir betrachten das lineare Programm in Standardform aus Bei-\nspiel 1.3.2, d.h. wir haben\nA =\n\n\n\n\n1\n1\n−1\n−1\n1\n0\n0\n0\n1\n−1\n−1\n1\n0\n1\n0\n0\n−1\n1\n1\n−1\n0\n0\n1\n0\n−1\n−1\n1\n1\n0\n0\n0\n1\n\n\n\n,\nb =\n\n\n\n\n1\n1\n1\n1\n\n\n\n\nund\nc =\n\n\n\n\n\n\n\n\n\n\n\n\n2\n1\n−2\n−1\n0\n0\n0\n0\n\n\n\n\n\n\n\n\n\n\n\n\n.\nDie Menge B = {1, 2, 7, 8} ist eine Basismenge, da die Matrix\nAB =\n\n\n\n\n1\n1\n0\n0\n1\n−1\n0\n0\n−1\n1\n1\n0\n−1\n−1\n0\n1\n\n\n\n\ninvertierbar ist. Die zugehörige Basislösung\nx =\n1\n0\n0\n0\n0\n0\n2\n2\nT\nist zulässig, da\nxK =\n0\n0\n0\n0\nT\nund\nxB =\n1\n0\n2\n2\nT ≥0\nist. x ist aber auch eine zulässige Basislösung zu B′ = {1, 6, 7, 8}. Dies entspricht\ngenau dem in Bemerkung 2.1.3 angesprochenen Phänomen der möglichen Nichtein-\ndeutigkeit.\nEs seien B, B′ ⊂N zwei Basismengen. Die Basismengen heißen benachbart, falls\nsie sich genau um ein Element unterscheiden.\n2.2 Der Simplexschritt\nSei x ∈Rn eine zulässige Basislösung zur Basis B ⊂N = {1, . . . , n}. Aus\nb = Ax = ABxB + AKxK = ABxB\n26\n\n2.2 Der Simplexschritt\nund der Invertierbarkeit von AB erhalten wir, dass xB = A−1\nB b. Ist darüber hinaus\nz ∈Rn ein zulässiger Punkt, so gilt\nb = Az = ABzB + AKzK\nund folglich\nzB = A−1\nB b −A−1\nB AKzK = xB −A−1\nB AKzK.\n(2.1)\nFür c ∈Rn ist damit also\ncTz = cT\nBzB + cT\nKzK = cT\nB(xB −A−1\nB AKzK) + cT\nKzK\n= cTx + (cT\nK −cT\nBA−1\nB AK)zK,\n(2.2)\nd.h. der Wert der Zielfunktion in z unterscheidet sich vom Wert der Zielfunktion\nin x genau um (cT\nK −cT\nBA−1\nB AK)zK.\nWir betrachten nun die Blockmatrix\nA\nb\ncT\n0\n\n,\ndie wir durch Spaltenvertauschungen auf die Form\nAB\nAK\nb\ncT\nB\ncT\nK\n0\n\n,\nbringen können. Mittels Gauß-Algorithmus wollen wir nun AB auf die Einheitsma-\ntrix transformieren und die Einträge darunter eliminieren, d.h.\nAB\nAK\nb\ncT\nB\ncT\nK\n0\n\n⇝\nIn\nA−1\nB AK\nA−1\nB b\ncT\nB\ncT\nK\n0\n\n⇝\nIn\nA−1\nB AK\nA−1\nB b\n0\ncT\nK −cT\nBA−1\nB AK\n−cT\nBA−1\nB b\n\n.\nWir betrachten nun die Einträge dieser Matrix etwas genauer. In der Spalte ganz\nrechts steht oberhalb xB, aus dem wir durch Ergänzen mit Null die zu B gehörige\nzulässige Basislösung x erhalten, und unterhalb −cTx, d.h. das negative des Werts\nder Zielfunktion in x. In der letzten Zeile des mittleren Blocks steht cT\nK −cT\nBA−1\nB AK,\naus dem wir nach obigenÜberlegungen ablesen können, wie sich der Wert der Ziel-\nfunktionändert, wenn wir von x auf einen anderen zulässigen Punkt wechseln. Man\nkann also aus dieser Matrix die wichtigsten Informationen zur Basis B ablesen. Da-\nher arbeitet man oft mit diesen Matrizen und nennt\nIm\nA−1\nB AK\nA−1\nB b\n0\ncT\nK −cT\nBA−1\nB AK\n−cT\nBA−1\nB b\n,\nbis auf Spaltenvertauschungen, Simplextableau zur Basis B.\n27\n\n2 Der Simplexalgorithmus",
    "number": "2.1.4",
    "chapter": 2,
-   "section": "2.1",
+   "section": "2.2",
    "name": null,
    "proof": null
   },
@@ -360,7 +637,7 @@
    "text": "Wir arbeiten mit dem linearen Programm aus Beispiel 2.1.4 und der\nBasismenge B = {1, 2, 7, 8} weiter. Wir starten mit dem Tableau\n1\n1\n−1\n−1\n1\n0\n0\n0\n1\n1\n−1\n−1\n1\n0\n1\n0\n0\n1\n−1\n1\n1\n−1\n0\n0\n1\n0\n1\n−1\n−1\n1\n1\n0\n0\n0\n1\n1\n2\n1\n−2\n−1\n0\n0\n0\n0\n0\nund verwenden Gauß-Elimination um in den Spalten aus B die entsprechenden Stan-\ndardbasisvektoren zu erhalten damit bekommen wir\n1\n0\n−1\n0\n1\n2\n1\n2\n0\n0\n1\n0\n1\n0\n−1\n1\n2\n−1\n2\n0\n0\n0\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n2\n1\n−2\n−1\n0\n0\n0\n0\n0\nWir setzen nur die Gauß-Elimination fort, um in den zu B gehörigen Spalten auch\nin der letzten Zeile Null zu erreichen. Damit kommen wir zum Simplextableau\n1\n0\n−1\n0\n1\n2\n1\n2\n0\n0\n1\n0\n1\n0\n−1\n1\n2\n−1\n2\n0\n0\n0\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n0\n0\n0\n−3\n2\n−1\n2\n0\n0\n−2\nzur Basis B = {1, 2, 7, 8}.\nDa wir ein Minimum der Zielfunktion suchen, legen die obigenÜberlegungen nahe,\ndass wirüberprüfen, ob der Vektor cT\nK −cT\nBA−1\nB AK eine negative Komponente hat.\n2.2.1 Fall 1: cT\nK −cT\nBA−1\nB AK ≥0\nIst cT\nK −cT\nBA−1\nB AK ≥0 stoppen wir, denn der folgende Satz zeigt, dass wir ein\nMinimum gefunden haben.",
    "number": "2.2.1",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.1",
    "name": null,
    "proof": null
   },
@@ -371,7 +648,7 @@
    "text": "Ist cT\nK −cT\nBA−1\nB AK ≥0 und x eine zulässige Basislösung zur Basis B,\nso nimmt die lineare Abbildung\nz 7→cTz\nihr Minimum in x an.",
    "number": "2.2.2",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.1",
    "name": null,
    "proof": "Wir haben in (2.2) gesehen, dass jeder zulässige Punkt z ∈Rn die Gleichung\ncTz = cTx + (cT\nK −cT\nBA−1\nB AK)zK\ngilt. Zusammen mit zK ≥0 und cT\nK −cT\nBA−1\nB AK ≥0 folgt daraus cTz ≥cTx, d.h.\ndas Minimum wird in x angenommen.\n28\n\n2.2 Der Simplexschritt\n2.2.2 Fall 2: cT\nK −cT\nBA−1\nB AK hat eine negative Komponente\nSei k ∈K der zu einer negativen Komponente von cT\nK −cT\nBA−1\nB AK gehörige Spal-\ntenindex.\nWir suchen nun also einen zulässigen Punkt z mit zk ≥0. Da die Zielfunktion\nnach Satz 1.4.3 ihr Minimum, sofern ein solches existiert, in einer Ecke annimmt,\nwollen wir in Anbetracht von Satz 2.1.2 eine zu B benachbarte Basis B′ mit k ∈B′\nfinden. Wir müssen also einen geeigneten Index j ∈B wählen und können dann\nB′ = B ∪{k} \\ {j} setzen. Aus (2.1) und der Annahme, dass z eine zu B′ gehörende\nzulässige Basislösung ist, erhalten wir\n0 = zj = xj −(A−1\nB AK)jkzk = xj −(A−1\nB AK)j−zK,\nworaus wir, da nach Voraussetzungx und z zulässige Punkte sind, damit insbesondere\nxj, zk ≥0, die Bedingung (A−1\nB AK)jk ≥0 erhalten. Ist (A−1\nB AK)jk = 0, bilden die\nVektoren eb mit b̸ = k zusammen mit (A−1\nB AK)−k keine Basis und folglich kann\nauch die Familie (Ai)i∈B∪{k}\\{j} keine Basis des Spaltenraums von A sein. Folglich\nmüssen wir (A−1\nB AK)jk > 0 voraussetzen.\nFall 2a: (A−1\nB AK)jk ≤0 für alle j ∈B\nIn diesem Fall stoppen wir, da nach dem folgenden Satz die Zielfunktion auf dem\nzulässigen Bereich nicht nach unten beschränkt ist, d.h. es gibt kein Minimum."
   },
@@ -382,7 +659,7 @@
    "text": "Gilt für eine Basis B ⊂N und ein k ∈K mit ck −cT\nBA−1\nB A−k < 0,\ndass (A−1\nB AK)jk ≤0 für alle j ∈B, so ist die lineare Abbildung\nz 7→cTz\nauf dem Polyeder\n{x ∈Rn : Ax = b, x ≥0}\nnach unten unbeschränkt.",
    "number": "2.2.3",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.2",
    "name": null,
    "proof": "Für λ ≥0 betrachten wir\nzλ,B = xB −λA−1\nB A−k,\nzλ,k = λ\nund\nzλ,K\\{k} = 0.\nDafür ist\nAzλ = ABzλ,B + A−kλ = b −λA−k = b\nund\nzλ,B = xB −λA−1\nB A−k ≥0,\nda xB ≥0, λ ≥0 und A−1\nB A−k ≤0. Dies bedeutet, dass zλ für jedes λ ≥0 ein\nzulässiger Punkt ist. Nach (2.2) gilt\ncTzλ = cTx + (ck −cT\nBA−1\nB A−k)λ →−∞\nfür λ →∞, da (ck −cT\nBA−1\nB A−k) < 0 ist, d.h. die Zielfunktion ist auf dem zulässigen\nBereich nach unten unbeschränkt.\n29\n\n2 Der Simplexalgorithmus\nFall 2b: Es gibt ein j mit (A−1\nB AK)jk > 0\nUm im nächsten Schritt eine zulässige Basislösung zu erhalten (siehe unten), wählen\nwir\nj ∈argmin\n(\nxj\n(A−1\nB AK)jk\n: (A−1\nB AK)jk > 0\n)\n(2.3)\nund B′ = B ∪{k} \\ {j} sowie K′ = K ∪{j} \\ {k}.\nUm diesen Schritt durchzuführen müssen wir nun also das Simplextableau zur\nBasis B′ bestimmen. Dies wollen wir nun auf möglichst effiziente Art und Weise\nerreichen, d.h. wir wollen insbesondere A−1\nB′ nicht direkt berechnen. Wir verwenden\nnun wieder Gauß-Elimination, um in der k-ten Spalte den j-ten Standardbasisvektor\nzu erhalten. Genauer gesagt dividieren wir zuerst die j-te Zeile durch (A−1\nB AK)jk > 0\nund eliminieren dann alle anderen Einträge der k-ten Spalte, indem wir von der i-ten\nZeile, i̸ = j das (A−1\nB AK)ik\n(A−1\nB AK)jk -fache der j-ten Zeile des ursprünglichen Tableaus abziehen.\nIn anderen Worten wir multiplizieren den oberen Teil des Tableaus (oberhalb der\nvertikalen Linie) von links mit der Matrix\nE :=\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n1\n· · ·\n0\n−(A−1\nB AK)1k\n(A−1\nB AK)jk\n0\n· · ·\n0\n0\n1\n0\n−(A−1\nB AK)2k\n(A−1\nB AK)jk\n0\n· · ·\n0\n0\n0\n...\n...\n0\n· · ·\n0\n0\n· · ·\n0\n1\n(A−1\nB AK)jk\n0\n· · ·\n0\n0\n· · ·\n· · ·\n...\n1\n0\n0\n0\n· · ·\n· · ·\n...\n· · ·\n1\n0\n0\n· · ·\n· · ·\n−(A−1\nB AK)nk\n(A−1\nB AK)jk\n· · ·\n0\n1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n,\nwobei die von Null und Eins verschiedenen Einträge in der j-ten Spalte stehen. Da\nwir durch die Mulitplikation mit E in der k-ten Spalte den Standardbasisvektor ej\nerzeugt haben und die Spalten in B \\ {j} sich nicht dadurch nichtändern (da sie in\nder j-ten Zeile einen Nuller stehen haben), ist EA−1\nB AB′ = In und folglich erhalten\nwir EA−1\nB = A−1\nB′ . Schließlich eliminieren wir noch den Eintrag in der letzten Zeile\nder k-ten Spalte. Damit erhalten wir bis auf Spaltenvertauschungen das Tableau\nIm\nA−1\nB′ AK′\nA−1\nB′ b\n0\ncT\nK′ −cT\nB′A−1\nB′ AK′\n−cT\nB′A−1\nB′ b\n,\nd.h ein Tableau zur Basis B′. Wir müssen noch nachprüfen, dass zB′ := A−1\nB′ b ≥0\nist, um zu zeigen, dass zB′ und zK′ := 0 eine zulässige Basislösung definieren. Nach\nKonstruktion ist zB′ = EA−1\nB′ b, d.h.\nzk =\nxj\n(A−1\nB AK)jk\n≥0\nund\nzi = xi −xj\n(A−1\nB AK)ik\n(A−1\nB AK)jk\nfür i ∈B′ \\ {k}.\n30\n\n2.2 Der Simplexschritt\nWir haben\nxi −xj\n(A−1\nB AK)ik\n(A−1\nB AK)jk\n≥0 ⇔\nxi\n(A−1\nB AK)ik\n≥\nxj\n(A−1\nB AK)jk\nund die rechte Ungleichung ist nach (2.3) erfüllt."
   },
@@ -393,7 +670,7 @@
    "text": "Wir setzten Beispiel 2.2.1 fort. Wir haben das Simplextableau\n1\n0\n−1\n0\n1\n2\n1\n2\n0\n0\n1\n0\n1\n0\n−1\n1\n2\n−1\n2\n0\n0\n0\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n0\n0\n0\n−3\n2\n−1\n2\n0\n0\n−2\nzur Basis B = {1, 2, 7, 8}. Wir suchen nun einen negativen Eintrag in der letzten\nZeile (links der vertikalen Linie), d.h. z.B. −3\n2 und setzten daher k = 5. Als nächstes\nbetrachten wir\nx1\n(A−1\nB AK)15\n= 2,\nx2\n(A−1\nB AK)25\n= 0,\n(A−1\nB AK)75 = 0\nund\nx8\n(A−1\nB AK)85\n= 2.\nDamit wählen wir j = 2 und erhalten B′ = {1, 5, 7, 8}. Wir dividieren also die zweite\nZeile durch 1\n2 und eliminieren die anderen Einträge in der fünften Spalten. Damit\nerhalten wir das Tableau\n1\n−1\n−1\n1\n0\n1\n0\n0\n1\n0\n2\n0\n−2\n1\n−1\n0\n0\n0\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n−2\n0\n2\n0\n1\n0\n1\n2\n0\n3\n0\n−3\n0\n−2\n0\n0\n−2\nzur Basis B′ und sind bereit den Simplexschritt ein weiteres Mal auszuführen.",
    "number": "2.2.4",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.2",
    "name": null,
    "proof": null
   },
@@ -404,7 +681,7 @@
    "text": "Wir können nun eine interessante Beobachtung im Beispiel ma-\nchen: Wir sind bei der Basislösung\nxT =\n1\n0\n0\n0\n0\n0\n2\n2\n\nzur Basis B = {1, 2, 7, 8} gestartet sind und haben zur Basislösung\nzT =\n1\n0\n0\n0\n0\n0\n2\n2\n\nzur Basis B′ = {1, 5, 7, 8} gewechselt. Es ist x = z und auch der Wert des linearen\nProgramms hat sich daher nicht geändert. Dies bedeutet also, wenn der rechte obere\nBereich (in dem xB bzw. dann zB′ steht) Nuller enthält, kann es passieren, dass\nman zwar die Basis wechselt, nicht aber die Ecke des zulässigen Bereichs. Die obigen\nArgumente garantieren uns aber, dass, wenn wir den Simplexschritt im Fall 2b be-\nenden, wir uns in einer Ecke befinden, in der die Zielfunktion zumindest nicht größer\nist in der Ecke, in der wir gestartet sind.\n31\n\n2 Der Simplexalgorithmus",
    "number": "2.2.5",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.2",
    "name": null,
    "proof": null
   },
@@ -415,7 +692,7 @@
    "text": "Nach Konstruktion enthalten die Tableaus immer m Spalten, in\ndenen Spalten der Einheitsmatrix (und Null darunter) stehen. Diese Spalten haben\nim wesentlichen nur folgenden Informationsgehalt: Welche Variablen gehören zu B\nund zu welcher Variable gehören die Einträge ganz rechts. Man kann also die gleiche\nInformation auch in dem kleineren Tableau\nk1\n· · ·\nkn−m\nb1\n...\nA−1\nB AK\nA−1\nB b\nbm\ncT\nK −cT\nBA−1\nB AK\n−cT\nBA−1\nB b\nmit B = {b1, . . . , bn} und K = {k1, . . . , kn−m} unterbringen und auch alle Ope-\nrationen des Simplexschritts lassen sich in diesem kleineren Tableau durchführen.\nAngenommen wir haben das Tableau\n· · ·\nki\n· · ·\nkj\n· · ·\n...\n...\n...\n...\nbr\n· · ·\nαri\n· · ·\nαrj\n· · ·\nβr\n...\n...\n...\n...\nbs\n· · ·\nαsi\n· · ·\nαsj\n· · ·\nβs\n...\n...\n...\n...\n· · ·\nγi\n· · ·\nγj\n· · ·\nδ\nund wir wollen in der Basismenge bs durch ki ersetzen, so erhalten wir als neues\nTableau\n· · ·\nbs\n· · ·\nkj\n· · ·\n...\n...\n...\n...\nbr\n· · ·\n−αri\nαsi\n· · ·\nαrj −αri\nαsj\nαsi\n· · ·\nβr −αri\nβi\nαsi\n...\n...\n...\n...\n...\nki\n· · ·\n1\nαsi\n· · ·\nαsj\nαsi\n· · ·\nβs\nαsi\n...\n...\n...\n...\n· · ·\n−γi\nαsi\n· · ·\nγj −γi\nαsj\nαsi\n· · ·\nδ −γi\nβr\nαsi\nd.h. wir dividieren die s-te Zeile durch αsi und eliminieren alle anderen Einträge in\nder i-ten Spalte durch Zeilenoperationen zu Null. In der i-ten Spalte wenden wir\ndiese Operationen aber auf es an. Schließlich tauschen wir in der Beschriftung bs\nund ki. Diese Variante braucht deutlich weniger Speicherplatz.",
    "number": "2.2.6",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.2",
    "name": null,
    "proof": null
   },
@@ -426,7 +703,7 @@
    "text": "Wir illustrieren die obige Bemerkung indem wir den Simplexschritt\nin Beispiel 2.2.4 in der ”sparsameren“ Version des Simplextableaus durchführen. Wir\n32\n\n2.3 Zusammenfassung und Erfolgsgarantie\nstarten also mit dem Tableau\n3\n4\n5\n6\n1\n−1\n0\n1\n2\n1\n2\n1\n2\n0\n−1\n1\n2\n−1\n2\n0\n7\n0\n0\n0\n1\n2\n8\n0\n0\n1\n0\n2\n0\n0\n−3\n2\n−1\n2\n−2\nWir wählen den negativen Eintrag −3\n2 in der letzten Zeile und wollen k = 5 in die\nneue Basismenge aufnehmen. Wir dividieren nun alle Einträge in der ganz rechten\nSpalte durch den Eintrag in der gleichen Zeile aus der Spalte, die zu k = 5 gehört,\nsofern dieser Eintrag positiv ist und erhalten 2 (für j = 1), 0 (für j = 2) und 2\n(für j = 8). Da wir für j = 2 das kleinste Ergebnis erhalten wählen wir j = 2\nals jenes Element, das wir aus der aktuellen Basis entfernen. Wir dividieren also\ndie zweite Zeile (da j = 2 in der zweiten Zeile steht–siehe erste Spalte) durch 1\n2\nund eliminieren durch Zeilenoperationen alle anderen Einträge in dieser Spalte. Im\nTableau führen wir diese Operationen aber nur in allen anderen Spalten durch und\nführen in der Spalte, die bisher zu k = 5 gehört hat, die selben Operationen mit e2\ndurch. Schließlich vertauschen wir in der Beschriftung 2 und 5 und erhalten folgendes\nTableau.\n3\n4\n2\n6\n1\n−1\n1\n−1\n1\n1\n5\n0\n−2\n2\n−1\n0\n7\n0\n0\n0\n1\n2\n8\n0\n2\n−2\n1\n2\n0\n−3\n3\n−2\n−2\nDieses Tableau entspricht genau dem in Beispiel 2.2.4 erhaltenen.\n2.3 Zusammenfassung und Erfolgsgarantie\nZusammengefasst lässt sich der Simplexschritt also als folgender Algorithums be-\nschreiben.",
    "number": "2.2.7",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.2.2",
    "name": null,
    "proof": null
   },
@@ -456,8 +733,19 @@
    "kind": "numbered",
    "type": "Satz",
    "page": 39,
-   "text": "Wenn der Algorithmus 2.3.2 in (3) terminiert besitzt das lineare Pro-\ngramm keine Lösung. Wenn er in (4) terminiert, haben wir ein Minimum gefunden.\nUm zu zeigen, dass der Simplexalgorithmus funktioniert, müssen wir also nur\nzeigen, dass er terminiert. Da ein Polyeder nur endlich viele Ecken besitzt ist dies\njedenfalls sichergestellt, wenn wir sicherstellen könnten, dass in jedem Simplexschritt\ndie Ecke gewechselt wird und wir nicht später zu dieser Ecke zurückkehren können.\nWährend wir die Rückkehr zu einer bereits verlassenen Ecke tatsächlich ausschließen\nkönnen, siehe Aufgabe (2.3), haben wir in Beispiel 2.2.4 gesehen, dass es passieren\nkann, dass sich die Basislösung durch den wechsel zu einer benachbarten Basis nicht\nändert. Bevor wir eine Lösung dieses Problems betrachten, wollen wir zuerst das\nBeispiel aus dem vorigen Abschnitt weiter betrachten.\nBeispiel 2.3.4. Wir setzen Beispiel 2.2.4 fort. Wir haben also das Tableau\n1\n−1\n−1\n1\n0\n1\n0\n0\n1\n0\n2\n0\n−2\n1\n−1\n0\n0\n0\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n−2\n0\n2\n0\n1\n0\n1\n2\n0\n3\n0\n−3\n0\n−2\n0\n0\n−2\nzur Basis B = {1, 5, 7, 8}. Wir wählen nun k = 4, da der Eintrag in der vierten\nSpalte der letzten Zeile −3 ist. Dann können wir j = 1 oder j = 8 wählen, da der\nentsprechende Quotient in beiden Fällen Eins ist. Wir wählen j = 1 und erhalten\ndas Tableau\n1\n−1\n−1\n1\n0\n1\n0\n0\n1\n2\n0\n−2\n0\n1\n1\n0\n0\n2\n0\n0\n0\n0\n0\n1\n1\n0\n2\n−2\n0\n2\n0\n0\n−1\n0\n1\n0\n3\n0\n−3\n0\n0\n1\n0\n0\n1\n35\n\n2 Der Simplexalgorithmus\nzur Basis B = {4, 5, 7, 8}. Hier ergibt sich k = 3 und j = 8 und damit das Tableau\n0\n−1\n0\n1\n0\n1\n2\n0\n1\n2\n1\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n0\n0\n0\n0\n1\n1\n0\n2\n−1\n0\n1\n0\n0\n−1\n2\n0\n1\n2\n0\n0\n0\n0\n0\n0\n−1\n2\n0\n3\n2\n1\nzur Basis B = {3, 4, 5, 6}. Hier müssen wir k = 6 wählen und können dann sowohl\nj = 4 oder j = 7 wählen, da in beiden Fällen der entsprechende Quotient 2 ist. Wir\nwählen j = 4 und erhalten das Tableau\n0\n−2\n0\n2\n0\n1\n0\n1\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n2\n0\n−2\n0\n0\n1\n−1\n0\n−1\n−1\n1\n1\n0\n0\n0\n1\n1\n0\n−1\n0\n1\n0\n0\n0\n2\n2\nzur Basis B = {3, 5, 6, 7}. Es ergibt sich k = 2 und j = 7 und somit das neue Tableau\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n1\n0\n−1\n0\n0\n1\n2\n−1\n2\n0\n−1\n0\n1\n0\n0\n0\n1\n2\n1\n2\n1\n0\n0\n0\n0\n0\n0\n1\n2\n3\n2\n2\nzur Basis B = {2, 3, 5, 6}. Da alle Einträge in der letzten Zeile nicht-negativ sind,\nhaben wir ein Minimum gefunden. Die entsprechende Basislösung ist\nx =\n\n\n\n\n\n\n\n\n\n\n\n\n0\n0\n1\n0\n2\n2\n0\n0\n\n\n\n\n\n\n\n\n\n\n\n\nWenn wir die Transformation aus Beispiel 1.3.2 wieder rückgängig machen bekom-\nmen wir\nx =\n−1\n0\n\nund −2 als Wert der Zielfunktion in diesem Punkt.\n36\n\n2.3 Zusammenfassung und Erfolgsgarantie",
+   "text": "Wenn der Algorithmus 2.3.2 in (3) terminiert besitzt das lineare Pro-\ngramm keine Lösung. Wenn er in (4) terminiert, haben wir ein Minimum gefunden.\nUm zu zeigen, dass der Simplexalgorithmus funktioniert, müssen wir also nur\nzeigen, dass er terminiert. Da ein Polyeder nur endlich viele Ecken besitzt ist dies\njedenfalls sichergestellt, wenn wir sicherstellen könnten, dass in jedem Simplexschritt\ndie Ecke gewechselt wird und wir nicht später zu dieser Ecke zurückkehren können.\nWährend wir die Rückkehr zu einer bereits verlassenen Ecke tatsächlich ausschließen\nkönnen, siehe Aufgabe (2.3), haben wir in Beispiel 2.2.4 gesehen, dass es passieren\nkann, dass sich die Basislösung durch den wechsel zu einer benachbarten Basis nicht\nändert. Bevor wir eine Lösung dieses Problems betrachten, wollen wir zuerst das\nBeispiel aus dem vorigen Abschnitt weiter betrachten.",
    "number": "2.3.3",
+   "chapter": 2,
+   "section": "2.3",
+   "name": null,
+   "proof": null
+  },
+  {
+   "kind": "numbered",
+   "type": "Beispiel",
+   "page": 39,
+   "text": "Wir setzen Beispiel 2.2.4 fort. Wir haben also das Tableau\n1\n−1\n−1\n1\n0\n1\n0\n0\n1\n0\n2\n0\n−2\n1\n−1\n0\n0\n0\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n−2\n0\n2\n0\n1\n0\n1\n2\n0\n3\n0\n−3\n0\n−2\n0\n0\n−2\nzur Basis B = {1, 5, 7, 8}. Wir wählen nun k = 4, da der Eintrag in der vierten\nSpalte der letzten Zeile −3 ist. Dann können wir j = 1 oder j = 8 wählen, da der\nentsprechende Quotient in beiden Fällen Eins ist. Wir wählen j = 1 und erhalten\ndas Tableau\n1\n−1\n−1\n1\n0\n1\n0\n0\n1\n2\n0\n−2\n0\n1\n1\n0\n0\n2\n0\n0\n0\n0\n0\n1\n1\n0\n2\n−2\n0\n2\n0\n0\n−1\n0\n1\n0\n3\n0\n−3\n0\n0\n1\n0\n0\n1\n35\n\n2 Der Simplexalgorithmus\nzur Basis B = {4, 5, 7, 8}. Hier ergibt sich k = 3 und j = 8 und damit das Tableau\n0\n−1\n0\n1\n0\n1\n2\n0\n1\n2\n1\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n0\n0\n0\n0\n1\n1\n0\n2\n−1\n0\n1\n0\n0\n−1\n2\n0\n1\n2\n0\n0\n0\n0\n0\n0\n−1\n2\n0\n3\n2\n1\nzur Basis B = {3, 4, 5, 6}. Hier müssen wir k = 6 wählen und können dann sowohl\nj = 4 oder j = 7 wählen, da in beiden Fällen der entsprechende Quotient 2 ist. Wir\nwählen j = 4 und erhalten das Tableau\n0\n−2\n0\n2\n0\n1\n0\n1\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n2\n0\n−2\n0\n0\n1\n−1\n0\n−1\n−1\n1\n1\n0\n0\n0\n1\n1\n0\n−1\n0\n1\n0\n0\n0\n2\n2\nzur Basis B = {3, 5, 6, 7}. Es ergibt sich k = 2 und j = 7 und somit das neue Tableau\n0\n0\n0\n0\n0\n1\n1\n0\n2\n0\n0\n0\n0\n1\n0\n0\n1\n2\n0\n1\n0\n−1\n0\n0\n1\n2\n−1\n2\n0\n−1\n0\n1\n0\n0\n0\n1\n2\n1\n2\n1\n0\n0\n0\n0\n0\n0\n1\n2\n3\n2\n2\nzur Basis B = {2, 3, 5, 6}. Da alle Einträge in der letzten Zeile nicht-negativ sind,\nhaben wir ein Minimum gefunden. Die entsprechende Basislösung ist\nx =\n\n\n\n\n\n\n\n\n\n\n\n\n0\n0\n1\n0\n2\n2\n0\n0\n\n\n\n\n\n\n\n\n\n\n\n\nWenn wir die Transformation aus Beispiel 1.3.2 wieder rückgängig machen bekom-\nmen wir\nx =\n−1\n0\n\nund −2 als Wert der Zielfunktion in diesem Punkt.\n36\n\n2.3 Zusammenfassung und Erfolgsgarantie",
+   "number": "2.3.4",
    "chapter": 2,
    "section": "2.3",
    "name": null,
@@ -734,7 +1022,7 @@
    "text": "Es sei f : Rn →R eine stetig differenzierbare Funktion und ξ ∈Rn.\nJedes lokale Minimum von f ist ein stationärer Punkt. Ist f zweimal stetig diffe-\nrenzierbar und ξ ein lokales Minimum von f, so ist ∇f(ξ) = 0 und Hf(ξ) positiv\nsemidefinit. Ist f zweimal stetig differenzierbar, ∇f(ξ) = 0 und Hf(ξ) positiv definit,\nso ist ξ ein lokales Minimum von f.",
    "number": "4.0.1",
    "chapter": 4,
-   "section": "4.0",
+   "section": "4",
    "name": null,
    "proof": "Siehe Analysis 2.\nDiese Beobachtungen legen nahe, dass man mit der folgenden Methode lokale\nMinima der Funktion f finden kann."
   },
@@ -745,7 +1033,7 @@
    "text": "Wir betrachten eine stetig differenzierbare Funktion f : Rn →R\nund suchen ein lokales Minimum von f.\nEingabe: Einen Startpunkt x0 ∈Rn\nAusgabe: Ein stationärer Punkt von f.\nDurchführung: Wir setzen k = 0.\n(1) Falls ∇f(xk) = 0, geben wir xk zurück.\n(2) Anderenfalls wählen wir αk > 0 und setzen\nxk+1 = xk −αk∇f(xk).\n(3) Wir ersetzen k durch k + 1 und gehen zurück zu Schritt (1).\nDies ist noch kein konkretes Verfahren, da wir insbesondere nicht festgelegt, wie\nwir αk wählen.\n59\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen\n4.1 Abstiegsverfahren\nStatt direkt in Richtung des steilsten Abstiegs zu gehen, können wir allgemeiner\nRichtungen wählen, in die die Funktion kleiner wird. Wir wiederholen aus Analysis 2,\ndass die Richtungsableitung einer stetig differenzierbaren Funktion f : Rn →R im\nPunkt ξ ∈Rn in Richtung v ∈Sn−1 durch\n∂vf(ξ) = ⟨∇f(ξ), v⟩\ngegeben ist. Also nimmt f in alle Richtungen v ∈Sn−1 ab, für die\n⟨∇f(ξ), v⟩< 0\ngilt. Man nennt daher einen Vektor v ∈Sn−1 Abstiegsrichtung von f im Punkt ξ,\nfalls ⟨∇f(ξ), v⟩< 0 ist.\n4.1.1 Gradientenverfahren mit Liniensuche\nWir fixieren β, γ ∈(0, 1) und betrachten das folgende Verfahren.",
    "number": "4.0.2",
    "chapter": 4,
-   "section": "4.0",
+   "section": "4",
    "name": null,
    "proof": null
   },
@@ -756,7 +1044,7 @@
    "text": ". Wir betrachten\neine stetig differenzierbare Funktion f : Rn →R und suchen ein lokales Minimum\nvon f.\nEingabe: Einen Startpunkt x0 ∈Rn\nAusgabe: Ein stationärer Punkt von f.\nDurchführung: Wir setzen k = 0.\n(1) Falls ∇f(xk) = 0, geben wir xk zurück.\n(2) Anderenfalls setzen wir\nvk = −∇f(xk)\n∥∇f(xk)∥\nund wählen das größte αk ∈{βm : m ∈N0} so, dass\nf(xk + αkvk) −f(xk) ≤αkγ⟨∇f(xk), vk⟩.\nDamit setzen wir\nxk+1 = xk + αkvk.\n(3) Wir ersetzen k durch k + 1 und gehen zurück zu Schritt (1).\nAls erstes wollen wir zeigen, dass wir immer ein αk > 0 wie im Algorithmus\nbeschrieben wählen können.",
    "number": "4.1.1",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.1",
    "name": "Gradientenverfahren mit Armijo-Liniensuche",
    "proof": null
   },
@@ -767,7 +1055,7 @@
    "text": "Es sei f : Rn →R eine stetig differenzierbare Funktion, ξ ∈Rn, v ∈\nSn−1 eine Abstiegsrichtung von f im Punkt ξ und γ ∈(0, 1). Dann gibt es ein δ > 0\nso, dass\nf(ξ + αv) −f(ξ) ≤αγ⟨∇f(ξ), v⟩\nfür alle α ∈[0, δ].\n60\n\n4.1 Abstiegsverfahren",
    "number": "4.1.2",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.1",
    "name": null,
    "proof": "Für α = 0 ist die Ungleichung erfüllt. Weiters ist\nlim\nα→0\nf(ξ + αv) −f(ξ)\nα\n= ∂vf(ξ) = ⟨∇f(ξ), v⟩\nda f stetig differenzierbar ist. Da γ ∈(0, 1), gibt es also ein δ ∈(0, 1) so, dass\nf(ξ + αv) −f(ξ)\nα\n< γ⟨∇f(ξ), v⟩\nfür alle α ∈(0, δ]. Also ist\nf(ξ + αv) −f(ξ) ≤αγ⟨∇f(ξ), v⟩\nfür alle α ∈[0, δ]."
   },
@@ -778,7 +1066,7 @@
    "text": "Wir können also in Schritt (2) in Algorithmus 4.1.1 also das\nkleinste m ∈N0 wählen, für das\nf(xk + βmvk) −f(xk) ≤βmγ⟨∇f(xk), vk⟩\ngilt und finden immer ein solches m, da βm →0 für m →∞.\nWir wollen uns nun der Frage widmen, wann dieses Verfahren tatsächlich einen\nstationären Punkt von f liefert.",
    "number": "4.1.3",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.1",
    "name": null,
    "proof": null
   },
@@ -786,12 +1074,12 @@
    "kind": "numbered",
    "type": "Satz",
    "page": 65,
-   "text": "Es sei f : Rn →R eine nach unten beschränkte stetig differenzierba-\nre Funktion. Algorithmus 4.1.1 stoppt nach endlich vielen Schritten in einem stati-\nonären Punkt oder liefert eine Folge (xk)k∈N deren Häufungspunkte stationäre Punk-\nte von f sind und für die f(xk+1) < f(xk) für alle k ∈N gilt.\nBeweis. Falls der Algorithmus nach endlich vielen Schritten stoppt, ist in (1) der\nFall ∇f(xk) = 0 eingetreten. Also ist xk ein stationärer Punkt von f.\nSei nun anderenfalls (xk)k∈N eine unendliche Folge, die von Algorithmus 4.1.1\ngeneriert wurde und x∗ein Häufungspunkt davon. Nach Konstruktion gilt\nf(xk+1) ≤f(xk) −γ∥∇f(xk)∥< f(xk)\nfür alle k ∈N, da der Algorithmus nicht stoppt und daher ∇f(xk)̸ = 0 ist. Sei nun\n(xkj)j∈N eine Teilfolge, die gegen x∗konvergiert. Aus den obigen Ungleichungen folgt\nγ∥∇f(xkj)∥≤f(xkj) −f(xkj+1)\nfür alle j ∈N. Da f nach unten beschränkt ist, konvergiert die rechte Seite nach\nNull, siehe Aufgabe (4.1) und folglich ist\n∇f(x∗) = lim\nj→∞∇f(xkj) = 0\nda f stetig differenzierbar ist. Also ist x∗ein stationärer Punkt von f.\n61\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen",
+   "text": "Es sei f : Rn →R eine nach unten beschränkte stetig differenzierba-\nre Funktion. Algorithmus 4.1.1 stoppt nach endlich vielen Schritten in einem stati-\nonären Punkt oder liefert eine Folge (xk)k∈N deren Häufungspunkte stationäre Punk-\nte von f sind und für die f(xk+1) < f(xk) für alle k ∈N gilt.",
    "number": "4.1.4",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.1",
    "name": null,
-   "proof": null
+   "proof": "Falls der Algorithmus nach endlich vielen Schritten stoppt, ist in (1) der\nFall ∇f(xk) = 0 eingetreten. Also ist xk ein stationärer Punkt von f.\nSei nun anderenfalls (xk)k∈N eine unendliche Folge, die von Algorithmus 4.1.1\ngeneriert wurde und x∗ein Häufungspunkt davon. Nach Konstruktion gilt\nf(xk+1) ≤f(xk) −γ∥∇f(xk)∥< f(xk)\nfür alle k ∈N, da der Algorithmus nicht stoppt und daher ∇f(xk)̸ = 0 ist. Sei nun\n(xkj)j∈N eine Teilfolge, die gegen x∗konvergiert. Aus den obigen Ungleichungen folgt\nγ∥∇f(xkj)∥≤f(xkj) −f(xkj+1)\nfür alle j ∈N. Da f nach unten beschränkt ist, konvergiert die rechte Seite nach\nNull, siehe Aufgabe (4.1) und folglich ist\n∇f(x∗) = lim\nj→∞∇f(xkj) = 0\nda f stetig differenzierbar ist. Also ist x∗ein stationärer Punkt von f.\n61\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen"
   },
   {
    "kind": "numbered",
@@ -800,7 +1088,7 @@
    "text": "Achtung: der Satz besagt nicht, dass die Folge einen Häufungs-\npunkt besitzt, siehe auch Aufgabe (4.2).",
    "number": "4.1.5",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.2",
    "name": null,
    "proof": null
   },
@@ -808,22 +1096,33 @@
    "kind": "numbered",
    "type": "Korollar",
    "page": 66,
-   "text": "Es sei f : Rn →R eine nach unten beschränkte stetig differenzier-\nbare Funktion und x0 ∈Rn so, dass die Menge {x ∈Rn : f(x) ≤f(x0)} kompakt ist.\nDann stoppt Algorithmus 4.1.1 mit x0 als Startpunkt nach endlich vielen Schritten\nin einem stationäre Punkt von f oder er generiert eine Folge (xk)k∈N, die mindes-\ntens einen Häufungspunkt besitzt und deren Häufungspunkte stationäre Punkte von f\nsind.\nBeweis. In Anbetracht von Satz 4.1.4 müssen wir nur die Existenz eines Häufungs-\npunkts beweisen. Nach Satz 4.1.4 liegen alle von Algorithmus 4.1.1 besuchten Punkte\nxk in der kompakten Menge {x ∈Rn : f(x) ≤f(x0)} und folglich besitzt die Folge\nnach dem Satz von Bolzano-Weierstraß eine konvergente Teilfolge und damit einen\nHäufungspunkt.\n4.1.2 Subgradientenverfahren\nAls Beispiel einer Abstiegsmethode, die auch für nicht stetig differenzierbare konvexe\nFunktionen funktioniert, betrachten wir das Subgradientenverfahren.\nDazu wählen wir eine Folge positiver reeller Zahlen (αk)k∈N mit limk→∞αk = 0\nund P∞\nk=1 αk = ∞.",
+   "text": "Es sei f : Rn →R eine nach unten beschränkte stetig differenzier-\nbare Funktion und x0 ∈Rn so, dass die Menge {x ∈Rn : f(x) ≤f(x0)} kompakt ist.\nDann stoppt Algorithmus 4.1.1 mit x0 als Startpunkt nach endlich vielen Schritten\nin einem stationäre Punkt von f oder er generiert eine Folge (xk)k∈N, die mindes-\ntens einen Häufungspunkt besitzt und deren Häufungspunkte stationäre Punkte von f\nsind.",
    "number": "4.1.6",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.2",
    "name": null,
-   "proof": null
+   "proof": "In Anbetracht von Satz 4.1.4 müssen wir nur die Existenz eines Häufungs-\npunkts beweisen. Nach Satz 4.1.4 liegen alle von Algorithmus 4.1.1 besuchten Punkte\nxk in der kompakten Menge {x ∈Rn : f(x) ≤f(x0)} und folglich besitzt die Folge\nnach dem Satz von Bolzano-Weierstraß eine konvergente Teilfolge und damit einen\nHäufungspunkt.\n4.1.2 Subgradientenverfahren\nAls Beispiel einer Abstiegsmethode, die auch für nicht stetig differenzierbare konvexe\nFunktionen funktioniert, betrachten wir das Subgradientenverfahren.\nDazu wählen wir eine Folge positiver reeller Zahlen (αk)k∈N mit limk→∞αk = 0\nund P∞\nk=1 αk = ∞."
   },
   {
    "kind": "numbered",
    "type": "Algorithmus",
    "page": 66,
-   "text": ". Wir betrachten eine konvexe Funktion\nf : Rn →R und suchen ein lokales Minimum von f.\nEingabe: Einen Startpunkt x0 ∈Rn\nAusgabe: Ein Minimum von f.\nDurchführung: Wir setzen k = 0.\n(1) Falls 0 ∈∂f(xk), geben wir xk zurück.\n(2) Anderenfalls setzen wir\nvk = −dk\n∥dk∥\nfür ein dk ∈∂f(xk). Damit setzen wir\nxk+1 = xk + αkvk.\n(3) Wir ersetzen k durch k + 1 und gehen zurück zu Schritt (1).\nSatz 4.1.8. Es sei f : Rn →R eine konvexe Funktion, die ihr Minimum in einer\nbeschränkten Menge annimmt, d.h. Mf := {x ∈Rn : f(x) = inf{f(ξ): ξ ∈Rn}}\nsei eine beschränkte Menge. Weiters sei (αk)k∈N eine reelle Folge mit αk > 0,\nlimk→∞αk = 0 und P∞\nk=1 αk = ∞und x0 ∈Rn. Dann stoppt Algorithmus 4.1.7\nentweder nach endlich vielen Schritten in einem Minimum von f oder er liefert eine\nFolge (xk)k∈N mit\nlim\nk→∞d(xk, Mf) = 0\nund\nlim\nk→∞f(xk) = min{f(x): x ∈Rn},\n62\n\n4.1 Abstiegsverfahren\nd.h. insbesondere besitzt die Folge eine Teilfolge, die gegen ein Minimum von f\nkonvergiert.",
+   "text": ". Wir betrachten eine konvexe Funktion\nf : Rn →R und suchen ein lokales Minimum von f.\nEingabe: Einen Startpunkt x0 ∈Rn\nAusgabe: Ein Minimum von f.\nDurchführung: Wir setzen k = 0.\n(1) Falls 0 ∈∂f(xk), geben wir xk zurück.\n(2) Anderenfalls setzen wir\nvk = −dk\n∥dk∥\nfür ein dk ∈∂f(xk). Damit setzen wir\nxk+1 = xk + αkvk.\n(3) Wir ersetzen k durch k + 1 und gehen zurück zu Schritt (1).",
    "number": "4.1.7",
    "chapter": 4,
-   "section": "4.1",
+   "section": "4.1.2",
    "name": "Subgradientenverfahren",
+   "proof": null
+  },
+  {
+   "kind": "numbered",
+   "type": "Satz",
+   "page": 66,
+   "text": "Es sei f : Rn →R eine konvexe Funktion, die ihr Minimum in einer\nbeschränkten Menge annimmt, d.h. Mf := {x ∈Rn : f(x) = inf{f(ξ): ξ ∈Rn}}\nsei eine beschränkte Menge. Weiters sei (αk)k∈N eine reelle Folge mit αk > 0,\nlimk→∞αk = 0 und P∞\nk=1 αk = ∞und x0 ∈Rn. Dann stoppt Algorithmus 4.1.7\nentweder nach endlich vielen Schritten in einem Minimum von f oder er liefert eine\nFolge (xk)k∈N mit\nlim\nk→∞d(xk, Mf) = 0\nund\nlim\nk→∞f(xk) = min{f(x): x ∈Rn},\n62\n\n4.1 Abstiegsverfahren\nd.h. insbesondere besitzt die Folge eine Teilfolge, die gegen ein Minimum von f\nkonvergiert.",
+   "number": "4.1.8",
+   "chapter": 4,
+   "section": "4.1.2",
+   "name": null,
    "proof": "Es sei z ∈Mf. Für xk̸ ∈Mf gilt\n∥xk+1 −z∥2 =\nxk −z −αk\ndk\n∥dk∥\n\n2\n= ∥xk −z∥2 + α2\nk −2αk⟨xk −z, dk\n∥dk∥⟩.\nWir bezeichnen mit Nf(xk) = {x ∈Rn : f(x) = f(xk)} die Niveaumenge von f\nzu f(xk). Die Menge Nf(xk),−= {x ∈Rn : f(x) ≤f(xk)} ist eine konvexe Menge\n(siehe Aufgabe (4.3)) und Hk = {x ∈Rn : ⟨dk, x −xk⟩= 0} eine Stützhyperebne an\nNf(xk),−im Punkt xk. Weiters ist, siehe Aufgabe (4.7),\nd(z, Hk) = −\nD\nz −xk, dk\n∥dk∥\nE\n= ⟨xk −z, dk\n∥dk∥⟩,\nda ⟨dk, z −xk⟩≤f(z) −f(xk) < 0. Da z ∈Nf(xk),−und jede Strecke, die z mit\neinem Punkt in Hk verbindet, Nf(xk) schneidet, gilt also\nd(z, Nf(xk)) ≤d(z, Hk) = ⟨xk −z, dk\n∥dk∥⟩\nund folglich\n∥xk+1 −z∥2 ≤∥xk −z∥2 + α2\nk −2αkd(z, Nf(xk)).\n(4.1)\nWir setzen m := min{f(x): x ∈Rn} das Minimum von f und betrachten für ε > 0\ndie Menge Uε := ∂Nm+ε, die abgeschlossen ist. Aus Aufgabe (4.3) folgt, dass die\nSubniveaumenge Nm+ε,−beschränkt und daher Uε kompakt ist. Wir setzen\nr(ε) := min{∥x −y∥: x ∈Uε, y ∈Mf} > 0,\nda Uε ∩Mf = ∅. Aus αk →0, erhalten wir ein Kε ∈N so, dass αk < r(ε) für alle\nk ≥Kε ist. Ist k ≥Kε und f(xk) > m + ε, so erhalten wir aus (4.1), dass\n∥xk −z∥2 −∥xk+1 −z∥2 ≥2αkd(z, Nf(xk)) −α2\nk ≥2αkr(ε) −αkr(ε) = αkr(ε),\nda αk < r(ε) und d(z, Nf(xk)) ≥d(z, Uε) ≥r(ε). Also ist\nr(ε)\nKε+j\nX\nk=Kε\nαk ≤\nKε+j\nX\nk=Kε\n(∥xk −z∥2 −∥xk+1 −z∥2) = ∥xKε −z∥2 −∥xKε+j+1 −z∥2\n≤∥xKε −z∥2\nfür alle j ∈N für die f(xKε+l) > m + ε für l = 1, . . . , j ist. Da für j →∞die linke\nSeite gegen Unendlich strebt, gibt es ein Kε,2 ≥Kε mit f(xKε,2) ≤m+ε. Wir setzen\nd(ε) := max{d(x, Mf): x ∈Uε}\n63\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen\nIst f(xk) ≤m + ε, so ist d(xk, Mf) ≤d(ε) und d(xk+1, Mf) ≤d(ε) + αk mittels\nDreiecksungleichung. Ist andererseits f(xk) > m + ε und k ≥Kε, so ist\nd(xk+1, Mf) ≤d(xk, Mf)\nund daher\nd(xk, Mf) ≤d(ε) + max{αk : k ≥Kε,2}\nfür k ≥Kε,2. Da d(ε) →0 für ε →0, gibt es zu jedem δ > 0 ein εδ > 0 mit d(εδ) < δ\n2.\nWeiters gibt es ein Kδ ∈N so, dass f(xKδ) ≤m+εδ und αk < δ\n2 für k ≥Kδ. Folglich\nist\nd(xk, Mf) ≤δ\nfür alle k ≥Kδ, d.h. d(xk, Mf) →0 für k →∞. Da f stetig ist, gilt f(xk) →m für\nk →∞.\nZur Implementierung dieses Verfahrens brauchen wir eine Möglichkeit Subgradi-\nenten approximativ zu berechnen. Wir betrachten nun ein Verfahren, dass uns zu\ngegebenen x0 ∈Rn und ε, δ > 0 einen Punkt x ∈B(x0, δ) und ein g ∈Rn mit\nd(g, ∂f(x)) < ε liefert.\nWir starten mit der folgenden Beobachtung: Angenommen wir haben einen Punkt\nx ∈Rn, eine Richtung u ∈Sn−1,  ̃ε > 0 und h > 0 mit\nf(x + hu) + f(x −hu) −2f(x) <  ̃εh,\ndann gibt es aufgrund der Stetigkeit von f für jedes  ̃δ > 0 ein δ′ > 0 mit\nf(y + hu) + f(y −hu) −2f(x) < ( ̃ε +  ̃δ)h\nfür alle y ∈B(x, δ′).\nWir gehen nun induktiv vor und nehmen an wir haben für ein k < n bereits einen\nPunkt\n ̄xk = x0 +\nk\nX\ni=1\nciei\nmit\n∥ ̄xk −x0∥≤δk\nn\nund ein hk > 0 mit\nf( ̄xk + hkei) + f( ̄xk −hkei) −2f( ̄xk) ≤kεhk\nn√n\nfür 1 ≤i ≤k < n konstruiert. Die Funktion\nR →R,\nt 7→f( ̄xk + tek+1)\n(4.2)\nist konvex. Nach Aufgabe (3.13) ist diese Funktion daher fastüber differenzierbar.\nZu gewähltem M ∈N setzen wir\nym :=  ̄xk + δm\nMnek+1\n64\n\n4.1 Abstiegsverfahren\nfür m = −M, . . . , M. Weiters setzen wir\nsm := Mn\nδ\n(f (ym+1) −f (ym))\nfür m = −M, . . . , M −1 und erhalten eine monoton wachsende Folge, vgl. Aufga-\nben (3.3) und (3.13). Weiters ist\n∂+\nek+1f\n\n ̄xk −δ\nnek+1\n\n≤s−M\nund\nsM−1 ≤∂+\nek+1f\n\n ̄xk + δ\nnek+1\n\nnach Aufgabe (3.3). Diese Ungleichungen und dass die Funktion in (4.2) fastüberall\ndifferenzierbar ist, erlaubt es uns M groß genug zu wählen so, dass es ein m mit\nsm −sm−1 < (k + 1)ε\nn√n\nund\nf(ym + hkei) + f(ym −hkei) −2f(ym)\nhk\n< (k + 1)ε\nn√n\ngibt. Wir setzen\nhk+1 := min\n\nhk,\nδ\nMn\n\nund\n ̄xk+1 = ym\nund erhalten\nf( ̄xk+1 + hk+1ei) + f( ̄xk+1 −hk+1ei) −2f( ̄xk+1) < (k + 1)εhk+1\nn√n\nund\n∥ ̄xk+1 −x0∥≤∥ ̄xk −x0∥+ δ\nn ≤δ(k + 1)\nn\n.\nInduktiv können wir also x :=  ̄xn setzen und erhalten ein h > 0 für das\nf(x + hei) + f(x −hei) −f(x) ≤εh\n√n\nfür i = 1, . . . , n und\n∥x −x0∥≤δ\ngilt. Aus Aufgabe (3.3) wissen wir, dass\nf(x) −f(x −hei)\nh\n≤∂−\neif(x) ≤∂+\neif(x) ≤f(x + hei) −f(x)\nh\ngilt. Aus Aufgabe (3.7) erhalten wir weiters, dass\n∂+\neif(x) = max{⟨g, ei⟩: g ∈∂f(x)}\nund\n∂−\neif(x) = min{⟨g, ei⟩: g ∈∂f(x)}\n65\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen\ngilt. Also ist\n∂f(x) ⊂\nn\nY\ni=1\nf(x) −f(x −hei)\nh\n, f(x + hei) −f(x)\nh\n\nund\ng :=\nf(x + he1) −f(x −he1)\n2h\n, . . . , f(x + hen) −f(x −hen)\n2h\n\nerfüllt daher\n∥g − ̃g∥≤\nε\n2√n\n√n = ε\n2\nfür ein  ̃g ∈∂f(x). Damit haben wir zu x0, ε und δ die gesuchten x und g gefunden.\n4.2 Newton-Verfahren\nDie stationäre Punkte von f sind durch die Nullstellen von ∇f gegeben. Ist ∇f\nstetig differenzierbar, so kann das Newton-Verfahren zur Bestimmung der Nullstellen\nverwendet werden. Wir wiederholen kurz die Motivation und betrachten die Talyor-\nEntwicklung von ∇f im Punkt ξ ∈Rn und erhalten\n∇f(x) ≈∇f(ξ) + Hf(ξ)(x −ξ),\nd.h. für ∇f(x) = 0 erhalten wir\nx ≈ξ −Hf(ξ)−1∇f(ξ).\nDies legt das folgende Minimierungsverfahren nahe."
   },
   {
@@ -841,8 +1140,19 @@
    "kind": "numbered",
    "type": "Satz",
    "page": 71,
-   "text": "Es sei f : Rn →R eine zweimal stetig differenzierbare Funktion und\nξ ∈Rn mit ∇f(ξ) = 0 und Hf(ξ) positiv definit. Dann gibt es ein r > 0 so, dass für\nalle x0 ∈B(ξ, r) Algorithmus 4.2.1 durchgeführt werden kann, d.h. die auftretenden\nHessematritzen sind invertierbar, und die Folge (xk)k∈N, die dabei erzeugt wird, hat\nals Häufungspunkte stationäre Punkte von f.\nBeweis. Die Abbildungen\nRn →Matn,n(R),\nx 7→Hf(x)\nund\nMatn,n(R) →R,\nA 7→det A\nsind stetig, da f zweimal stetig differenzierbar ist und da Polynome stetig sind. Da\nH(ξ) positiv definit ist, ist det Hf(ξ) > 0. Also gibt es ein r1 > 0 mit det Hf(x) > 0\nfür alle x ∈B(ξ, r1). Da auch die Abbildung\nGln(R) →Gln(R),\nA 7→A−1\nstetig ist, gibt es ein C > 0 so, dass ∥Hf(x)−1∥≤C für alle x ∈B(ξ, r1/2). Da ∇f\n(in ξ) differenzierbar ist, gibt es zu jedem ε > 0 ein r ∈(0, r1/2) so, dass\n∥x −Hf(x)−1∇f(x) −ξ∥= ∥Hf(x)−1(Hf(x)(x −ξ) + ∇f(ξ) −∇f(x))∥\n≤C∥∇f(ξ) −∇f(x) −Hf(x)(ξ −x)∥\n≤Cε∥x −ξ∥\nfür alle x ∈B(ξ, r) mit ∇f(x)̸ = 0. Wir wählen ε < 1\nC und erhalten damit\n∥x −Hf(x)−1∇f(x) −ξ∥< ∥x −ξ∥,\nd.h. der Newton-Schritt ist wohldefiniert und bildet insbesondere die Kugel B(ξ, r)\nin sich selber ab. Für x0 ∈B(ξ, r) liegen also alle Elemente der Folge (xk)k∈N in\nder kompakten Kugel  ̄B(ξ, ∥x0 −ξ∥). Folglich besitzt (xk)k∈N konvergente Teilfol-\ngen. Wir zeigen nun, dass jeder Häufungspunkt dieser Folge ein stationärer Punkt\nvon f ist, womit mit Aufgabe (4.1) die behauptete Konvergenz folgt. Sei x∗ein sol-\ncher Häufungspunkt, d.h. es gibt eine Teilfolge (xkj)j∈N mit xkj →x∗für j →∞.\nAufgrund der Stetigkeit der Newton-Funktion\nB(ξ, r) →B(ξ, r),\nx 7→Hf(x)−1∇f(x),\nsiehe oben, gilt\nxkj+1 →x∗−Hf(x∗)−1∇f(x∗)\nfür j →∞. Auch die Folge (xkj+1)j∈N besitzt einen Häufungspunkt x′, der nach\ndem obigen\nx′ = x∗−Hf(x∗)−1∇f(x∗)\nerfüllt. Aus ∥xkj+1 −ξ∥< ∥xkj −ξ∥erhalten wir ∥x′ −ξ∥≤∥x∗−ξ∥und mit einem\nanalogen Argument ∥x∗−ξ∥≤∥x′ −ξ∥. Also ist ∥x′ −ξ∥= ∥x∗−ξ∥. Also ist\n∥x′ −ξ∥≤C1ε∥x∗−ξ∥, falls ∇f(x∗)̸ = 0 ist. Zusammen mit C1ε < 1 erlaubt uns\ndies ∇f(x∗) = 0 zu schließen.\n67\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen",
+   "text": "Es sei f : Rn →R eine zweimal stetig differenzierbare Funktion und\nξ ∈Rn mit ∇f(ξ) = 0 und Hf(ξ) positiv definit. Dann gibt es ein r > 0 so, dass für\nalle x0 ∈B(ξ, r) Algorithmus 4.2.1 durchgeführt werden kann, d.h. die auftretenden\nHessematritzen sind invertierbar, und die Folge (xk)k∈N, die dabei erzeugt wird, hat\nals Häufungspunkte stationäre Punkte von f.",
    "number": "4.2.2",
+   "chapter": 4,
+   "section": "4.2",
+   "name": null,
+   "proof": "Die Abbildungen\nRn →Matn,n(R),\nx 7→Hf(x)\nund\nMatn,n(R) →R,\nA 7→det A\nsind stetig, da f zweimal stetig differenzierbar ist und da Polynome stetig sind. Da\nH(ξ) positiv definit ist, ist det Hf(ξ) > 0. Also gibt es ein r1 > 0 mit det Hf(x) > 0\nfür alle x ∈B(ξ, r1). Da auch die Abbildung\nGln(R) →Gln(R),\nA 7→A−1\nstetig ist, gibt es ein C > 0 so, dass ∥Hf(x)−1∥≤C für alle x ∈B(ξ, r1/2). Da ∇f\n(in ξ) differenzierbar ist, gibt es zu jedem ε > 0 ein r ∈(0, r1/2) so, dass\n∥x −Hf(x)−1∇f(x) −ξ∥= ∥Hf(x)−1(Hf(x)(x −ξ) + ∇f(ξ) −∇f(x))∥\n≤C∥∇f(ξ) −∇f(x) −Hf(x)(ξ −x)∥\n≤Cε∥x −ξ∥\nfür alle x ∈B(ξ, r) mit ∇f(x)̸ = 0. Wir wählen ε < 1\nC und erhalten damit\n∥x −Hf(x)−1∇f(x) −ξ∥< ∥x −ξ∥,\nd.h. der Newton-Schritt ist wohldefiniert und bildet insbesondere die Kugel B(ξ, r)\nin sich selber ab. Für x0 ∈B(ξ, r) liegen also alle Elemente der Folge (xk)k∈N in\nder kompakten Kugel  ̄B(ξ, ∥x0 −ξ∥). Folglich besitzt (xk)k∈N konvergente Teilfol-\ngen. Wir zeigen nun, dass jeder Häufungspunkt dieser Folge ein stationärer Punkt\nvon f ist, womit mit Aufgabe (4.1) die behauptete Konvergenz folgt. Sei x∗ein sol-\ncher Häufungspunkt, d.h. es gibt eine Teilfolge (xkj)j∈N mit xkj →x∗für j →∞.\nAufgrund der Stetigkeit der Newton-Funktion\nB(ξ, r) →B(ξ, r),\nx 7→Hf(x)−1∇f(x),\nsiehe oben, gilt\nxkj+1 →x∗−Hf(x∗)−1∇f(x∗)\nfür j →∞. Auch die Folge (xkj+1)j∈N besitzt einen Häufungspunkt x′, der nach\ndem obigen\nx′ = x∗−Hf(x∗)−1∇f(x∗)\nerfüllt. Aus ∥xkj+1 −ξ∥< ∥xkj −ξ∥erhalten wir ∥x′ −ξ∥≤∥x∗−ξ∥und mit einem\nanalogen Argument ∥x∗−ξ∥≤∥x′ −ξ∥. Also ist ∥x′ −ξ∥= ∥x∗−ξ∥. Also ist\n∥x′ −ξ∥≤C1ε∥x∗−ξ∥, falls ∇f(x∗)̸ = 0 ist. Zusammen mit C1ε < 1 erlaubt uns\ndies ∇f(x∗) = 0 zu schließen.\n67\n\n4 Nichtlineare Optimierung ohne Nebenbedingungen"
+  },
+  {
+   "kind": "numbered",
+   "type": "Korollar",
+   "page": 72,
+   "text": "Es sei f : Rn →R eine zweimal stetig differenzierbare Funktion\nund ξ ∈Rn ein isoliertes lokales Minimum von f mit ∇f(ξ) = 0 und Hf(ξ) positiv\ndefinit. Dann gibt es ein r > 0 so, dass für alle x0 ∈B(ξ, r) Algorithmus 4.2.1\ndurchgeführt werden kann, d.h. die auftretenden Hessematritzen sind invertierbar,\nund die Folge (xk)k∈N, die dabei erzeugt wird, konvergiert gegen ξ.",
+   "number": "4.2.3",
    "chapter": 4,
    "section": "4.2",
    "name": null,
@@ -850,10 +1160,10 @@
   },
   {
    "kind": "numbered",
-   "type": "Korollar",
+   "type": "Bemerkung",
    "page": 72,
-   "text": "Es sei f : Rn →R eine zweimal stetig differenzierbare Funktion\nund ξ ∈Rn ein isoliertes lokales Minimum von f mit ∇f(ξ) = 0 und Hf(ξ) positiv\ndefinit. Dann gibt es ein r > 0 so, dass für alle x0 ∈B(ξ, r) Algorithmus 4.2.1\ndurchgeführt werden kann, d.h. die auftretenden Hessematritzen sind invertierbar,\nund die Folge (xk)k∈N, die dabei erzeugt wird, konvergiert gegen ξ.\nBemerkung 4.2.4. Der obige Beweis zeigt, dass es zu einer zweimal stetig differen-\nzierbaren Funktion f : Rn →R und einem Punkt ξ ∈Rn mit ∇f(ξ) = 0 und Hf(ξ)\npositiv definit, ein r > 0 und ein C ∈(0, 1) mit\n∥ξ −xk∥≤C∥ξ −xk−1∥≤. . . ≤Ck∥ξ −x0∥\nfür den k-ten Newton-Schritt mit Startpunkt x0 ∈B(ξ, r) gibt. In anderen Worten\nmit jedem Schritt reduziert sich der Abstand zu ξ um den Faktor C. Man nennt\ndiese vergleichsweise schnelle Konvergenz oft lineare Konvergenz.\nDieses schnelle Konvergenzverhalten in der nähe eines lokalen Minimums mit po-\nsitiv definiter Hessematrix motiviert folgendes Verfahren, bei dem das Gradienten-\nverfahren verwendet wird, um (hoffentlich) in die Nähe eines solchen Minimums zu\nkommen und dann auf das Newton-Verfahren umsteigt.",
-   "number": "4.2.3",
+   "text": "Der obige Beweis zeigt, dass es zu einer zweimal stetig differen-\nzierbaren Funktion f : Rn →R und einem Punkt ξ ∈Rn mit ∇f(ξ) = 0 und Hf(ξ)\npositiv definit, ein r > 0 und ein C ∈(0, 1) mit\n∥ξ −xk∥≤C∥ξ −xk−1∥≤. . . ≤Ck∥ξ −x0∥\nfür den k-ten Newton-Schritt mit Startpunkt x0 ∈B(ξ, r) gibt. In anderen Worten\nmit jedem Schritt reduziert sich der Abstand zu ξ um den Faktor C. Man nennt\ndiese vergleichsweise schnelle Konvergenz oft lineare Konvergenz.\nDieses schnelle Konvergenzverhalten in der nähe eines lokalen Minimums mit po-\nsitiv definiter Hessematrix motiviert folgendes Verfahren, bei dem das Gradienten-\nverfahren verwendet wird, um (hoffentlich) in die Nähe eines solchen Minimums zu\nkommen und dann auf das Newton-Verfahren umsteigt.",
+   "number": "4.2.4",
    "chapter": 4,
    "section": "4.2",
    "name": null,
@@ -877,7 +1187,7 @@
    "text": "Es sei f : Rn →R eine zweimal stetig differenzierbare Funktion mit\nüberall regulärer Hessematrix und x0 ∈Rn so dass {x ∈Rn : f(x) ≤f(x0)} ei-\nne kompakte Menge ist. Dann besitzt die Folge (xk)k∈N, die von Algorithmus 4.2.5\nerzeugt wird, mindestens einen Häufungspunkt und jeder Häufungspunkt ist ein sta-\ntionärer Punkt von f.",
    "number": "4.2.6",
    "chapter": 4,
-   "section": "4.2",
+   "section": "4.4",
    "name": null,
    "proof": null
   },
@@ -1006,12 +1316,12 @@
    "kind": "numbered",
    "type": "Satz",
    "page": 83,
-   "text": "Es sei C ⊂Rn eine konvexe abgeschlossene Menge und f : Rn →R\neine stetig differenzierbare konvexe Funktion, die auf C nach unten beschränkt ist.\nWeiters sei x0 ∈C ein Startpunkt, für den die Menge {x ∈C : f(x) ≤f(x0)}\nkompakt ist. Dann besitzt die Folge (xk)k∈N, die von Algorithmus 5.1.7 erzeugt wird,\nmindestens einen Häufungspunkt und jeder Häufungspunkt ist ein stationärer Punkt\nvon f auf C.\nBeweis. Nach Konstruktion des Verfahrens und Lemma 5.1.9 ist\nf(xk+1) −f(xk) ≤γ⟨∇f(xk), PC(xk + αkvk) −xk⟩< 0\nund daher f(xk+1) < f(xk) für alle k ∈N0 für die xk nicht stationär ist. Folglich\nliegen alle Folgenglieder in der kompakten konvexen Menge {x ∈C : f(x) ≤f(x0)}\nund daher besitzt die Folge (xk)k∈N Häufungspunkte. Bricht das Verfahren nach\nendlich vielen Schritten ab, ist der letzte Punkt ein stationärer Punkt von f in C.\nWir müssen also nur noch den Fall betrachten, dass kein xk ein stationärer Punkt\nist.\nSei x∗ein solcher Häufungspunkt. Dann gibt es eine Teilfolge (xkj)j∈N, die gegen x∗\nkonvergiert. Nach Satz 3.1.11 erhalten wir\n⟨xkj+1 −(xkj + αkjvkj), xkj+1 −z⟩≤0\nfür alle z ∈C. Da wir ⟨xkj+1 −xkj, xkj+1 −xkj⟩≥0 auf\n⟨xkj+1 −xkj, xkj+1⟩≥⟨xkj+1 −xkj, xkj⟩\numformen können, erhalten wir aus dem obigen\nαkj\n∥∇f(xkj)∥⟨∇f(xkj), xkj+1 −z⟩≤⟨xkj+1 −xkj, z −xkj+1⟩\n≤⟨xkj+1 −xkj, z −xkj⟩\n≤∥xkj+1 −xkj∥∥z −xkj∥\n79\n\n5 Verfahren zur konvexen Optimierung mit Nebenbedingungen\nfür alle z ∈C. Damit erhalten wir\n⟨∇f(xkj), xkj −z⟩= ⟨∇f(xkj), xkj −xkj+1⟩+ ⟨∇f(xkj), xkj+1 −z⟩\n≤⟨∇f(xkj), xkj −xkj+1⟩+ ∥∇f(xkj)∥∥xkj+1 −xkj∥\nαkj\n∥xkj −z∥.\nAus der Konstruktion des Verfahrens und der Monotonie der metrischen Projektion,\nsiehe Satz 5.1.8, erhalten wir, dass\nf(xkj+1) −f(xkj) ≤f(xkj+1) −f(xkj) ≤γ⟨∇f(xkj), xkj+1 −xkj⟩\n≤−γ∥∇f(xkj)∥∥xkj −xkj+1∥2\nαkj\n≤0\nist. Also muss nach Einschließungskriterium\nlim\nj→∞⟨∇f(xkj), xkj+1 −xkj⟩= 0\nund\nlim\nj→∞∥∇f(xkj)∥∥xkj −xkj+1∥2\nαkj\n= 0\ngelten, da f(xkj+1) −f(xkj) →0 für j →∞. Also besitzt mindestens einer der\nFolgen ∥∇f(xkj)∥oder\n∥xkj −xkj+1∥2\nαkj\neine Teilfolge, die gegen Null konvergiert. Wir\nverwenden wieder die gleiche Notation für diese Teilfolge. Wir betrachten den Fall,\ndass ∥∇f(xkj)∥≥c für ein c > 0 und\nlim\nj→∞\n∥xkj −xkj+1∥2\nαkj\n= 0\ngilt und nehmen an, wir hätten ein ε > 0 und eine unendliche Menge J ⊂N mit\n∥xkj −xkj+1∥≥εαkj\nfür alle j ∈J. Dann gilt\n∥xkj −xkj+1∥2\nαkj\n≥ε∥xkj −xkj+1∥≥ε2αkj\nfür alle j ∈J und daher\nlim\nj→∞αkj = 0\nund\nlim\nj→∞∥xkj −xkj+1∥.\nAlso gilt für j groß genug, dass αkj = βmkj mit mkj > 0 ist. Aus der Armijo-\nBedingung erhalten wir also\nf(PC(xkj + βmkj −1vkj)) −f(xkj) > γ⟨∇f(xkj), PC(xkj + βmkj −1vkj) −xkj⟩(5.3)\n80\n\n5.1 Projektionsverfahren\nund aus Lemma 5.1.10, dass\n∥xkj −xkj+1∥2\nαkj\n≥αkj\n∥xkj −PC(xkj + βmkj −1vkj)∥\nβmkj −1\n∥xkj −xkj+1∥\nαkj\n≥αkjεβ ∥xkj −PC(xkj + βmkj −1vkj)∥\nαkj\n= εβ∥xkj −PC(xkj + βmkj −1vkj)∥\nund daher\n⟨∇f(xkj), xkj −PC(xkj + βmkj −1vkj)⟩≥⟨∇f(xkj), xkj −xkj+1⟩\n≥cεβ∥xkj −PC(xkj + βmkj −1vkj)∥> 0.\nDa die Folge in der Mitte gegen Null konvergiert, konvergiert auch\n∥xkj −PC(xkj + βmkj −1vkj)∥→0.\nDa ∇f auf der kompakten Menge {x ∈C : f(x) ≤f(x0)} gleichmäßig stetig ist,\nfolgt aus der obigen Ungleichung\nf(xkj) −f(PC(xkj + βmkj −1vkj))\n⟨∇f(xkj), xk −PC(xkj + βmkj −1vkj)⟩\n→1\nfür j →∞, im Widerspruch zu\nf(xkj) −f(PC(xkj + βmkj −1vkj))\n⟨∇f(xkj), xk −PC(xkj + βmkj −1vkj)⟩\n≤γ < 1\nnach (5.3). Also muss jedenfalls\nlim\nj→∞∥∇f(xkj)∥∥xkj −xkj+1∥\nαkj\n= 0\ngelten. Aufgrund der Stetigkeit von ∇f folgt\n⟨∇f(x∗), z −x∗⟩≥0\nfür alle z ∈C. Also ist, analog zum Beweis von Lemma 5.1.9, x∗ein stationärer\nPunkt von f in C.\nDa wir als Startpunkt unseres Verfahrens ein x0 ∈C, d.h. einen zulässigen Punkt,\nbenötigen, müssen wir als erstes folgendes Problem lösen: Finde ein\nx0 ∈\np\\\ni=1\n{x ∈Rn : gi(x) ≤0} ∩\nq[\nj=1\n{x ∈Rn : hj(x) = 0}.\n81\n\n5 Verfahren zur konvexen Optimierung mit Nebenbedingungen\nDa es sich bei {x ∈Rn : gi(x) ≤0} und {x ∈Rn : hj(x) = 0} um konvexe abge-\nschlossene Menge handelt, können wir obiges Problem ein Sepzialfall des folgenden\nProblems auffassen: Gegeben konvexe abgeschlossene Mengen C1, . . . , Cm mit nicht-\nleerem Durchschnitt finde einen Punkt\nx0 ∈\nm\n\\\ni=1\nCi.\nIn der englischsprachigen Literatur wird dieses Problem oft als convex feasibility\nproblem bezeichnet. Wir wollen hier nur kurz darauf eingehen. Manchmal ist die\nProjektion auf die einzelnen Mengen leichter zu bestimmen als die Projektion auf\nden Durchschnitt. Ein Extremfall dieser Situation ist, wenn alle Ci Halbräume sind,\nda wir dafür die Projektion durch eine einfache Formel angeben können, siehe Auf-\ngabe (4.7).",
+   "text": "Es sei C ⊂Rn eine konvexe abgeschlossene Menge und f : Rn →R\neine stetig differenzierbare konvexe Funktion, die auf C nach unten beschränkt ist.\nWeiters sei x0 ∈C ein Startpunkt, für den die Menge {x ∈C : f(x) ≤f(x0)}\nkompakt ist. Dann besitzt die Folge (xk)k∈N, die von Algorithmus 5.1.7 erzeugt wird,\nmindestens einen Häufungspunkt und jeder Häufungspunkt ist ein stationärer Punkt\nvon f auf C.",
    "number": "5.1.12",
    "chapter": 5,
    "section": "5.1",
    "name": null,
-   "proof": null
+   "proof": "Nach Konstruktion des Verfahrens und Lemma 5.1.9 ist\nf(xk+1) −f(xk) ≤γ⟨∇f(xk), PC(xk + αkvk) −xk⟩< 0\nund daher f(xk+1) < f(xk) für alle k ∈N0 für die xk nicht stationär ist. Folglich\nliegen alle Folgenglieder in der kompakten konvexen Menge {x ∈C : f(x) ≤f(x0)}\nund daher besitzt die Folge (xk)k∈N Häufungspunkte. Bricht das Verfahren nach\nendlich vielen Schritten ab, ist der letzte Punkt ein stationärer Punkt von f in C.\nWir müssen also nur noch den Fall betrachten, dass kein xk ein stationärer Punkt\nist.\nSei x∗ein solcher Häufungspunkt. Dann gibt es eine Teilfolge (xkj)j∈N, die gegen x∗\nkonvergiert. Nach Satz 3.1.11 erhalten wir\n⟨xkj+1 −(xkj + αkjvkj), xkj+1 −z⟩≤0\nfür alle z ∈C. Da wir ⟨xkj+1 −xkj, xkj+1 −xkj⟩≥0 auf\n⟨xkj+1 −xkj, xkj+1⟩≥⟨xkj+1 −xkj, xkj⟩\numformen können, erhalten wir aus dem obigen\nαkj\n∥∇f(xkj)∥⟨∇f(xkj), xkj+1 −z⟩≤⟨xkj+1 −xkj, z −xkj+1⟩\n≤⟨xkj+1 −xkj, z −xkj⟩\n≤∥xkj+1 −xkj∥∥z −xkj∥\n79\n\n5 Verfahren zur konvexen Optimierung mit Nebenbedingungen\nfür alle z ∈C. Damit erhalten wir\n⟨∇f(xkj), xkj −z⟩= ⟨∇f(xkj), xkj −xkj+1⟩+ ⟨∇f(xkj), xkj+1 −z⟩\n≤⟨∇f(xkj), xkj −xkj+1⟩+ ∥∇f(xkj)∥∥xkj+1 −xkj∥\nαkj\n∥xkj −z∥.\nAus der Konstruktion des Verfahrens und der Monotonie der metrischen Projektion,\nsiehe Satz 5.1.8, erhalten wir, dass\nf(xkj+1) −f(xkj) ≤f(xkj+1) −f(xkj) ≤γ⟨∇f(xkj), xkj+1 −xkj⟩\n≤−γ∥∇f(xkj)∥∥xkj −xkj+1∥2\nαkj\n≤0\nist. Also muss nach Einschließungskriterium\nlim\nj→∞⟨∇f(xkj), xkj+1 −xkj⟩= 0\nund\nlim\nj→∞∥∇f(xkj)∥∥xkj −xkj+1∥2\nαkj\n= 0\ngelten, da f(xkj+1) −f(xkj) →0 für j →∞. Also besitzt mindestens einer der\nFolgen ∥∇f(xkj)∥oder\n∥xkj −xkj+1∥2\nαkj\neine Teilfolge, die gegen Null konvergiert. Wir\nverwenden wieder die gleiche Notation für diese Teilfolge. Wir betrachten den Fall,\ndass ∥∇f(xkj)∥≥c für ein c > 0 und\nlim\nj→∞\n∥xkj −xkj+1∥2\nαkj\n= 0\ngilt und nehmen an, wir hätten ein ε > 0 und eine unendliche Menge J ⊂N mit\n∥xkj −xkj+1∥≥εαkj\nfür alle j ∈J. Dann gilt\n∥xkj −xkj+1∥2\nαkj\n≥ε∥xkj −xkj+1∥≥ε2αkj\nfür alle j ∈J und daher\nlim\nj→∞αkj = 0\nund\nlim\nj→∞∥xkj −xkj+1∥.\nAlso gilt für j groß genug, dass αkj = βmkj mit mkj > 0 ist. Aus der Armijo-\nBedingung erhalten wir also\nf(PC(xkj + βmkj −1vkj)) −f(xkj) > γ⟨∇f(xkj), PC(xkj + βmkj −1vkj) −xkj⟩(5.3)\n80\n\n5.1 Projektionsverfahren\nund aus Lemma 5.1.10, dass\n∥xkj −xkj+1∥2\nαkj\n≥αkj\n∥xkj −PC(xkj + βmkj −1vkj)∥\nβmkj −1\n∥xkj −xkj+1∥\nαkj\n≥αkjεβ ∥xkj −PC(xkj + βmkj −1vkj)∥\nαkj\n= εβ∥xkj −PC(xkj + βmkj −1vkj)∥\nund daher\n⟨∇f(xkj), xkj −PC(xkj + βmkj −1vkj)⟩≥⟨∇f(xkj), xkj −xkj+1⟩\n≥cεβ∥xkj −PC(xkj + βmkj −1vkj)∥> 0.\nDa die Folge in der Mitte gegen Null konvergiert, konvergiert auch\n∥xkj −PC(xkj + βmkj −1vkj)∥→0.\nDa ∇f auf der kompakten Menge {x ∈C : f(x) ≤f(x0)} gleichmäßig stetig ist,\nfolgt aus der obigen Ungleichung\nf(xkj) −f(PC(xkj + βmkj −1vkj))\n⟨∇f(xkj), xk −PC(xkj + βmkj −1vkj)⟩\n→1\nfür j →∞, im Widerspruch zu\nf(xkj) −f(PC(xkj + βmkj −1vkj))\n⟨∇f(xkj), xk −PC(xkj + βmkj −1vkj)⟩\n≤γ < 1\nnach (5.3). Also muss jedenfalls\nlim\nj→∞∥∇f(xkj)∥∥xkj −xkj+1∥\nαkj\n= 0\ngelten. Aufgrund der Stetigkeit von ∇f folgt\n⟨∇f(x∗), z −x∗⟩≥0\nfür alle z ∈C. Also ist, analog zum Beweis von Lemma 5.1.9, x∗ein stationärer\nPunkt von f in C.\nDa wir als Startpunkt unseres Verfahrens ein x0 ∈C, d.h. einen zulässigen Punkt,\nbenötigen, müssen wir als erstes folgendes Problem lösen: Finde ein\nx0 ∈\np\\\ni=1\n{x ∈Rn : gi(x) ≤0} ∩\nq[\nj=1\n{x ∈Rn : hj(x) = 0}.\n81\n\n5 Verfahren zur konvexen Optimierung mit Nebenbedingungen\nDa es sich bei {x ∈Rn : gi(x) ≤0} und {x ∈Rn : hj(x) = 0} um konvexe abge-\nschlossene Menge handelt, können wir obiges Problem ein Sepzialfall des folgenden\nProblems auffassen: Gegeben konvexe abgeschlossene Mengen C1, . . . , Cm mit nicht-\nleerem Durchschnitt finde einen Punkt\nx0 ∈\nm\n\\\ni=1\nCi.\nIn der englischsprachigen Literatur wird dieses Problem oft als convex feasibility\nproblem bezeichnet. Wir wollen hier nur kurz darauf eingehen. Manchmal ist die\nProjektion auf die einzelnen Mengen leichter zu bestimmen als die Projektion auf\nden Durchschnitt. Ein Extremfall dieser Situation ist, wenn alle Ci Halbräume sind,\nda wir dafür die Projektion durch eine einfache Formel angeben können, siehe Auf-\ngabe (4.7)."
   },
   {
    "kind": "numbered",
@@ -1031,7 +1341,7 @@
    "text": "Sind die Mengen C1, . . . , Cm nicht nur abgeschlossene konvexe\nMengen, sondern affine Unterräume, so kann man zeigen, dass die Folge der alternier-\nten Projektionen nicht nur gegen eine Punkt im Durchschnitt konvergiert, sondern\nsogar gegen die Projektion auf den Durchschnitt.\n5.2 Straffunktionen und Penalty-Verfahren\nWir betrachten wieder das Minimierungsproblem\nmin f(x)\nunter\ngi(x) ≤0 für i = 1, . . . , p\nhj(x) = 0 für j = 1, . . . , q\n(5.5)\nfür Funktionen f, gi, hj : Rn →R für i = 1, . . . , p und j = 1, . . . , q. Die grundle-\ngende Vorgehensweise in diesem Abschnitt ist es das obige Problem in ein Problem\nohne Nebenbedingungen umzuwandeln, dessen Minimalpunkte auch Minima des ur-\nsprünglichen Problems sind. Wir setzen\nl(x) :=\np\nX\ni=1\n(max{gi(x), 0})α +\nq\nX\nj=1\n|hi(x)|α\nmit einem α > 0. Damit erhalten wir eine nicht-negative Funktion l: Rn →R mit\nl(x) = 0 genau für zulässige x ∈Rn. Da die Funktion nicht-zulässige Punkte x mit\neinem positiven Wert ”bestraft“, nennt man l manchmal auch Straffunktion. Damit\ndefinieren wir nun die Penalty-Funktion\np: Rn × (0, ∞) →R,\n(x, r) 7→f(x) + rl(x)\nund betrachten für einen fix gewählten Strafparameter r > 0 das Minimierungspro-\nblem\nmin p(x, r)\nohne Nebenbedingungen.\n83\n\n5 Verfahren zur konvexen Optimierung mit Nebenbedingungen",
    "number": "5.1.14",
    "chapter": 5,
-   "section": "5.1",
+   "section": "5.2",
    "name": null,
    "proof": null
   },
@@ -1240,7 +1550,7 @@
    "text": "Die Annahme, dass a1, . . . , aq zu hj(x) = aT\nj x −bj linear un-\nabhängig sind, ist nicht automatisch erfüllt. Man kann dies aber durch weglassen\nvon geeigneten hj erreichen, ohne den zulässigen Bereich zu verändern.\nDie Annahme, dass die Slater-Bedingung erfüllt sein muss, kann nicht ersatzlos\nweggelassen werden.",
    "number": "6.2.7",
    "chapter": 6,
-   "section": "6.2",
+   "section": "6.3",
    "name": null,
    "proof": null
   },
@@ -1251,7 +1561,7 @@
    "text": "Es seien f : Rn →R und gi : Rn →R für i = 1, . . . , p konvexe\nFunktionen sowie hj : Rn →R für j = 1 . . . , q affine Funktionen. Wir bezeichnen mit\np∗:= inf{f(x): gi(x) ≤0 für i = 1, . . . , p und hj(x) = 0 für j = 1, . . . , q}\nund\nd∗:= sup{Θ(y): y ∈Rm, yi ≥0 für i = 1, . . . , p}\ndie Optimalwerte von (MP) und des Lagrange-dualen Optimierungsproblems. Die\nDifferenz p∗−d∗bezeichnet man als Dualitätslücke von (MP)",
    "number": "6.2.8",
    "chapter": 6,
-   "section": "6.2",
+   "section": "6.3",
    "name": null,
    "proof": null
   },
@@ -1262,7 +1572,7 @@
    "text": "Wir betrachten\nA =\n\n\n\n\n−1\n0\n0\n−1\n2\n1\n1\n3\n\n\n\n,\nb =\n\n\n\n\n0\n0\n3\n5\n\n\n\n\nund\nc =\n−3\n−1\n\n.\nIn der folgenden Graphik sind der Zulässigkeitsbereich des ganzzahligen Problems\nsowie des linearen Programms min{cTx: Ax ≤b}.\nIn rot ist die Lösung des linearen Programms und in grün die des ganzzahligen\nProgramms markiert. Man sieht, dass die Lösung des ganzzahligen Programms nicht\nunbedingt der zur Lösung des linearen Programms nächstgelegene zulässige Vektor\nin Z2 sein muss.\n7.1 Lösbarkeit ganzzahliger linearer Ungleichungssysteme\nWir starten mit ein paar einfachen Beobachtungen.",
    "number": "7.0.1",
    "chapter": 7,
-   "section": "7.0",
+   "section": "7.1",
    "name": null,
    "proof": null
   },
@@ -1317,7 +1627,7 @@
    "text": "Wir haben also gezeigt, dass für\nP = Konv({x1, . . . , xk}) + KK({y1, . . . , yl})\nmit x1, . . . , xk, y1, . . . , yl ∈Qn die ganzzahlige Hülle die Darstellung\nPZ = Konv({z1, . . . , zp}) + KK({y1, . . . , yl})\nfür geeignete z1, . . . , zp ∈P ∩Zn hat.\nAus dieser Beobachtung erhalten wir mit Satz 1.4.1 direkt folgenden Zusammen-\nhang zwischen linearem Programm und ganzzahligem Programm.",
    "number": "7.1.5",
    "chapter": 7,
-   "section": "7.1",
+   "section": "7.2",
    "name": null,
    "proof": null
   },
@@ -1328,7 +1638,7 @@
    "text": "Es sei A ∈Matm,n(Q), b ∈Qm und c ∈Rn. Wir betrachten P = P(A, b)\nund nehmen an, dass sowohl P als auch die ganzzahlige Hülle PZ nicht-leer ist. Dann\nist die Funktion x 7→cTx auf P genau dann nach unten unbeschränkt, wenn sie auf\nder ganzzahligen Hülle PZ nach unten unbeschränkt ist.\nDas folgende sehr einfache Beispiel zeigt, dass PZ(A, b) := (P(A, b))Z leer sein\nkann auch wenn P(A, b) nicht-leer ist.",
    "number": "7.1.6",
    "chapter": 7,
-   "section": "7.1",
+   "section": "7.2",
    "name": null,
    "proof": null
   },
@@ -1339,7 +1649,7 @@
    "text": "Das Ungleichungssystem\n2y ≤1\n−2y ≤−1\ndefiniert ein unbeschränktes Polyeder in R2, dessen ganzzahlige Hülle leer ist.\n7.2 Branch and Bound\nWir betrachten ein Verfahren zur Lösung von ganzzahligen linearen Programmen.\nGenauer gesagt, wir betrachten das Problem\nLA,b,c := min{cTx: Ax ≤b, x ∈Zn}\nmit A ∈Matm,n(Z), b ∈Zm und c ∈Rn. Dazu betrachten wir das relaxierte Problem\n ̄LA,b,c := min{cTx: Ax ≤b},\nd.h. das gleiche Problem ohne die Ganzzahligkeitsbedingung.",
    "number": "7.1.7",
    "chapter": 7,
-   "section": "7.1",
+   "section": "7.2",
    "name": null,
    "proof": null
   },
@@ -1369,12 +1679,12 @@
    "kind": "numbered",
    "type": "Satz",
    "page": 109,
-   "text": "Es seien A ∈Matm,n(Z), b ∈Zm und c ∈Rn so, dass der zulässige\nBereich von\nLA,b,c := min{cTx: Ax ≤b, x ∈Zn}\nbeschränkt ist. Dann stoppt Algorithmus 7.2.1 nach endlich vielen Schritten.\nBeweis. Da der zulässige Bereich von LA,b,c beschränkt ist, gibt es ein T ∈N mit\n−T ≤xi ≤T\nfür jedes zulässige x ∈Zn. Die einzigen Ungleichungen, die in Schritt (7) hinzugefügt\nwerden können, sind also\nxi ≥τ+\nτ+ ∈{−T + 1, . . . , T}\nxi ≤τ−\nτ−∈{−T, . . . , T −1},\nd.h. es gibt maximal 4nT Ungleichungen, die aufgenommen werden können. Wir\nbetrachten die Menge\n{LAj,bj,c : j ∈J}\n105\n\n7 Kombinatorische Optimierung\nder ganzzahligen linearen Programme, die von Algorithmus 7.2.1 in einem Durchlauf\nbetrachtet werden. Wir können diese Menge als binären Baum auffassen, in dem die\nProgramme LAj,bj,c und LAk,bk,c genau dann durch eine Kante verbunden sind, falls\nLAk,bk,c durch Hinzufügen von Ungleichungen zu LAj,bj,c in Schritt (7) definiert ist\n(oder umgekehrt).\nWir zeigen nun, dass J endlich ist. Die Höhe des Baums ist maximal 2nT, da sonst\ndie Ungleichungen widersprüchlich werden. Also ist |J| ≤22nT+1, da ein binärer\nBaum von Höhe 2nT maximal 22nT+1 Ecken hat.\nWir müssen also noch zeigen, dass Algorithmus 7.2.1 tatsächlich eine Lösung liefert\nvon korrekterweise die Information liefert, dass es keine Lösung gibt. Ist C = ∞, so\nwurde im ganzen Durchlauf kein einziger zulässiger ganzzahliger Punkt gefunden.\nWir betrachten nun Schritt (7) genauer. Sei LAj,bj,c mit nicht-ganzzahliger Lösung  ̄x\ngegeben und wir erzeugen die neuen Programme LAk+1,bk+1,c und LAk+2,bk+2,c durch\nHinzunahme von einer der Ungleichungen\nxi ≤⌊ ̄xi⌋\nund\nxi ≥⌈ ̄xi⌉.\nDamit sind aber alle ganzzahligen zulässigen Punkte von LAj,bj,c auch zulässige\nPunkte von einem der neuen Programme. Erreichen wir irgendwann Schritt (6), so\nhaben wir eine ganzzahlige Lösung eines Programms LAj,bj,c gefunden. Es kann also\nkeinen dafür zulässigen ganzzahligen Punkt geben, auf dem die Zielfunktion kleiner\nist. Eine weitere Unterteilung macht hier also keinen Sinn. Auch wenn wir mit einem\nProgramm LAj,bj,c Schritt (5) erreichen, macht eine weitere Unterteilung keinen\nSinn, da auf jedem zulässigen Punkt davon und damit auch auf allen ganzzahligen\ndarunter die Zielfunktion einen größeren Wert als auf einem bereits gefundenen\nPunkt x∗annimmt.\nHaben wir also K = ∅erreicht, ist keine weitere Teilung mehr sinnvoll und wir\nhaben also eine Lösung gefunden oder es gibt keine.",
+   "text": "Es seien A ∈Matm,n(Z), b ∈Zm und c ∈Rn so, dass der zulässige\nBereich von\nLA,b,c := min{cTx: Ax ≤b, x ∈Zn}\nbeschränkt ist. Dann stoppt Algorithmus 7.2.1 nach endlich vielen Schritten.",
    "number": "7.2.3",
    "chapter": 7,
    "section": "7.2",
    "name": null,
-   "proof": null
+   "proof": "Da der zulässige Bereich von LA,b,c beschränkt ist, gibt es ein T ∈N mit\n−T ≤xi ≤T\nfür jedes zulässige x ∈Zn. Die einzigen Ungleichungen, die in Schritt (7) hinzugefügt\nwerden können, sind also\nxi ≥τ+\nτ+ ∈{−T + 1, . . . , T}\nxi ≤τ−\nτ−∈{−T, . . . , T −1},\nd.h. es gibt maximal 4nT Ungleichungen, die aufgenommen werden können. Wir\nbetrachten die Menge\n{LAj,bj,c : j ∈J}\n105\n\n7 Kombinatorische Optimierung\nder ganzzahligen linearen Programme, die von Algorithmus 7.2.1 in einem Durchlauf\nbetrachtet werden. Wir können diese Menge als binären Baum auffassen, in dem die\nProgramme LAj,bj,c und LAk,bk,c genau dann durch eine Kante verbunden sind, falls\nLAk,bk,c durch Hinzufügen von Ungleichungen zu LAj,bj,c in Schritt (7) definiert ist\n(oder umgekehrt).\nWir zeigen nun, dass J endlich ist. Die Höhe des Baums ist maximal 2nT, da sonst\ndie Ungleichungen widersprüchlich werden. Also ist |J| ≤22nT+1, da ein binärer\nBaum von Höhe 2nT maximal 22nT+1 Ecken hat.\nWir müssen also noch zeigen, dass Algorithmus 7.2.1 tatsächlich eine Lösung liefert\nvon korrekterweise die Information liefert, dass es keine Lösung gibt. Ist C = ∞, so\nwurde im ganzen Durchlauf kein einziger zulässiger ganzzahliger Punkt gefunden.\nWir betrachten nun Schritt (7) genauer. Sei LAj,bj,c mit nicht-ganzzahliger Lösung  ̄x\ngegeben und wir erzeugen die neuen Programme LAk+1,bk+1,c und LAk+2,bk+2,c durch\nHinzunahme von einer der Ungleichungen\nxi ≤⌊ ̄xi⌋\nund\nxi ≥⌈ ̄xi⌉.\nDamit sind aber alle ganzzahligen zulässigen Punkte von LAj,bj,c auch zulässige\nPunkte von einem der neuen Programme. Erreichen wir irgendwann Schritt (6), so\nhaben wir eine ganzzahlige Lösung eines Programms LAj,bj,c gefunden. Es kann also\nkeinen dafür zulässigen ganzzahligen Punkt geben, auf dem die Zielfunktion kleiner\nist. Eine weitere Unterteilung macht hier also keinen Sinn. Auch wenn wir mit einem\nProgramm LAj,bj,c Schritt (5) erreichen, macht eine weitere Unterteilung keinen\nSinn, da auf jedem zulässigen Punkt davon und damit auch auf allen ganzzahligen\ndarunter die Zielfunktion einen größeren Wert als auf einem bereits gefundenen\nPunkt x∗annimmt.\nHaben wir also K = ∅erreicht, ist keine weitere Teilung mehr sinnvoll und wir\nhaben also eine Lösung gefunden oder es gibt keine."
   },
   {
    "kind": "numbered",
@@ -1394,7 +1704,7 @@
    "text": "Sowohl Algorithmus 7.2.1 als auch der Beweis von Satz 7.2.3\nfunktionieren völlig analog, wenn wir nur für manche der Variablen verlangen, dass\ndie Einträge ganzzahlig sind. Solche Minimierungsprobleme nennt man gemischt-\nganzzahlige lineare Minimierugsprobleme.",
    "number": "7.2.5",
    "chapter": 7,
-   "section": "7.2",
+   "section": "7.3",
    "name": null,
    "proof": null
   },
@@ -1405,7 +1715,7 @@
    "text": "Es seien A ∈Matm,n(R), b ∈Rm, c ∈Rn und x, s ∈Rn mit x, s > 0\nund Rang(A) = m. Dann ist die Matrix\n\n\nA\n0\n0\n0\nIn\nAT\nS\nX\n0\n\n\ninvertierbar.",
    "number": "8.0.1",
    "chapter": 8,
-   "section": "8.0",
+   "section": "8",
    "name": null,
    "proof": "Wir zeigen, dass der Lösungsraum der Matrix Null ist und betrachten Vek-\ntoren u, v ∈Rn und w ∈Rm mit\n\n\nA\n0\n0\n0\nIn\nAT\nS\nX\n0\n\n\n\n\nu\nv\nw\n\n= 0.\n110\n\nIn anderen Worten haben wir\nAu = 0\nv + ATw = 0\nSu + Xv = 0.\nAlso ist\nuTv = −uTATw = −(Au)Tw = 0.\nWomit wir gemeinsam mit u = −S−1Xv die Gleichung\n0 = uTv = −vT(S−1X)Tv\nund folglich u = v = 0, da S−1X positiv definit ist. Also ist ATw = 0 und damit\nerhalten wir aus RangA = m, dass w = 0 ist. Insgesamt haben wir damit gezeigt,\ndass der Lösungsraum der Matrix trivial und die Matrix daher invertierbar ist.\nDamit macht es also Sinn Nullstellen von Ψ auf (0, ∞)2n×Rm mittels des Newton-\nVerfahren zu suchen. Wir müssen dabei aber sicherstellen, dass das Newton-Verfahr-\nen die Menge (0, ∞)2n × Rm nicht verlässt.\nBevor wir uns dieses Problems genauer widmen, betrachten wir die dritte Bedin-\ngung in (8.1) etwas genauer. Im Fall μ = 0 erhalten wir die Bedingung\nsixi = 0\nfür i = 1, . . . , n\nwas wegen s, x ≥0 zu\nsTx = 0\näquivalent ist. Aus der zweiten Bedingung erhalten wir\n0 = sTx = (c −ATy)Tx = cTx −yTAx = cTx −yTb = cTx −bTy,\nd.h. die Werte des untersuchten linearen Programms und seines dualen Programms\nstimmenüberein. Nach Korollar 6.1.5 bedeutet dies aber gerade, dass x eine Lösung\ndes linearen Programm (und y eine Lösung des dualen Programms) ist.\nDiese Beobachtung legt nahe mit einem μ > 0 zu starten und dann μ gegen Null zu\nschicken und dabei iterativ mit dem Newton-Verfahren Nullstellen der Funktion Ψ\nzu suchen."
   },
@@ -1416,7 +1726,7 @@
    "text": "Es seien A ∈Matm,n(R), b ∈Rm, c ∈Rn mit Rang(A) = m so, dass\nes ein x ∈Rn mit Ax = b und x > 0 und ein y ∈Rm mit ATy < c gibt. Dann hat\ndas System (8.1) für jedes μ > 0 eine eindeutige Lösung\n(x∗(μ), y∗(μ), s∗(μ)) ∈(0, ∞)n × Rm × (0, ∞)n.\nDarüber hinaus ist x∗(μ) das eindeutige Minimum von fμ auf der Menge\n{x ∈Rn : Ax = b, x > 0}.\n111\n\n8 Innere Punkte Verfahren: ein Ausblick",
    "number": "8.0.2",
    "chapter": 8,
-   "section": "8.0",
+   "section": "8",
    "name": null,
    "proof": "Es sei μ > 0 gegeben. Wir zeigen als erstes, dass für jedes  ̃x ∈Rn mit\nA ̃x = b,  ̃x > 0 die Menge\nP ̃x := {x ∈Rn : Ax = b, x > 0, fμ(x) ≤fμ( ̃x)}\nkompakt ist. Es sei  ̃y ∈Rm mit AT ̃y < c und wir setzen  ̃s = c −AT ̃y > 0. Damit ist\nfμ(x) = cTx −μ\nn\nX\ni=1\nlog xi\n= cTx − ̃yT(Ax −b) −μ\nn\nX\ni=1\nlog xi\n= (cT − ̃yTA)x +  ̃yTb −μ\nn\nX\ni=1\nlog xi\n=  ̃sTx +  ̃yTb −μ\nn\nX\ni=1\nlog xi\n=  ̃yTb −\nn\nX\ni=1\n(μ log xi − ̃sixi)\nfür alle x ∈Rn mit Ax = b und x > 0.\nWir betrachten die Funktion\nhα : (0, ∞) →R,\nξ 7→ξ 7→μ log ξ −αξ\nund bemerken, dass die Ableitung\nh′\nα(ξ) = μ\nξ −α\ndie eindeutige Nullstelle ξ = μ\nα hat. Dieser Punkt ist das eindeutige Maximum von\nhα und insbesondere ist hα nach oben beschränkt. Insbesondere ist\nfμ(x) ≥ ̃yTb −\nn\nX\ni=1\nμ(log μ\n ̃si\n−1)\nund fμ damit nach unten beschränkt. Da hα(ξ) →−∞für ξ ↘0 und ξ →∞\n(lineare Funktionen wachsen schneller als der Logarithmus), ist für alle C ∈R die\nMenge\n{ξ ∈(0, ∞): hα(ξ) ≥C}\nbeschränkt, d.h. es gibt ein kompaktes Intervall Iα,C, das diese Menge enthält. Zu  ̃x\nsetzen wir\nC :=  ̃yTb −fμ( ̃x)\nund\nCi := C −\nX\nj̸=i\nμ(log μ\n ̃sj\n−1)\nfür i = 1, . . . , n.\n112\n\nDamit erhalten wir aus dem obigen, dass\n{x ∈Rn : Ax = b, x > 0, fμ(x) ≤fμ( ̃x)}\n=\nn\nx ∈Rn : Ax = b, x > 0,\nn\nX\ni=1\n(μ log xi − ̃sixi) ≥C\no\n⊂\nn\nx ∈Rn : x > 0, μ log xi − ̃sixi ≥Ci für i = 1, . . . , n\no\n⊂\nn\nY\ni=1\nI ̃si,Ci\nund die Menge daher beschränkt ist. Wir wollen zeigen, dass P ̃x abgeschlossen ist.\nSei dazu (zk)k∈N eine Folge in P ̃x, die gegen ein z ∈Rn konvergiert. Da die Menge\n{x ∈Rn : Ax = b} abgeschlossen ist und die Menge\n{x ∈(0, ∞)n : fμ(x) ≤fμ( ̃x)} ⊂(0, ∞)n\nrelativ abgeschlossen ist, reicht aus z > 0 nachzuweisen, um zu zeigen, dass z ∈P ̃x\nist. Da fμ(x) beliebig groß wird, wenn sich eine Komponente von x Null nähert,\nerhalten wir, dass fμ(zk) →∞gelten müsste, wenn es ein zi = 0 geben würde. Dies\nsteht aber im Widerspruch zu fμ(zk) ≤fμ( ̃x). Also ist z > 0 und daher in P ̃x.\nAus der Kompaktheit von P ̃x und der Stetigkeit von fμ erhalten wir, dass fμ ihr\nMinimum in einem x∗∈P ̃x annimmt. Aus der Lagrange-Multplikator-Regel erhalten\nwir, dass es Punkte s∗∈Rn mit s∗≥0 und y∗∈Rm gibt, die zusammen mit x∗die\nBedingungen in (8.1) erfüllen. Damit erhalten wir aus s∗\ni x∗\ni = μ und x∗\ni > 0 auch\ns∗\ni > 0. Die Eindeutigkeit folgt aus der Beobachtung, dass fμ eine strikt konvexe\nFunktion ist.\nDie Menge\n{(x∗(μ), y∗(μ), s∗(μ)): μ > 0}\nheißt primal-dualer zentraler Pfad. Wir betrachten nun einen Algorithmus, der in\nder Nähe dieses Pfads bleibt und eine Lösung des linearen Programms zu gegebener\nToleranz ε > 0 approximiert."
   },
@@ -1427,7 +1737,7 @@
    "text": ". Wir lösen ein lineares Programm in\nStandardform\nmin{cTx: Ax = b, x ≥0}\nmit A ∈Matm,n(R), b ∈Rm und c ∈Rn.\nEingabe: Ein Startpunkt x0, ein dualer Startpunkt y0, μ0 und eine Toleranz ε > 0\nWir nehmen an, dass die Anfangsdaten folgende Bedingungen erfüllen:\nAx0 = b,\nx0 > 0,\nATy0 < c\nund\n∥X0(c −ATy0) −μ01∥2 ≤μ0\n2\nAusgabe: Eine Lösung des obigen Programms.\nDurchführung: Wir setzen k = 0, s0 = c −ATy0 und r0 = X0s0 −μ01.\n113\n\n8 Innere Punkte Verfahren: ein Ausblick\n(1) Bestimme xk+1, yk+1 und sk+1 aus\n\n\nxk+1\nsk+1\nyk+1\n\n=\n\n\nxk\nsk\nyk\n\n−Ψ′(xk, sk, yk)−1Ψ(xk, sk, yk)\n=\n\n\nxk\nsk\nyk\n\n−\n\n\nA\n0\n0\n0\nIn\nAT\nSk\nXk\n0\n\n\n−1 \n\nAxk −b\nATyk + sk −c\nSkxk −μk1\n\n\n=\n\n\nxk\nsk\nyk\n\n−\n\n\nA\n0\n0\n0\nIn\nAT\nSk\nXk\n0\n\n\n−1 \n\n0\n0\nrk\n\n\nmit rk := Xksk −μk1.\n(2) Wir setzen μk+1 := μk(1 −\n1\n6√n).\n(3) Wir ersetzen k durch k + 1.\n(4) Ist μk ≤ε\nn, stoppen wir und geben (xk, yk, sk) zurück. Anderenfalls gehen wir\nzu (1).\nUm zu zeigen, dass wir den Algorithmus durchführen können, müssten wir zeigen,\ndass xk+1 > 0 und sk+1 > 0 in (1) gilt, falls xk, sk > 0 ist. Wir lassen diesen Beweis\naus Zeitgründen aus und erwähnen nur das folgende Resultat.",
    "number": "8.0.3",
    "chapter": 8,
-   "section": "8.0",
+   "section": "8",
    "name": "Kurz-Schritt-Algorithmus",
    "proof": null
   },
@@ -1435,12 +1745,23 @@
    "kind": "numbered",
    "type": "Satz",
    "page": 118,
-   "text": "Sei β ∈[0, 1\n2]. Gilt ∥rk∥2 ≤βμk in Algorithmus 8.0.3, so ist\n∥Xk+1sk+1 −μk1∥2 ≤β2μk\nund xk+1 > 0 sowie sk+1 > 0.\nBeweis. Siehe beispielsweise der Abschnitt 4.3 in [7, pp. 79–80].\nMit diesen Hilfsmitteln können wir nun zeigen, dass Algorithmus 8.0.3 nach end-\nlich vielen Schritten eine Näherungslösung zur gegebenen Toleranz liefert.\nSatz 8.0.5. Algorithmus 8.0.3 stoppt nach höchstens 6√n log nμ0\nε\nIterationen mit\n(strikt) zulässigen Näherungslösungen x und y, die\ncTx −bTy ≤2ε\nerfüllen.\nBeweis. Wir zeigen als erstes, dass die Voraussetzung von Satz 8.0.4 mit β = 1\n2\nin jedem Iterationsschritt erfüllt bleibt. Im Schritt k = 0 ist die Bedingung nach\n114\n\n8.1 Ausblick und Literatur\nAnnahme erfüllt. Wir nehmen nun also an, dass für gegebenes k ∈N0 die Bedingung\n∥rk∥≤μk\n2 erfüllt ist. Dann ist\nrk+1 = Xk+1sk+1 −μk+11 = (Xk+1sk+1 −μk1) + (μk −μk+1)1\n= (Xk+1sk+1 −μk+11) + μk\n6√n1\nund folglich\n∥rk+1∥≤∥Xk+1sk+1 −μk1∥+ μk\n6√n∥1∥≤μk\n4 + μk\n6√n\n√n = 5\n12μk ≤μk+1\n2\n,\nnach Satz 8.0.4, da (1 −\n1\n6√n) ≥(1 −1\n6) = 5\n6 ist. Das Abbruchkriterium μk ≤\nε\nn\nist aufgrund der Monotonie des Logarithmusäquivalent zu log μk ≤log ε\nn. Aus der\nDefinition von μk = (1 −\n1\n6√n)μk−1 erhalten wir μk = (1 −\n1\n6√n)kμ0 und\nlog μk = log\n\n1 −\n1\n6√n\nk\nμ0 = k log\n\n1 −\n1\n6√n\n\n+ log μ0,\nd.h. Abbruch, falls\nk log\n\n1 −\n1\n6√n\n\n≤log ε\nn −log μ0 = log\nε\nnμ0\nworaus wir unter Verwendung von log t ≤t −1 die Ungleichung\nlog nμ0\nε\n≤k log\n1\n1 −\n1\n6√n\n≤k\n \n1\n1 −\n1\n6√n\n−1\n!\n= k\n1\n6√n\n1 −\n1\n6√n\n=\nk\n6√n −1\nerhalten. Also braucht das Verfahren weniger als 6√n log nμ0\nε\nIterationen. Für die\nerhaltenen Näherungslösungen gilt\ncTx −bTy = cTx −yT(Ax) = sTx = 1T(Xs) = 1T(μ1 + r) ≤nμk + ∥r∥1\n≤\n\nn +\n√n\n2\n\nμk ≤2ε,\nwie behauptet.\nZur Bestimmung der Startpunkte, die bereits nahe genug am primal-dualen zen-\ntralen Pfad liegt, gibt es verschiedene Optionen. Man kann wieder analog zum\nSimplex-Algorithmus ein ”Phase I-Problem“ angeben, für das man einfach eine strikt\nzulässige Startlösung finden kann oder man kann das Problem umgehen, indem man\nauf sogenannte ”selbstduale lineare Programme“übergeht. Aus Zeitgründen lassen\nwir hier das Problem eine Anfangslösung zu finden aus.\n8.1 Ausblick und Literatur\nDieses Kapitel basiert auf Teilen von Kapitel 4 von [7] und Kapitel 7.2. in [10].\nInsbesondere ist Satz 8.0.1 im wesentlichen Satz 4.2.6 in [7, p. 82] und Satz 8.0.2 im\nwesentlichen Lemma 7.2.1 in [10, p. 121] und die Beweise folgen den dort gegebenen.\nSatz 8.0.5 ist Satz 4.4.2 in [7, p. 81].\n115\n\n\fPAGE121",
+   "text": "Sei β ∈[0, 1\n2]. Gilt ∥rk∥2 ≤βμk in Algorithmus 8.0.3, so ist\n∥Xk+1sk+1 −μk1∥2 ≤β2μk\nund xk+1 > 0 sowie sk+1 > 0.",
    "number": "8.0.4",
    "chapter": 8,
-   "section": "8.0",
+   "section": "8",
    "name": null,
-   "proof": null
+   "proof": "Siehe beispielsweise der Abschnitt 4.3 in [7, pp. 79–80].\nMit diesen Hilfsmitteln können wir nun zeigen, dass Algorithmus 8.0.3 nach end-\nlich vielen Schritten eine Näherungslösung zur gegebenen Toleranz liefert."
+  },
+  {
+   "kind": "numbered",
+   "type": "Satz",
+   "page": 118,
+   "text": "Algorithmus 8.0.3 stoppt nach höchstens 6√n log nμ0\nε\nIterationen mit\n(strikt) zulässigen Näherungslösungen x und y, die\ncTx −bTy ≤2ε\nerfüllen.",
+   "number": "8.0.5",
+   "chapter": 8,
+   "section": "8",
+   "name": null,
+   "proof": "Wir zeigen als erstes, dass die Voraussetzung von Satz 8.0.4 mit β = 1\n2\nin jedem Iterationsschritt erfüllt bleibt. Im Schritt k = 0 ist die Bedingung nach\n114\n\n8.1 Ausblick und Literatur\nAnnahme erfüllt. Wir nehmen nun also an, dass für gegebenes k ∈N0 die Bedingung\n∥rk∥≤μk\n2 erfüllt ist. Dann ist\nrk+1 = Xk+1sk+1 −μk+11 = (Xk+1sk+1 −μk1) + (μk −μk+1)1\n= (Xk+1sk+1 −μk+11) + μk\n6√n1\nund folglich\n∥rk+1∥≤∥Xk+1sk+1 −μk1∥+ μk\n6√n∥1∥≤μk\n4 + μk\n6√n\n√n = 5\n12μk ≤μk+1\n2\n,\nnach Satz 8.0.4, da (1 −\n1\n6√n) ≥(1 −1\n6) = 5\n6 ist. Das Abbruchkriterium μk ≤\nε\nn\nist aufgrund der Monotonie des Logarithmusäquivalent zu log μk ≤log ε\nn. Aus der\nDefinition von μk = (1 −\n1\n6√n)μk−1 erhalten wir μk = (1 −\n1\n6√n)kμ0 und\nlog μk = log\n\n1 −\n1\n6√n\nk\nμ0 = k log\n\n1 −\n1\n6√n\n\n+ log μ0,\nd.h. Abbruch, falls\nk log\n\n1 −\n1\n6√n\n\n≤log ε\nn −log μ0 = log\nε\nnμ0\nworaus wir unter Verwendung von log t ≤t −1 die Ungleichung\nlog nμ0\nε\n≤k log\n1\n1 −\n1\n6√n\n≤k\n \n1\n1 −\n1\n6√n\n−1\n!\n= k\n1\n6√n\n1 −\n1\n6√n\n=\nk\n6√n −1\nerhalten. Also braucht das Verfahren weniger als 6√n log nμ0\nε\nIterationen. Für die\nerhaltenen Näherungslösungen gilt\ncTx −bTy = cTx −yT(Ax) = sTx = 1T(Xs) = 1T(μ1 + r) ≤nμk + ∥r∥1\n≤\n\nn +\n√n\n2\n\nμk ≤2ε,\nwie behauptet.\nZur Bestimmung der Startpunkte, die bereits nahe genug am primal-dualen zen-\ntralen Pfad liegt, gibt es verschiedene Optionen. Man kann wieder analog zum\nSimplex-Algorithmus ein ”Phase I-Problem“ angeben, für das man einfach eine strikt\nzulässige Startlösung finden kann oder man kann das Problem umgehen, indem man\nauf sogenannte ”selbstduale lineare Programme“übergeht. Aus Zeitgründen lassen\nwir hier das Problem eine Anfangslösung zu finden aus.\n8.1 Ausblick und Literatur\nDieses Kapitel basiert auf Teilen von Kapitel 4 von [7] und Kapitel 7.2. in [10].\nInsbesondere ist Satz 8.0.1 im wesentlichen Satz 4.2.6 in [7, p. 82] und Satz 8.0.2 im\nwesentlichen Lemma 7.2.1 in [10, p. 121] und die Beweise folgen den dort gegebenen.\nSatz 8.0.5 ist Satz 4.4.2 in [7, p. 81].\n115\n\n\fPAGE121"
   }
  ]
 }

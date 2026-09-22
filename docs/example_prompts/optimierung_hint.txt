@@ -18,8 +18,18 @@ f(x) ≤lim inf
 y→x f(y)
 für alle x ∈Ω.
 
-# Relevante Definitionen/Saetze aus dem Skriptum
-(automatisch per Keyword-Ueberschneidung ausgewaehlt - bei Bedarf ignorieren)
+# Aus dem Skriptum: Abschnitt 3.1 Konvexe Funktionen
+(alle Definitionen und Saetze dieser Abschnitte, ohne Beweise)
+
+Definition 3.1.1:
+Es sei Ω⊂Rn eine konvexe Menge. Eine Funktion f : Ω→R ist
+konvex, falls
+f(λx + (1 −λ)y) ≤λf(x) + (1 −λ)f(y)
+für alle x, y ∈Ωund alle λ ∈[0, 1].
+
+Satz 3.1.3:
+Es sei Ω⊂Rn offen und konvex. Jede konvexe Funktion f : Ω→R ist
+stetig.
 
 Definition 3.1.4:
 Es sei Ω⊂Rn eine konvexe Menge und f : Ω→R eine Funktion.
@@ -39,11 +49,44 @@ Satz 3.1.5:
 Es sei Ω⊂Rn eine konvexe Menge. Eine Funktion f : Ω→R ist genau
 dann konvex wenn epi f eine konvexe Menge ist.
 
-Definition 3.1.1:
-Es sei Ω⊂Rn eine konvexe Menge. Eine Funktion f : Ω→R ist
-konvex, falls
-f(λx + (1 −λ)y) ≤λf(x) + (1 −λ)f(y)
-für alle x, y ∈Ωund alle λ ∈[0, 1].
+Definition 3.1.6:
+Es sei C ∈Rn eine konvexe Menge und z ∈∂C. Eine Hyperebene
+{x ∈Rn : ⟨x, v⟩= a}
+mit v ∈Rn und a ∈R heißt Stützhyperebene an C in x, falls ⟨z, v⟩= a und ⟨x, v⟩≤a
+für alle x ∈C gilt.
+Der folgende Satz zeigt, dass es zu jeder konvexe Menge in jedem Randpunkt eine
+Stützhyperebene gibt.
+
+Satz 3.1.7:
+Es sei C ⊂Rn eine konvexe Menge und z ∈∂C. Dann gibt es ein
+v ∈Rn und ein a ∈R mit ⟨z, v⟩= c und ⟨x, v⟩≤c für alle x ∈C.
+
+Definition 3.1.8:
+Es sei Ω⊂Rn eine konvexe Menge, f : Ω→R eine konvexe
+Funktion und ξ ∈Ω. Ein Vektor g ∈Rn heißt Subgradient von f bei ξ, falls
+f(x) ≥f(ξ) + ⟨g, x −ξ⟩
+für alle x ∈Ωgilt. Die Menge
+∂f(ξ) = {g ∈Rn : g Subgradient von f bei ξ}
+nennt man Subdifferential von f bei ξ.
+
+Satz 3.1.9:
+Es sei Ω⊂Rn eine konvexe Menge und f : Ω→R eine konvexe
+Funktion. Dann besitzt f in jedem Punkt ξ ∈Ω◦, d.h. in jedem Punkt im Inneren
+von Ω, einen Subgradienten.
+
+Satz 3.1.10:
+Es sei Ω⊂Rn eine offene konvexe Menge und f : Ω→R eine konvexe
+Funktion. Dann ist f in ξ ∈Ωgenau dann differenzierbar, wenn f in ξ einen
+eindeutigen Subgradienten besitzt. In diesem Fall ist ∂f(ξ) = {∇f(ξ)}.
+
+Satz 3.1.11:
+Es sei C ⊂Rn eine abgeschlossene konvexe Menge und x̸ ∈C. Dann
+gibt es einen eindeutigen Punkt PCx in C mit minimalem Abstand zu x. Dieser ist
+durch y ∈C und
+⟨x −y, z −y⟩≤0
+für alle z ∈C
+(3.2)
+charakterisiert.
 
 # Meine bisherige Teilloesung
 (noch nichts probiert)
