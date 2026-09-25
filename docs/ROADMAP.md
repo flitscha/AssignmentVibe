@@ -20,9 +20,10 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
   the prompt, and the automatic chapter suggestion stays inside the chapter the
   exercise belongs to. Every PS Optimierung task is such a reference; all 34
   resolve.
-- 🟢 **Single proofs.** Proofs can be switched on one statement at a time
-  (hub row "Proofs", or the "Proofs" row inside the chapter picker), or all at
-  once. `build --proof-of "Satz 3.1.5"` on the command line.
+- 🟢 **Single proofs.** In the chapter picker, "Proofs: off/all" toggles all
+  proofs in one click and the row below opens a list to pick single ones;
+  single picks survive toggling "all" on and off again. The hub shows the
+  state in its Chapters row. `build --proof-of "Satz 3.1.5"` on the command line.
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 

@@ -35,10 +35,10 @@ rather than wrong ones.
 
 | Component | Implemented | Tested by Claude | Tested by you |
 |---|---|---|---|
-| Hub: copy / follow-up / open chat, task/sheet/course/chapters/proofs rows | ✅ | ✅ scripted | ✅ |
+| Hub: copy / follow-up / open chat, task/sheet/course/chapters rows | ✅ | ✅ scripted | ✅ |
 | State remembered per course (`context.py`) | ✅ | ✅ | ✅ |
 | Chapter picker with proof/algorithm toggles and live sizes | ✅ | ✅ scripted (the size bug is fixed) | ⚠️ size bug reported, fix not yet tried |
-| **Single proofs: pick them one at a time, or all** | ✅ new | ✅ scripted | ❌ |
+| **Proofs: one-click all on/off, plus a list for single ones** (chapter picker) | ✅ new | ✅ scripted | ❌ |
 | **Tasks that point into the script show the exercise's title** | ✅ new | ✅ | ❌ |
 | Warning when a referenced exercise is not found | ✅ new | ✅ | ❌ |
 | Follow-ups on right click (`followup`) | ✅ | ✅ | ✅ (wording not yet reviewed) |

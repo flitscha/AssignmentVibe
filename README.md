@@ -168,8 +168,7 @@ Optimierung · task 1
    Task      ▸  1  (1.11) Polytop der doppelt stochastischen Matrizen
    Sheet     ▸  3
    Course    ▸  Optimierung
-   Chapters  ▸  1 Geometrie linearer Ungleichungen  (20, 5k)
-   Proofs    ▸  Satz 1.1.13  (1)
+   Chapters  ▸  1 Geometrie linearer Ungleichungen  (20, 7k) · proofs: Satz 1.1.13  (1)
 ───────────────────────────────
 ⟳  Read in new sheets
 ```
@@ -177,9 +176,11 @@ Optimierung · task 1
 - **Aufgaben aus dem Skript:** Sagt ein Blatt nur „Lösen Sie Aufgabe (1.11)
   vom Skriptum“, landet der Text dieser Aufgabe aus dem Skript im Prompt,
   und die automatische Kapitelwahl bleibt in deren Kapitel.
-- **Beweise:** standardmäßig aus (sie verraten oft die Lösung). Unter
-  „Proofs“ lassen sie sich einzeln für die Aussagen der gewählten Kapitel
-  einschalten – oder alle auf einmal.
+- **Beweise:** standardmäßig aus (sie verraten oft die Lösung). In der
+  Kapitelauswahl schaltet „Proofs: off/all“ alle mit einem Klick an und aus,
+  die Zeile darunter öffnet die Liste, um einzelne Beweise der gewählten
+  Kapitel auszuwählen. Einzeln gewählte bleiben erhalten, wenn „all“ wieder
+  ausgeschaltet wird.
 - **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
   rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
 

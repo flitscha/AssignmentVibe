@@ -418,22 +418,6 @@ def _task_title(task: dict, exercises: list[dict]) -> str | None:
     return task.get("title")
 
 
-def _context_entries(course: str, state: dict) -> list[dict]:
-    """The statements the prompt would carry right now - the chosen chapters,
-    or the ones picked automatically for the current task."""
-    from . import store
-    from .core import selection
-    from .core.prompts import task_context
-
-    entries = store.load_knowledge(course)
-    task = _task_of(state)
-    if task:
-        context, _, _ = task_context(task, entries, state["exercises"],
-                                     state["sections"] or None, state["algorithms"])
-        return context
-    return selection.entries_in(entries, state["sections"], state["algorithms"])
-
-
 def _proofs_summary(state: dict, context_entries: list[dict]) -> str:
     from .core.prompts import entry_id
 
@@ -454,7 +438,7 @@ def _sections_summary(course: str, state: dict) -> str:
     from .core import selection, toc
 
     if not state["sections"]:
-        return "picked automatically by keyword"
+        return "picked automatically by keyword" + (" · all proofs" if state["proofs"] else "")
 
     titles = store.load_section_titles(course)
     entries = selection.entries_in(store.load_knowledge(course), state["sections"],
@@ -463,7 +447,11 @@ def _sections_summary(course: str, state: dict) -> str:
     names = ", ".join(toc.label(titles, k) for k in state["sections"])
     if len(names) > 44:
         names = names[:41] + "…"
-    return f"{names}  ({len(entries)}, {size // 1000}k)"
+    # Proofs are set inside the chapter picker, so this row is where the hub
+    # says they are on - and only then; "off" is the default and not news.
+    proofs = _proofs_summary(state, entries)
+    proofs = "" if proofs == "off" else f" · proofs: {proofs}"
+    return f"{names}  ({len(entries)}, {size // 1000}k){proofs}"
 
 
 def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str]]:
@@ -492,8 +480,6 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
         (f"   Sheet     {ARROW}  {sheet_text}", "sheet"),
         (f"   Course    {ARROW}  {course_name}", "course"),
         (f"   Chapters  {ARROW}  {_sections_summary(course, state)}", "sections"),
-        (f"   Proofs    {ARROW}  {_proofs_summary(state, _context_entries(course, state))}",
-         "proofs"),
     ]
     rows.append((SEPARATOR + " ", None))
     rows.append((INGEST_ROW, "ingest"))
@@ -678,18 +664,6 @@ def cmd_pick(args):
             if picked is not None:
                 context.set_course(course, sheet=state["sheet"]["sheet_id"], task=picked)
             continue
-        if action == "proofs":
-            candidates = [e for e in _context_entries(course, state) if e.get("proof")]
-            if not candidates:
-                notify.send("No proofs",
-                            "None of the statements in the chosen chapters has a proof "
-                            "in the notes.", glyph="⚠")
-                continue
-            picked = _pick_proofs(candidates, state["proofs"], state["proof_of"])
-            if picked is not None:
-                proofs, proof_of = picked
-                context.set_course(course, proofs=proofs, proof_of=proof_of)
-            continue
         if action == "sections":
             entries = store.load_knowledge(course)
             if not entries:
@@ -827,8 +801,11 @@ def cmd_launcher(args, cfg=None, quiet=False):
 # --- Script context: which sections of the script go into the prompt --------
 
 DONE_LABEL = "── DONE ──"
-PROOF_LABEL = "── Proofs: {state} …"
-PROOF_ALL_LABEL = "── All proofs: {state} ──"
+# Two rows for one setting, because a menu row is exactly one action - the
+# Omarchy menu has no second button per row (even Right does what Enter does).
+# The toggle is the one-click case, the list the occasional one.
+PROOF_LABEL = "── Proofs: {state} ──"
+PROOF_PICK_LABEL = "── Proofs: pick single ones … ──"
 ALGO_LABEL = "── Algorithms: {state} ──"
 
 
@@ -960,7 +937,8 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
         algo_label = ALGO_LABEL.format(state="on" if include_algorithms else "off")
         done_label = f"── DONE: {len(chosen_entries)} statements, {size} characters ──"
 
-        labels = [done_label, proof_label, algo_label] + [label for label, _ in rows]
+        labels = ([done_label, proof_label, PROOF_PICK_LABEL, algo_label]
+                  + [label for label, _ in rows])
         choice = menu.pick("Lecture notes context", labels)
 
         if choice is None:
@@ -969,6 +947,11 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
             return (sorted(selected, key=toc.sort_key), include_proofs,
                     include_algorithms, proof_of)
         if choice == proof_label:
+            # All on, or back to whatever was picked singly - the single picks
+            # survive the round trip, so "all" can be tried and taken back.
+            include_proofs = not include_proofs
+            continue
+        if choice == PROOF_PICK_LABEL:
             candidates = [e for e in chosen_entries if e.get("proof")]
             if not candidates:
                 notify.send("No proofs", "Pick a chapter first - none of the chosen "
@@ -1011,9 +994,10 @@ def _proof_row(e: dict, on: bool) -> str:
 
 def _pick_proofs(candidates: list[dict], include_all: bool,
                  chosen: list[str]) -> tuple[bool, list[str]] | None:
-    """Which proofs go into the prompt: all of them, or single ones out of the
-    statements the prompt carries. Returns (include_all, chosen ids), or None
-    if the user aborted.
+    """Which single proofs go into the prompt, out of the statements the chosen
+    chapters carry. "All" is the toggle row in the chapter picker; here it only
+    shows as every row ticked. Returns (include_all, chosen ids), or None if the
+    user aborted.
 
     Unticking one proof while "all" is on keeps the rest - that is what the tick
     marks show, and the one exception is the likelier wish than "none but that".
@@ -1028,19 +1012,13 @@ def _pick_proofs(candidates: list[dict], include_all: bool,
         rows = [(_proof_row(e, entry_id(e) in on), entry_id(e)) for e in candidates]
         size = sum(len(e["proof"]) for e in candidates if entry_id(e) in on)
         done_label = f"── DONE: {len(on)} of {len(ids)} proofs, {size} characters ──"
-        all_label = PROOF_ALL_LABEL.format(state="on" if include_all else "off")
 
-        choice = menu.pick("Proofs", [done_label, all_label] + [label for label, _ in rows])
+        choice = menu.pick("Proofs", [done_label] + [label for label, _ in rows])
         if choice is None:
             return None
         if choice == done_label:
             return include_all, [c for c in chosen if c in chosen_set] + sorted(
                 chosen_set - set(chosen), key=ids.index)
-        if choice == all_label:
-            include_all = not include_all
-            if not include_all:
-                chosen_set -= set(ids)
-            continue
 
         key, found = _chosen(choice, rows)
         if not found:
