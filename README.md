@@ -179,8 +179,8 @@ Optimierung · task 1
 - **Beweise:** standardmäßig aus (sie verraten oft die Lösung). In der
   Kapitelauswahl schaltet „Proofs: off/all“ alle mit einem Klick an und aus,
   die Zeile darunter öffnet die Liste, um einzelne Beweise der gewählten
-  Kapitel auszuwählen. Einzeln gewählte bleiben erhalten, wenn „all“ wieder
-  ausgeschaltet wird.
+  Kapitel auszuwählen. Sind einzelne gewählt, schaltet ein Klick auf die
+  obere Zeile alle wieder ab.
 - **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
   rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
 

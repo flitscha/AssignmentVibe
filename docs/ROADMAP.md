@@ -22,7 +22,7 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
   resolve.
 - 🟢 **Single proofs.** In the chapter picker, "Proofs: off/all" toggles all
   proofs in one click and the row below opens a list to pick single ones;
-  single picks survive toggling "all" on and off again. The hub shows the
+  with single ones picked, the toggle clears them all. The hub shows the
   state in its Chapters row. `build --proof-of "Satz 3.1.5"` on the command line.
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.

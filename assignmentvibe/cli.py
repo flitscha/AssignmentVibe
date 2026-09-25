@@ -947,9 +947,13 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
             return (sorted(selected, key=toc.sort_key), include_proofs,
                     include_algorithms, proof_of)
         if choice == proof_label:
-            # All on, or back to whatever was picked singly - the single picks
-            # survive the round trip, so "all" can be tried and taken back.
-            include_proofs = not include_proofs
+            # Off -> all. Anything on - all, or single picks - -> off, and the
+            # single picks go with it: clearing them is the usual reason to
+            # reach for this row once some are ticked.
+            if include_proofs or proof_of:
+                include_proofs, proof_of = False, []
+            else:
+                include_proofs = True
             continue
         if choice == PROOF_PICK_LABEL:
             candidates = [e for e in chosen_entries if e.get("proof")]
