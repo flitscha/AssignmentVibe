@@ -163,14 +163,66 @@ def select_context(task_text: str, knowledge_entries: list[dict], top_k: int = 3
 INCLUDE_PROOFS_BY_DEFAULT = False
 
 
+def entry_id(e: dict) -> str:
+    """How a single statement is named when its proof is chosen on its own -
+    "Satz 3.1.5". Type and number together: a script that counts its types
+    separately has a "Satz 1.2" and a "Definition 1.2"."""
+    return f"{e['type']} {e['number']}"
+
+
+def proof_wanted(e: dict, include_proofs: bool,
+                 proof_of: "set[str] | list[str] | None" = None) -> bool:
+    """All proofs, or only the ones picked. Picking single proofs is the usual
+    case: a task needs the idea of one proof, and every other proof in the
+    chapter is noise at best and the answer to a different task at worst."""
+    return include_proofs or (bool(proof_of) and entry_id(e) in proof_of)
+
+
 def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
-    header = f"{e['type']} {e['number']}"
+    header = entry_id(e)
     if e.get("name"):
         header += f" ({e['name']})"
     out = f"{header}:\n{e['text']}"
     if include_proof and e.get("proof"):
         out += f"\nProof: {e['proof']}"
     return out
+
+
+def resolve_exercises(task: dict, exercises: list[dict] | None) -> tuple[list[dict], list[str]]:
+    """The script's own exercises a task refers to ("Lösen Sie Aufgabe (1.1) vom
+    Skriptum"), and the references that could not be found."""
+    from .exercises import find
+
+    found, missing = [], []
+    for ref in task.get("script_references") or []:
+        exercise = find(exercises or [], ref)
+        if exercise:
+            found.append(exercise)
+        else:
+            missing.append(ref)
+    return found, missing
+
+
+def task_context(task: dict, knowledge_entries: list[dict],
+                 exercises: list[dict] | None = None,
+                 sections: list[str] | None = None,
+                 include_algorithms: bool = False,
+                 ) -> tuple[list[dict], list[str], list[dict]]:
+    """(statements for the prompt, sections they came from, exercises the task
+    refers to).
+
+    A task that only says "Aufgabe (1.1) vom Skriptum" has no vocabulary to rank
+    sections by, so the exercise's own text stands in for it. And an exercise
+    sits at the end of the chapter it practises - the ranking is kept inside
+    that chapter, where a stray keyword from chapter 6 cannot win."""
+    from . import selection
+
+    found, _ = resolve_exercises(task, exercises)
+    text = "\n".join([task["text"]] + [e["text"] for e in found])
+    chapters = sorted({e["section"].split(".")[0] for e in found if e.get("section")})
+    context, used = selection.select(text, knowledge_entries, sections,
+                                     include_algorithms, within=chapters or None)
+    return context, used, found
 
 
 def build_prompt(
@@ -183,18 +235,21 @@ def build_prompt(
     include_proofs: bool | None = None,
     include_algorithms: bool = False,
     section_titles: dict[str, str] | None = None,
+    exercises: list[dict] | None = None,
+    proof_of: list[str] | None = None,
 ) -> str:
     """`sections` selects script sections to include in full (see
     core.selection); without it, the sections its keyword ranking suggests are
-    used."""
-    from . import selection
+    used. `proof_of` names single statements ("Satz 3.1.5") whose proofs go in
+    even while `include_proofs` is off."""
     from .toc import label as section_label
 
     section_titles = section_titles or {}
-    context, used_sections = selection.select(
-        task["text"], knowledge_entries, sections, include_algorithms)
+    context, used_sections, referenced = task_context(
+        task, knowledge_entries, exercises, sections, include_algorithms)
     if include_proofs is None:
         include_proofs = INCLUDE_PROOFS_BY_DEFAULT
+    proof_of = set(proof_of or ())
 
     lines = []
     lines.append(SOLVE_INSTRUCTION)
@@ -208,6 +263,13 @@ def build_prompt(
                   + (f": {task['title']}" if task.get("title") else ""))
     lines.append(task["text"])
     lines.append("")
+    # The sheet only points at the script; this is the task the model can
+    # actually work on.
+    for exercise in referenced:
+        title = f": {exercise['title']}" if exercise.get("title") else ""
+        lines.append(f"## Exercise {exercise['number']} from the lecture notes{title}")
+        lines.append(exercise["text"])
+        lines.append("")
 
     if context:
         # Naming the sections lets the reader (and the model) see what the
@@ -218,12 +280,17 @@ def build_prompt(
         contents = "every definition and theorem of these sections"
         if include_algorithms:
             contents += ", algorithms included"
-        if not include_proofs:
+        with_proof = [entry_id(e) for e in context
+                      if not include_proofs and e.get("proof") and entry_id(e) in proof_of]
+        if with_proof:
+            contents += ", proofs only for " + ", ".join(with_proof)
+        elif not include_proofs:
             contents += ", proofs omitted"
         lines.append(f"({contents})")
         for e in context:
             lines.append("")
-            lines.append(format_knowledge_entry(e, include_proof=include_proofs))
+            lines.append(format_knowledge_entry(
+                e, include_proof=proof_wanted(e, include_proofs, proof_of)))
         lines.append("")
 
     lines.append("# What I have so far")

@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "07-Blatt-PS-Optimierung.pdf",
  "sheet_number": 7,
  "discussion_date": "5/6 . 5 . 2026",
@@ -65,7 +66,7 @@
   {
    "number": 5,
    "title": "Konvexe Funktionen und Richtungsableitung",
-   "text": "Konvexe Funktionen und Richtungsableitung. Es sei Ω⊂Rn eine\noffene konvexe Menge und f : Ω→R eine konvexe Funktion. Wir zeigen, dass f in allen\nPunkten von Ωeinseitige Richtungsableitungen besitzt. Sei dazu x ∈Ωund u ∈Rn mit\n∥u∥= 1.\na) Sei ε > 0 klein genug, sodass x ± ε u ∈Ωgilt. Zeigen Sie, dass die Funktion\n(−ε, ε)\\{0} →R,\nt 7→f(x + tu) −f(x)\nt\nmonoton wachsend und beschränkt ist.\nb) Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.\nSeite 1 von 1",
+   "text": "Konvexe Funktionen und Richtungsableitung. Es sei Ω⊂Rn eine\noffene konvexe Menge und f : Ω→R eine konvexe Funktion. Wir zeigen, dass f in allen\nPunkten von Ωeinseitige Richtungsableitungen besitzt. Sei dazu x ∈Ωund u ∈Rn mit\n∥u∥= 1.\na) Sei ε > 0 klein genug, sodass x ± ε u ∈Ωgilt. Zeigen Sie, dass die Funktion\n(−ε, ε)\\{0} →R,\nt 7→f(x + tu) −f(x)\nt\nmonoton wachsend und beschränkt ist.\nb) Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.",
    "subparts": [
     {
      "label": "a",
@@ -73,7 +74,7 @@
     },
     {
      "label": "b",
-     "text": "Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.\nSeite 1 von 1"
+     "text": "Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren."
     }
    ],
    "script_references": null

@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "08-Blatt-PS-Optimierung.pdf",
  "sheet_number": 8,
  "discussion_date": "12/13 . 5 . 2026",
@@ -50,7 +51,7 @@
   {
    "number": 4,
    "title": "Subgradienten und Richtungsableitung",
-   "text": "Subgradienten und Richtungsableitung. Es sei Ω⊂Rn eine offene\nkonvexe Menge, f : Ω→R eine konvexe Funktion und ξ ∈Ω. Für u ∈Rn\\{0} betrachten\nwir die einseitige Richtungsableitung\n∂+\nu f(ξ) = lim\nt↘0\nf(ξ + t u) −f(ξ)\nt\nwelche existiert.\na) Zeigen Sie, dass die einseitige Richtungsableitung positiv homogen ist, i.e.\n∂+\nαuf(ξ) = α ∂+\nu f(ξ) für α > 0.\nb) Zeigen Sie, dass die einseitige Richtungsableitung subadditiv in u ist, i.e.\n∂+\nu+vf(ξ) ≤∂+\nu f(ξ) + ∂+\nv f(ξ) für alle u, v ∈Rn\\{0}.\nc) Zeigen Sie, dass ∂+\nu f(ξ) ≥sup{⟨d, u⟩| d ∈∂f(ξ)} gilt.\nd) Zeigen Sie auch die umgekehrte Ungleichung ∂+\nu f(ξ) ≤sup{⟨d, u⟩| d ∈∂f(ξ)}.\nHinweis: Zeigen Sie mittels a), dass jede in u affine Minorante von ∂+\nu f(ξ) linear\ngewählt werden kann.\nWir haben also gezeigt, dass ∂+\nu f(ξ) = sup{⟨d, u⟩| d ∈∂f(ξ)} gilt.\nSeite 1 von 1",
+   "text": "Subgradienten und Richtungsableitung. Es sei Ω⊂Rn eine offene\nkonvexe Menge, f : Ω→R eine konvexe Funktion und ξ ∈Ω. Für u ∈Rn\\{0} betrachten\nwir die einseitige Richtungsableitung\n∂+\nu f(ξ) = lim\nt↘0\nf(ξ + t u) −f(ξ)\nt\nwelche existiert.\na) Zeigen Sie, dass die einseitige Richtungsableitung positiv homogen ist, i.e.\n∂+\nαuf(ξ) = α ∂+\nu f(ξ) für α > 0.\nb) Zeigen Sie, dass die einseitige Richtungsableitung subadditiv in u ist, i.e.\n∂+\nu+vf(ξ) ≤∂+\nu f(ξ) + ∂+\nv f(ξ) für alle u, v ∈Rn\\{0}.\nc) Zeigen Sie, dass ∂+\nu f(ξ) ≥sup{⟨d, u⟩| d ∈∂f(ξ)} gilt.\nd) Zeigen Sie auch die umgekehrte Ungleichung ∂+\nu f(ξ) ≤sup{⟨d, u⟩| d ∈∂f(ξ)}.\nHinweis: Zeigen Sie mittels a), dass jede in u affine Minorante von ∂+\nu f(ξ) linear\ngewählt werden kann.\nWir haben also gezeigt, dass ∂+\nu f(ξ) = sup{⟨d, u⟩| d ∈∂f(ξ)} gilt.",
    "subparts": [
     {
      "label": "a",
@@ -66,7 +67,7 @@
     },
     {
      "label": "d",
-     "text": "Zeigen Sie auch die umgekehrte Ungleichung ∂+\nu f(ξ) ≤sup{⟨d, u⟩| d ∈∂f(ξ)}.\nHinweis: Zeigen Sie mittels a), dass jede in u affine Minorante von ∂+\nu f(ξ) linear\ngewählt werden kann.\nWir haben also gezeigt, dass ∂+\nu f(ξ) = sup{⟨d, u⟩| d ∈∂f(ξ)} gilt.\nSeite 1 von 1"
+     "text": "Zeigen Sie auch die umgekehrte Ungleichung ∂+\nu f(ξ) ≤sup{⟨d, u⟩| d ∈∂f(ξ)}.\nHinweis: Zeigen Sie mittels a), dass jede in u affine Minorante von ∂+\nu f(ξ) linear\ngewählt werden kann.\nWir haben also gezeigt, dass ∂+\nu f(ξ) = sup{⟨d, u⟩| d ∈∂f(ξ)} gilt."
     }
    ],
    "script_references": null

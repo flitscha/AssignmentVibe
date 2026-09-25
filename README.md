@@ -7,23 +7,22 @@ etwas zu fragen. AssignmentVibe soll verstehen, welche Aufgabe man gerade
 bearbeitet, welchen Lösungsstand man hat (später per OCR aus der Handschrift),
 und daraus automatisch einen präzisen, mit dem richtigen Skript-Kontext
 angereicherten Prompt bauen – statt jedes Mal alles selbst abzutippen.
-Gedacht für den Einsatz vom Linux-Desktop aus (Omarchy: Hyprland + Waybar +
+Gedacht für den Einsatz vom Linux-Desktop aus (Omarchy: Hyprland + Shell-Leiste +
 Walker), per Klick in der Top-Bar.
 
 ## Dokumentation
 
 - [docs/STATUS.md](docs/STATUS.md) – Checkliste: was ist implementiert, was
-  ist von Claude getestet, was ist **von dir** getestet (Stand jetzt: nichts).
+  ist von Claude getestet, was ist **von dir** getestet.
 - [docs/ROADMAP.md](docs/ROADMAP.md) – priorisierte nächste Schritte,
   checklisten-artig, mit Abhängigkeiten zwischen den Modulen.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) – Modul-Landkarte,
-  Abhängigkeitsgraph, Sprach-Policy (Code englisch, Doku/Produkt-Text
-  deutsch – siehe dort für die genaue Abgrenzung).
+  Abhängigkeitsgraph, Sprach-Policy (Code und Oberfläche englisch, das
+  Kursmaterial im Prompt in seiner Originalsprache).
 - [docs/POC_REPORT.md](docs/POC_REPORT.md) – der ursprüngliche Proof of
   Concept für die reine Text-Pipeline (PDF → Wissensbasis → Prompt).
 - [docs/LINUX_PROTOTYPE.md](docs/LINUX_PROTOTYPE.md) – der erste
-  installierbare Prototyp: Omarchy-Recherche, Waybar-Integration, ehrliche
-  Testabdeckung.
+  installierbare Prototyp (historisch, noch mit Waybar statt Shell-Leiste).
 
 OCR für Handschrift ist noch nicht getestet (keine Beispieldateien), und
 automatisches Einfügen+Abschicken im Browser wurde bewusst NICHT gebaut –
@@ -155,14 +154,34 @@ assignmentvibe ingest-sheet  A03.pdf     --course "Algebra I"
 assignmentvibe pick
 ```
 
-`pick` ist der interaktive Flow (Blatt → Aufgabe → Use-Case → optionale
-Teillösung → Prompt in Zwischenablage → Browser öffnen) – das soll hinter
-einem Klick auf das Waybar-Modul hängen, siehe
-[linux/waybar-module.jsonc](linux/waybar-module.jsonc) und
-[docs/LINUX_PROTOTYPE.md](docs/LINUX_PROTOTYPE.md).
+`pick` ist das Menü hinter dem Klick auf das Widget in der Omarchy-Leiste
+(Einrichtung: [linux/omarchy-shell-widget.md](linux/omarchy-shell-widget.md)).
+Es zeigt, wo man gerade steht, und ändert eine Sache nach der anderen –
+alles unter dem Strich wird pro Kurs gemerkt:
 
-Verfügbare Use-Cases: `hint`, `explain_concept`, `check_solution`, `why_valid`,
-`next_step`, `explain_definition`, `find_mistake`.
+```
+Optimierung · task 1
+▶  Copy prompt
+💬 Copy a follow-up …
+🌐 Open chat
+───────────────────────────────
+   Task      ▸  1  (1.11) Polytop der doppelt stochastischen Matrizen
+   Sheet     ▸  3
+   Course    ▸  Optimierung
+   Chapters  ▸  1 Geometrie linearer Ungleichungen  (20, 5k)
+   Proofs    ▸  Satz 1.1.13  (1)
+───────────────────────────────
+⟳  Read in new sheets
+```
+
+- **Aufgaben aus dem Skript:** Sagt ein Blatt nur „Lösen Sie Aufgabe (1.11)
+  vom Skriptum“, landet der Text dieser Aufgabe aus dem Skript im Prompt,
+  und die automatische Kapitelwahl bleibt in deren Kapitel.
+- **Beweise:** standardmäßig aus (sie verraten oft die Lösung). Unter
+  „Proofs“ lassen sie sich einzeln für die Aussagen der gewählten Kapitel
+  einschalten – oder alle auf einmal.
+- **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
+  rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
 
 ## Nur die Verarbeitungs-Pipeline (plattformunabhängig)
 
@@ -184,7 +203,7 @@ assignmentvibe/
   uniconfig.py      Semester-Config (~/.config/assignmentvibe/uni.json)
   paths.py, store.py, context.py, cli.py    App-Schicht / Orchestrierung
 bin/              assignmentvibe (Einstiegspunkt), uni-sort (Super+Shift+U)
-linux/            Waybar-Modul-Konfiguration
+linux/            Widget für die Omarchy-Leiste (+ alte Waybar-Konfiguration)
 scripts/          Dev-Hilfsskripte (nicht Teil des installierten Pakets)
 data/             eingelesene Beispiel-Skripte/-Blaetter (aus example_files/)
 docs/             siehe oben

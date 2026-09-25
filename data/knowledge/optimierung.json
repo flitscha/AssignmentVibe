@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "VO3_Optimierung.pdf",
  "sections": [
   {
@@ -1762,6 +1763,456 @@
    "section": "8",
    "name": null,
    "proof": "Wir zeigen als erstes, dass die Voraussetzung von Satz 8.0.4 mit β = 1\n2\nin jedem Iterationsschritt erfüllt bleibt. Im Schritt k = 0 ist die Bedingung nach\n114\n\n8.1 Ausblick und Literatur\nAnnahme erfüllt. Wir nehmen nun also an, dass für gegebenes k ∈N0 die Bedingung\n∥rk∥≤μk\n2 erfüllt ist. Dann ist\nrk+1 = Xk+1sk+1 −μk+11 = (Xk+1sk+1 −μk1) + (μk −μk+1)1\n= (Xk+1sk+1 −μk+11) + μk\n6√n1\nund folglich\n∥rk+1∥≤∥Xk+1sk+1 −μk1∥+ μk\n6√n∥1∥≤μk\n4 + μk\n6√n\n√n = 5\n12μk ≤μk+1\n2\n,\nnach Satz 8.0.4, da (1 −\n1\n6√n) ≥(1 −1\n6) = 5\n6 ist. Das Abbruchkriterium μk ≤\nε\nn\nist aufgrund der Monotonie des Logarithmusäquivalent zu log μk ≤log ε\nn. Aus der\nDefinition von μk = (1 −\n1\n6√n)μk−1 erhalten wir μk = (1 −\n1\n6√n)kμ0 und\nlog μk = log\n\n1 −\n1\n6√n\nk\nμ0 = k log\n\n1 −\n1\n6√n\n\n+ log μ0,\nd.h. Abbruch, falls\nk log\n\n1 −\n1\n6√n\n\n≤log ε\nn −log μ0 = log\nε\nnμ0\nworaus wir unter Verwendung von log t ≤t −1 die Ungleichung\nlog nμ0\nε\n≤k log\n1\n1 −\n1\n6√n\n≤k\n \n1\n1 −\n1\n6√n\n−1\n!\n= k\n1\n6√n\n1 −\n1\n6√n\n=\nk\n6√n −1\nerhalten. Also braucht das Verfahren weniger als 6√n log nμ0\nε\nIterationen. Für die\nerhaltenen Näherungslösungen gilt\ncTx −bTy = cTx −yT(Ax) = sTx = 1T(Xs) = 1T(μ1 + r) ≤nμk + ∥r∥1\n≤\n\nn +\n√n\n2\n\nμk ≤2ε,\nwie behauptet.\nZur Bestimmung der Startpunkte, die bereits nahe genug am primal-dualen zen-\ntralen Pfad liegt, gibt es verschiedene Optionen. Man kann wieder analog zum\nSimplex-Algorithmus ein ”Phase I-Problem“ angeben, für das man einfach eine strikt\nzulässige Startlösung finden kann oder man kann das Problem umgehen, indem man\nauf sogenannte ”selbstduale lineare Programme“übergeht. Aus Zeitgründen lassen\nwir hier das Problem eine Anfangslösung zu finden aus.\n8.1 Ausblick und Literatur\nDieses Kapitel basiert auf Teilen von Kapitel 4 von [7] und Kapitel 7.2. in [10].\nInsbesondere ist Satz 8.0.1 im wesentlichen Satz 4.2.6 in [7, p. 82] und Satz 8.0.2 im\nwesentlichen Lemma 7.2.1 in [10, p. 121] und die Beweise folgen den dort gegebenen.\nSatz 8.0.5 ist Satz 4.4.2 in [7, p. 81].\n115\n\n\fPAGE121"
+  }
+ ],
+ "exercises": [
+  {
+   "number": "1.1",
+   "title": "Operationen mit konvexen Mengen",
+   "text": "Wir betrachten eine Folge {Ck}k∈N\nkonvexer Mengen Ck ⊂Rn.\na) Zeigen Sie, dass der Durchschnitt T∞\nk=1 Ck eine konvexe Menge ist.\nb) Geben Sie zwei konvexe Mengen an, deren Vereinigung nicht konvex ist.\nc) Es sei f : Rn →Rm eine lineare Abbildung. Zeigen Sie, dass f(Cm) eine\nkonvexe Menge ist.\nd) Es sei 0̸ = f : Rn →R eine lineare Abbildung. Zeigen Sie, dass für a ∈R\ndie Mengen\nHf(a) = {x ∈Rn : f(x) = a}\n(Hyperebene)\nund\nHf,−(a) = {x ∈Rn : f(x) ≤a}\n(Halbraum)\nkonvex sind.\ne) Schließen Sie aus dem Obigen, dass Polyeder (endliche Durchschnitte von\nHalbräumen) konvex sind.",
+   "page": 21,
+   "section": "1.6"
+  },
+  {
+   "number": "1.2",
+   "title": "Konvexe Menge und Konvexkombinationen",
+   "text": "Es sei C ⊂Rn eine belie-\nbige Menge. Eine Linearkombination der Form\nm\nX\nk=1\nλkxk\nmit\nλk ∈[0, 1],\nxk ∈C,\nund\nm\nX\nk=1\nλk = 1\nnennt man Konvexkombination (von Elementen von C). Zeigen Sie, dass C\ngenau dann konvex ist, wenn die Menge C alle Konvexkombinationen von\nElementen von C enthält.",
+   "page": 21,
+   "section": "1.6"
+  },
+  {
+   "number": "1.3",
+   "title": "Konvexe Hülle",
+   "text": "Es sei A ⊂Rn eine beliebige Menge. Zeigen Sie, dass die\nkonvexe Hülle die folgenden Eigenschaften hat:\na) A ⊂Konv(A).\nb) Konv(A) ist die kleinste konvexe Menge, die A enthält, d.h. für jede kon-\nvexe Menge C mit A ⊂C gilt conv A ⊂C.\nc) Die konvexe Hülle hat die Darstellung\nKonv(A) =\nn m\nX\nk=1\nλkak : λk ∈[0, 1],\nm\nX\nk=1\nλk = 1, ak ∈A, m ∈N\no\nHinweise: (1) Die rechte Menge ist konvex und enthält A. (2) Was be-\ndeutet die Tatsache, dass Konv(A) konvex ist und A enthält für Konvex-\nkombinationen von Elementen von A?",
+   "page": 21,
+   "section": "1.6"
+  },
+  {
+   "number": "1.4",
+   "title": "Konvexe Mengen",
+   "text": "Welche der folgenden Mengen sind konvex?\na) Die Einheitskreisscheibe {(x, y) ∈R2 : x2 + y2 ≤1}.\nb) Der Einheitskreis {(x, y) ∈R2 : x2 + y2 = 1}.\nc) Ein beliebiger linearer Unterraum von Rn.\nd) Ein beliebiger affiner Unterraum von Rn.\ne) Die Menge {(x, y) ∈R2 : x1/2 + y1/2 ≤1}.\nSkizzieren Sie die obigen Mengen.",
+   "page": 22,
+   "section": "1.6"
+  },
+  {
+   "number": "1.5",
+   "title": "Polyeder",
+   "text": "Welche der folgenden Mengen sind Polyeder?\na) {(x, y, z) ∈R3 : max{|x|, |y|, |z|} ≤1}\nb) {(x, y, z) ∈R3 : x2 + y2 ≤1}\nc) {(x, y, z) ∈R3 : xy ≥0, x + y ≥1}\nd) {(x, y, z) ∈R3 : max{|x|, |y|} ≤z}\nBestimmen Sie für die Polyeder unter diesen Mengen eine Darstellung sowohl\nals endlicher Durchschnitt von Halbräumen als auch als Summe\nKonv({x1, . . . , xk}) + KK({y1, . . . , yk}).\nSkizzieren Sie die Polyeder.",
+   "page": 22,
+   "section": "1.6"
+  },
+  {
+   "number": "1.6",
+   "title": "Konvexe Kegel und konische Linearkombinationen",
+   "text": "Es sei A ⊂Rn\neine beliebige Menge. Zeigen, Sie dass\nKK(A) =\nn\nk\nX\ni=1\nλixi : m ∈N, xi ∈A, λi ≥0\no\n.\nDie Linearkombinationen mit positiven Koeffizienten werden manchmal als\nkonische Linearkombinationen bezeichnet.",
+   "page": 22,
+   "section": "1.6"
+  },
+  {
+   "number": "1.7",
+   "title": "Erzeugendensystem polyedrischer Kegels",
+   "text": "Wir betrachten die durch\ndie folgenden Matrizen A und B als C1 = P(A, 0) und C2 = P(B, 0) gegebenen\npolyedrischen Kegel.\nA =\n\n\n\n\n1\n−1\n−1\n0\n−1\n0\n−2\n1\n0\n−1\n1\n−1\n\n\n\n\nund\nB =\n1\n0\n0\n\nBestimmen Sie x1, . . . , xm ∈R3 und y1, . . . , yk ∈R3 mit C1 = KK {x1, . . . , xm}\nund C2 = KK {y1, . . . , yk}.",
+   "page": 22,
+   "section": "1.6"
+  },
+  {
+   "number": "1.8",
+   "title": "Darstellung polyedrischer Kegel",
+   "text": "Es seien y1, . . . , ym ∈Rn und wir\nwollen zeigen, dass die Menge C := KK({y1, . . . , ym}) ein polyedrischer Kegel\nist.\na) Zeigen Sie, dass die Menge\nP :=\nn\n(x, λ) ∈Rn+m : x =\nm\nX\ni=1\nλiyi, λ1, . . . , λm ≥0\no\nein polyedrischer Kegel ist, dessen Bild unter der Projektion\nπ: Rn+m →Rn, (x, z) 7→x\ndie Menge C ist, d.h. π(P) = C.\nb) Es sei P(A, 0) ein polyedrischer Kegel. Zeigen Sie, dass dessen Projektion\nauf die Hyperebene {x ∈Rd : xk = 0} durch P(B, 0) gegeben ist, wenn\ndie Matrix B wie folgt aus den Zeilen von A erstellt wird:\ni. Alle Zeilen Ai−mit Aik = 0 werdenübernommen.\nii. Ist Aik > 0 und Ajk < 0, so fügen wir die Zeile AikAj−−AjkAi−zu\nB hinzu.\niii. Die Zeilen eT\nk und −eT\nk werden hinzugefügt.\nHinweis: Die Zeilen von B sind positive Linearkombinationen von Zeilen\nvon A.\nc) Schließen Sie aus (a) und (b), dass es sich bei KK({y1, . . . , ym}) um einen\npolyedrischen Kegel handelt.",
+   "page": 23,
+   "section": "1.6"
+  },
+  {
+   "number": "1.9",
+   "title": "Affine Hülle einer Menge",
+   "text": "Es sei A ⊂Rn eine beliebige Menge. Zeigen\nSie, dass\nAff(A) =\nn m\nX\ni=1\nλixi : m ∈N, xi ∈A, λi ∈R und\nm\nX\ni=1\nλi = 1\no\n.\nWas bedeutet die obige Charakterisierung geometrisch?",
+   "page": 23,
+   "section": "1.6"
+  },
+  {
+   "number": "1.10",
+   "title": "Polytope und Extremalpunkte",
+   "text": "Zeigen Sie, dass jedes Polytop die kon-\nvexe Hülle seiner Ecken ist.",
+   "page": 23,
+   "section": "1.6"
+  },
+  {
+   "number": "1.11",
+   "title": "Polytop der doppelt stochastischen Matrizen",
+   "text": "Eine Matrix A ∈Matn,n(R) heißt doppelt stochastisch, falls alle Einträge nicht-\nnegativ sind und\nn\nX\ni=1\naij =\nn\nX\nj=1\naij = 1\nfür alle\n1 ≤i, j ≤n\ngilt. Eine Matrix A ∈Matn,n({0, 1}) heißt Permutationsmatrix, falls in jeder\nZeile und in jeder Spalte genau ein Eintrag Eins ist.\na) Zeigen Sie, dass eine Konvexkombination doppelt stochastischer Matrizen\neine doppelt stochastische Matrix ist.\nb) Zeigen Sie, dass die Menge\nP = {A ∈Matm,n(R): A doppelt stochastisch}\nein Polytop ist.\nc) Zeigen Sie, dass die Ecken von P Permutationsmatrizen sind.\nd) Zeigen Sie, dass eine Matrix genau dann doppelt stochastisch ist, wenn\nsie Konvexkombination von Permutationsmatrizen ist.",
+   "page": 24,
+   "section": "1.6"
+  },
+  {
+   "number": "1.12",
+   "title": "Duales Polyeder",
+   "text": "Es sei A ⊂Rn eine Menge. Wir betrachten die Menge\nA◦:= {y ∈Rn : ⟨x, y⟩≤1 für alle x ∈P}.\na) Zeigen Sie, dass A◦eine konvexe Menge ist.\nb) Zeigen Sie, dass A◦= Konv(A)◦ist.\nc) Zeigen Sie, dass P ◦ein Polyeder ist, falls P ein Polytop ist.\nd) Zeigen Sie, dass A◦◦:= (A◦)◦= A, falls A konvex und abgeschlossen ist.\nHinweis: geometrische Version von Hahn-Banach\ne) Verwenden Sie die obigen Beobachtungen und einen geeigneten Satz der\nVorlesung, um ein Verfahren anzugeben wie man zu x1, . . . , xk ∈Rn eine\nMatrix A ∈Matm,n(R) und ein b ∈Rm mit Konv({x1, . . . , xk}) = P(A, b)\nfinden kann.",
+   "page": 24,
+   "section": "1.6"
+  },
+  {
+   "number": "1.13",
+   "title": "Lineares Programm und Standardform",
+   "text": "Wir betrachten das lineare Pro-\ngramm\nmin{cTx: Ax ≤b, x ≥0}\nmit\nA =\n\n\n\n\n\n\n\n\n−1\n0\n0\n0\n−1\n0\n0\n0\n−1\n10\n1\n4\n1\n15\n1\n36\n1\n24\n0\n1\n0\n\n\n\n\n\n\n\n\n,\nb =\n\n\n\n\n\n\n\n\n−3\n−5\n−4\n100\n1\n25\n\n\n\n\n\n\n\n\n,\nund\nc =\n\n\n−500\n−100\n−250\n\n\nGeben Sie einäquivalentes lineares Programm in Standardform an, d.h. ver-\nwenden Sie die in der Vorlesung besprochenen Transformationen, um obiges\nProgramm in Standardform zu bringen.",
+   "page": 25,
+   "section": "1.6"
+  },
+  {
+   "number": "1.14",
+   "title": "Topologische Eigenschaften von konvexen Hüllen und konvexen Kegeln",
+   "text": "a) Es sei K ⊂Rn eine kompakte Menge. Zeigen Sie, dass Konv(K) kompakt\nist.\nHinweis: Carath ́eodory (Lineare Algebra 2)\nb) Es sei K = {(x, y) ∈R2 : 0 ≤x ≤1, 0 ≤y ≤√x}. Zeigen Sie, dass K\nkompakt ist aber KK(K) nicht abgeschlossen ist.\nc) Es sei P ⊂Rn ein unbeschränktes Polyeder. Zeigen Sie, dass der konvexe\nKegel\nKK(P × {1}) ⊂Rn+1\nnicht abgeschlossen ist.\nd) Geben Sie ein Beispiel einer abgeschlosssenen Menge A ⊂Rn deren kon-\nvexe Hülle nicht abgeschlossen ist.",
+   "page": 25,
+   "section": "1.6"
+  },
+  {
+   "number": "1.15",
+   "title": "Lösungsraum einer Matrix einmal anders betrachtet",
+   "text": "Es sei A ∈\nMatm,n(R) eine Matrix mit Rang A = k. Wir interessieren uns für den Lösungs-\nraum\nL(A, 0) = {x ∈Rn : Ax = 0}.\na) Es sei A′ eine Teilmatrix von A, die aus k linear unabhängigen Zeilen\nbesteht. Argumentieren Sie, dass falls k < n ist, eine Teilmatrix I′ von\nIn so existiert, dass die Matrix\nB :=\nA′\nI′\n\ninvertierbar ist.\nb) Zeigen Sie, dass B−1ej für j > k eine Lösung von Ax = 0 ist und dass\n{B−1ej : j > k} eine Basis von L(A, 0) ist.\nc) Sei b ∈Rm, k = m < n und P ∈Matm,m(R) eine invertierbare Matrix\nund eine m-elementige Menge J ⊂{1, . . . , n} mit (PA)−j = eij, ij ∈\n{1, . . . , m} für alle j ∈J und {ij : j ∈J} = {1, . . . , m}. Zeigen Sie, dass\nz mit\nzj =\n(\n(Pb)ij\nfür j ∈J\n0\nsonst\neine Lösung von Ax = b ist.",
+   "page": 25,
+   "section": "1.6"
+  },
+  {
+   "number": "1.16",
+   "title": "Redundante Ungleichungen in linearen Programmen",
+   "text": "wir betrachten\ndas Ungleichungssystem\nAx ≤b\nmit A =\n\n\n\n\n\n\n−1\n0\n0\n−1\n1\n2\n3\n2\n1\n0\n\n\n\n\n\n\nund b =\n\n\n\n\n\n\n0\n0\n2\n4\n1\n\n\n\n\n\n\nWelche der obigen Ungleichungen sind redundant, d.h. welche können weg-\ngelassen werden, ohne dass sich die durch das Ungleichungssystem definierte\nMengeändert?\nBonus: Geben Sie ein (allgemeines) Verfahren an, mit demüberprüft werden\nkann, ob eine Ungleichung redundant ist.",
+   "page": 26,
+   "section": "1.6"
+  },
+  {
+   "number": "1.17",
+   "title": "Mehr zu Seitenflächen und Ecken von Polyedern",
+   "text": "Es sei P ⊂Rn ein\nPolyeder, das mindestens eine Ecke hat.\na) Zeigen Sie, dass jede nichtleere Seitenfläche von P eine Ecke enthält.\nb) Wir betrachten eine Darstellung\nP = Konv({x1, . . . , xk}) + KK({y1, . . . , ym})\nmit x1, . . . , xk, y1, . . . , ym ∈Rn. Zeigen Sie, dass jede Ecke von P in der\nMenge {x1, . . . , xk} enthalten ist.\nc) Wir betrachten das algebraische Innere\nP a◦= {x ∈P : ∀z ∈Rn∃r > 0∀|t| < r: x + tv ∈P}\nvon P. Zeigen Sie, dass P a◦= P ◦ist.\nd) Verwenden Sie (c) um zu zeigen, dass Sie falls P nichtleeres Inneres hat\nv1, . . . , vk und a1, . . . , ak mit P = Tk\ni=1 Hvi,ai so wählen können, dass\nPi := {x ∈Rn : ⟨vi, x⟩= ai} ∩P ein Polyeder ist, das in der Hyperebene\n{x ∈Rn : ⟨vi, x⟩= ai} nicht-leeres Inneres hat. Schließen Sie daraus, dass\nPi eine Facette ist.",
+   "page": 26,
+   "section": "1.6"
+  },
+  {
+   "number": "1.18",
+   "title": "Eine Programmieraufgabe zu Aufwärmen",
+   "text": "Die folgenden beiden Un-\nteraufgaben können in einer Programmiersprache Ihrer Wahl gelöst werden.\nFür eine bessere Vergleichbarkeit empfehle ich Ihnen Python zu verwenden. Im\nSinne einer besseren Präsentierbarkeit verzichten Sie bitte auf die Verwendung\nvon Programmiersprachen wie ”Whitespace“.\na) Schreiben Sie eine Funktion, die als Eingabe eine Matrix A ∈Matm,n(R)\nund einen Vektor b ∈Rm akzeptiert und Vektoren\nx1, . . . , xk\nsowie\ny1, . . . , ym\nmit\nP(A, b) = Konv({x1, . . . , xk}) + KK({y1, . . . , ym})\nzurück gibt.\nb) Schreiben Sie eine Funktion, die als Eingabe eine Matrix A ∈Matm,n(R)\nund zwei Vektoren b ∈Rm sowie c ∈Rn akzeptiert und als Ausgabe\n ̄A ∈Matm,2n+m(Rn), b ∈Rm und  ̄c ∈R2n+m so zurück gibt, dass\nmin{ ̄cTz :  ̄Az = b, z ≥0}\nein lineares Programm ist, das zum linearen Programm\nmin{cTx: Ax ≤b}\näquivalent ist.\nTesten Sie Ihre Programme an den Beispielen der Vorlesung und an einem\nweiteren von Ihnen gewählten Testbeispiel.",
+   "page": 27,
+   "section": "1.6"
+  },
+  {
+   "number": "1.19",
+   "title": "Lineares Programm in Standardform bringen",
+   "text": "Wir suchen das Mini-\nmum der Funktion f(x, y) = x+y auf der Menge, die durch die Ungleichungen\nx ≥−1\nx + y ≤3\ny ≤2\nx −y ≤1\ngegeben ist.\na) Formulieren Sie obiges Problem als lineares Programm und bringen Sie\ndieses auf Standardform.\nb) Skizzieren Sie den zulässigen Bereich und bestimmen Sie die Ecken.\nc) Berechnen Sie die Werte der Zielfunktion in den Ecken.",
+   "page": 27,
+   "section": "1.6"
+  },
+  {
+   "number": "2.1",
+   "title": "Simplexschritt (beinahe) von Hand durchführen",
+   "text": "Wir betrachten das\nlineare Programm, das durch\nA =\n\n\n\n\n−1\n0\n1\n0\n1\n0\n0\n0\n0\n1\n0\n−1\n0\n1\n0\n0\n1\n1\n−1\n−1\n0\n0\n1\n0\n1\n−1\n−1\n1\n0\n0\n0\n1\n\n\n\n,\nb =\n\n\n\n\n1\n2\n3\n1\n\n\n\n\nund\nc =\n\n\n\n\n\n\n\n\n\n\n\n\n1\n1\n−1\n−1\n0\n0\n0\n0\n\n\n\n\n\n\n\n\n\n\n\n\ngegeben ist. Starten Sie mit der Basismenge B = {5, 6, 7, 8} und führen Sie so\nlange den Simplexschritt durch, bis Sie ein Minimum gefunden haben.\nAnleitung: Die einzelnen Berechnungen müssen nicht von Hand durchgeführt\nwerden. Bitte verwenden Sie aber keine Implementierung des Simplexschritts,\nsondern führen Sie den Schritt ”manuell“ durch.",
+   "page": 45,
+   "section": "2.6"
+  },
+  {
+   "number": "2.2",
+   "title": "l1- und l∞-Minimierung als lineares Programm",
+   "text": "Wir betrachten A ∈\nMatm,n(R) und b ∈Rm. Finden Sie für die folgenden Minimierungsprobleme\njeweils einäquivalentes lineares Programm, d.h. finden Sie jeweils ein lineares\nProgramm aus dessen Lösung man eine Lösung des entsprechenden Minimuie-\nrungsproblems bekommt.\na) min ∥x∥1\nunter\nAx = b\nb) min ∥Ax −b∥1\nc) min ∥Ax −b∥∞\nGeben Sie auch an, wie man aus der Lösung des linearen Programms eine\nLösung des Minimierungsproblems erhält.",
+   "page": 46,
+   "section": "2.6"
+  },
+  {
+   "number": "2.3",
+   "title": "Rundreisen im Simplexalgorithmus",
+   "text": "Wir untersuchen, wie es passieren\nkann, dass der Simplexalgorithmus zyklisch wird.\na) Wir nehmen an, dass der Simplexschritt die Basismenge B durch die\nBasismenge B′ ersetzt hat. Zeigen Sie, dass wenn der Schritt nochmal\nausgeführt wird, das Ergebnis nicht B′ sein kann.\nb) Angenommen wir haben in k Schritten die Basismengen B1, . . . , Bk be-\nkommen und es gelte B1 = Bk. Zeigen Sie, dass die zugehörigen zulässigen\nBasislösungen x1, . . . , xk alle gleich sein müssen.",
+   "page": 46,
+   "section": "2.6"
+  },
+  {
+   "number": "2.4",
+   "title": "Simplexschritt implementieren",
+   "text": "Schreiben Sie eine Funktion, die als Ein-\ngabe eine Matrix T ∈Matm+1,n+1 und eine Menge B akzeptiert und folgendes\ndamit macht: Die Matrix T soll ein Simplextableau zur Basismenge B sein.\nDie Funktion führt einen Simplexschritt durch und gibt folgende Ausgabe:\n• Die Information, ob ein Minimum gefunden wurde\n• Eine neue Basismenge B′\n• Ein zugehöriges Simplextableau T ′\nSollte im Simplexschritt festgestellt werden, dass die Zielfunktion auf dem\nzulässigen Bereich nach unten unbeschränkt ist, sollte die Funktion (z.B. durch\nein Exception oder eine Fehlermeldung) abgebrochen werden.\nTesten Sie die Funktion an dem Beispiel aus der Vorlesung und an dem Beispiel\naus Aufgabe (2.1).",
+   "page": 46,
+   "section": "2.6"
+  },
+  {
+   "number": "2.5",
+   "title": "Direkte Umrechnung zwischen zwei Basen",
+   "text": "Wir betrachten das lineare\nProgramm\nmin{cTx: Ax = b, x ≥0}\nmit A ∈Matm,n(R), b ∈Rm und c ∈Rn. Weiters sei N = {1, . . . , n} und\nB, B′ ⊂N zwei Basismengen mit K = N \\B und K′ = N \\B′. Wir betrachten\ndie Simplextableaus\n ̄A\n ̄b\n ̄cT\n−vB\nund\n ̃A\n ̃b\n ̃cT\n−vB′\nzu den Basismengen B und B′, d.h.  ̄A = A−1\nB A,  ̄b = A−1\nB b,  ̄cT = cT −cT\nBA−1\nB A,\n−vB = cT\nBA−1\nB b und analog für  ̃A,  ̃b  ̃cT und vB′.\na) Argumentieren Sie, dass die obige Darstellung von  ̄c (bzw. von  ̃c) mit der\nin der Vorlesung beschriebenen Darstellung der letzten Zeile des Simplex-\ntableausübereinstimmt.\nb) Zeigen Sie, dass  ̃A = (A−1\nB AB′)−1  ̄A =  ̄A−1\nB′  ̄A gilt.\nc) Zeigen Sie, dass  ̃cT =  ̄cT − ̄cT\nB  ̃A−1\nB  ̃A gilt.",
+   "page": 46,
+   "section": "2.6"
+  },
+  {
+   "number": "2.6",
+   "title": "Zyklischer Simplexalgorithmus",
+   "text": "Wir betrachten das lineare Programm\nmin{cTx: Ax = b}\nmit\nA =\n 1\n3\n−2\n−2\n3\n−1\n3\n1\n0\n0\n2\n1\n6\n13\n0\n1\n\n,\nb =\n0\n0\n\nund\nc =\n\n\n\n\n−3\n4\n4\n1\n5\n13\n\n\n\n.\na)Überprüfen Sie, dass der Simplexalgorithmus für dieses Beispiel mit der\nG. Dantzig-Auswahlregel\n(2) k = min argmin\nn\ncl −cT\nBA−1\nB A−l < 0: l ∈K\no\n.\n(4) j = min argmin\n(\nxj\n(A−1\nB AK)jk\n: (A−1\nB AK)jk > 0\n)\n.\nzyklisch wird.\nb) Falls Sie das Simplexverfahren implementiert haben: adaptieren Sie es\nso, dass Sie die Dantzig-Auswahlregel verwenden können und testen Sie,\nob dies auch zyklisch wird. Falls dies nicht passiert, vergleichen Sie die\nLösung mit der Lösung zur Bland-Auswahlregel.",
+   "page": 47,
+   "section": "2.6"
+  },
+  {
+   "number": "2.7",
+   "title": "Sparsameres Simplexverfahren von Hand durchführen",
+   "text": "Wir betrach-\nten das lineare Programm, das durch\nA =\n\n\n2\n2\n0\n0\n−2\n1\n0\n0\n2\n1\n−2\n2\n2\n0\n1\n0\n2\n3\n3\n−2\n1\n0\n0\n1\n\n,\nb =\n\n\n1\n2\n2\n\n\nund\nc =\n\n\n\n\n\n\n\n\n\n\n\n\n−1\n3\n−3\n2\n−2\n0\n0\n0\n\n\n\n\n\n\n\n\n\n\n\n\ngegeben ist. Starten Sie mit der Basismenge B = {5, 6, 7, 8} und führen Sie\nso lange sparsamere Simplexverfahren aus Bemerkung 2.2.6 durch, bis Sie ein\nMinimum gefunden haben.\nAnleitung: Die einzelnen Berechnungen müssen nicht von Hand durchgeführt\nwerden. Bitte verwenden Sie aber keine Implementierung des Simplexschritts,\nsondern führen Sie den Schritt ”manuell“ durch.",
+   "page": 47,
+   "section": "2.6"
+  },
+  {
+   "number": "2.8",
+   "title": "Sparsameres Simplexverfahren implementieren",
+   "text": "Schreiben Sie eine Funk-\ntion, die als Eingabe eine Matrix T ∈Matm+1,m+1(R) und zwei Listen B und\nK akzeptiert und folgendes damit macht: Die Matrix T soll ein Simplexta-\nbleau zur Basismenge B sein. Die Funktion führt einen Simplexschritt (wie in\nBemerkung 2.2.6) durch und gibt folgende Ausgabe:\n• Die Information, ob ein Minimum gefunden wurde\n• Eine neue Basismenge B′ und eine neue Nichtbasismenge K′\n• Ein zugehöriges Simplextableau T ′\nSollte im Simplexschritt festgestellt werden, dass die Zielfunktion auf dem\nzulässigen Bereich nach unten unbeschränkt ist, sollte die Funktion (z.B. durch\nein Exception oder eine Fehlermeldung) abgebrochen werden.\nTesten Sie die Funktion an dem Beispiel aus der Vorlesung und an dem Bei-\nspiel aus Aufgabe (3) des aktuellenÜbungsblatts und Aufgabe (2) des letzten\nÜbungsblatts.",
+   "page": 48,
+   "section": "2.6"
+  },
+  {
+   "number": "2.9",
+   "title": "Simplexalgorithmus komplett durchführen",
+   "text": "Finden Sie eine Lösung\ndes linearen Programms\nmin{cTx: Ax = b, x ≥0}\nmit\nA =\n\n\n1\n2\n1\n0\n−1\n−1\n3\n0\n1\n2\n−2\n1\n3\n0\n2\n\n,\nb =\n\n\n2\n6\n6\n\n\nund\nc =\n\n\n\n\n\n\n1\n2\n1\n−1\n3\n\n\n\n\n\n\n.",
+   "page": 48,
+   "section": "2.6"
+  },
+  {
+   "number": "3.1",
+   "title": "Konvexität von Funktionen und des Epigraphs",
+   "text": "Es sei Ω⊂Rn eine\nkonvexe Menge und f : Ω→R eine Funktion.\na) Zeigen Sie, dass f genau dann konvex ist, wenn ihr Epigraph eine konvexe\nMenge ist.\nb) Zeigen Sie, dass epi f genau dann abgeschlossen (in Ω× R) ist, wenn f\nuntenhalbstetig ist, d.h. wenn\nf(x) ≤lim inf\ny→x f(y)\nfür alle x ∈Ωgilt.",
+   "page": 57,
+   "section": "3.4"
+  },
+  {
+   "number": "3.2",
+   "title": "Konvexe Funktionen",
+   "text": "a) Zeigen Sie, dass die euklidische Norm die Eigenschaft hat, dass\n∥λx + (1 −λ)y∥< λ∥x∥+ (1 −λ)∥y∥\nfür x̸ = y mit ∥x∥= ∥y∥und λ ∈(0, 1) gilt.\nb) Geben Sie ein Beispiel einer Norm auf Rn, die die Eigenschaft aus (a)\nnicht hat.\nc) Es sei A ∈Matn,n(R). Zeigen Sie, dass\nRn →R,\nx 7→xTAx\nkonvex ist.\nd) Zeigen Sie, dass\nf : [0, 1] →R,\nx 7→−√x\neine konvexe Funktion ist. Besitzt f im Nullpunkt einen Subgradienten?",
+   "page": 58,
+   "section": "3.4"
+  },
+  {
+   "number": "3.3",
+   "title": "Konvexe Funktionen und Richtungsableitung",
+   "text": "Es sei Ω⊂Rn eine\noffene konvexe Menge und f : Ω→R eine konvexe Funktion. Wir zeigen, dass\nf in allen Punkten von Ωeinseitige Richtungsableitungen besitzt. Sei dazu\nx ∈Ωund u ∈Rn mit ∥u∥= 1.\na) Sei ε > 0 klein genug, dass x ± εu ∈Ω. Zeigen Sie, dass die Funktion\n(−ε, ε) \\ {0} →R,\nt 7→f(x + tu) −f(x)\nt\nmonoton wachsend und beschränkt ist.\nb) Schließen Sie aus (a), dass die Grenzwerte\nlim\nt↘0\nf(x + tu) −f(x)\nt\nund\nlim\nt↗0\nf(x + tu) −f(x)\nt\nexistieren.",
+   "page": 58,
+   "section": "3.4"
+  },
+  {
+   "number": "3.4",
+   "title": "Mehr zum Subdifferntial",
+   "text": "Es sei Ω⊂Rn eine offene konvexe Menge,\nf : Ω→R eine konvexe Funktion und ξ ∈Ω.\na) Zeigen Sie, dass ∂f(ξ) eine konvexe Menge ist.\nb) Zeigen Sie, dass wenn f in ξ differenzierbar ist ∂f(ξ) genau ein Element\nbesitzt.\nc) Bestimmen Sie das Subdifferential der Funktion R →R, x 7→|x|.",
+   "page": 58,
+   "section": "3.4"
+  },
+  {
+   "number": "3.5",
+   "title": "Charakterisierung konvexer Funktionen",
+   "text": "Es sei Ω⊂Rn eine konvexe\noffene Menge und f : Ω→R.\na) Zeigen Sie, dass f genau dann konvex ist, wenn es in jedem Punkt einen\nSubgradienten besitzt.\nb) Sei f stetig differenzierbar. Zeigen Sie, dass f genau dann konvex ist, falls\nfür alle x, ξ ∈Ωdie Ungleichung\nf(x) ≥f(ξ) + ⟨∇f(ξ), x −ξ⟩\ngilt.",
+   "page": 58,
+   "section": "3.4"
+  },
+  {
+   "number": "3.6",
+   "title": "Globales Minimum und Subgradient",
+   "text": "Es sei Ω⊂Rn eine konvexe offene\nMenge und f : Ω→R eine konvexe Funktion.\na) Zeigen Sie, dass ξ ∈Ωgenau dann ein globales Minimum von f ist, wenn\nNull ein Subgradient in ξ, d.h. 0 ∈∂f(ξ) ist.\nb)",
+   "page": 59,
+   "section": "3.4"
+  },
+  {
+   "number": "3.7",
+   "title": "Subgradienten und Richtungsableitung",
+   "text": "Es sei Ω⊂Rn eine offene kon-\nvexe Menge, f : Ω→R eine konvexe Funktion und ξ ∈Ω. Für u ∈Rn \\ {0}\nbetrachten wir die einseitige Richtungsableitung\n∂+\nu f(ξ) = lim\nt↘0\nf(ξ + tu) −f(ξ)\nt\n,\ndie nach Aufgabe 2 von Blatt 6 existiert.\na) Zeigen Sie, dass die einseitige Richtungsableitung positiv homogen ist. In\nanderen Worten, zeigen Sie, dass ∂+\nαuf(ξ) = α∂+\nu f(ξ) für alle α > 0 gilt.\nb) Zeigen Sie, dass die einseitige Richtungsableitung subadditiv (in u) ist,\nd.h. dass für all u, v ∈Rn \\ {0} die Ungleichung ∂+\nu+vf(ξ) ≤∂+\nu f(ξ) +\n∂+\nv f(ξ) gilt.\nc) Zeigen Sie, dass ∂+\nu f(ξ) ≥sup{⟨d, u⟩: d ∈∂f(ξ)} gilt.\nd) Zeigen Sie auch die umgekehrte Ungleichung ∂+\nu f(ξ) ≤sup{⟨d, u⟩: d ∈\n∂f(ξ)}.\nHinweis: Zeigen Sie mittels (a), dass jede affine (in u) Minorante von\n∂+\nu f(ξ) linear gewählt werden kann und verwenden Sie dann Aufgabe\n(2)(c).\nWir haben also gezeigt, dass ∂+\nu f(ξ) = sup{⟨d, u⟩: d ∈∂f(ξ)} gilt.",
+   "page": 59,
+   "section": "3.4"
+  },
+  {
+   "number": "3.8",
+   "title": "Differenzierbarkeit konvexer Funktionen",
+   "text": "Es sei Ω⊂Rn eine offene\nkonvexe Menge, f : Ω→R eine konvexe Funktion und ξ ∈Ω.\na) Zeigen Sie, dass f lokal Lipschitz ist.\nb) Zeigen Sie, dass f in ξ genau dann differenzierbar ist, wenn dort alle\nRichtungsableitungen existieren.\nc) Zeigen Sie, dass f in ξ differenzierbar ist, wenn ∂f(ξ) aus einem Element\nbesteht.",
+   "page": 59,
+   "section": "3.4"
+  },
+  {
+   "number": "3.9",
+   "title": "KKT-Bedingungen und Lagrange-Multiplikator-Regel",
+   "text": "Wir betrach-\nten das Minimierungsproblem\nmin f(x)\ngi(x) ≤0,\n1 ≤i ≤p\nAx = b\nund nehmen an wir hätten einen Minimum x∗gegeben. Wir wollen nun un-\nter bestimmten Voraussetzungen die KKT-Bedingungen aus der Lagrange-\nMultiplikator-Regel herleiten.\na) Wir definieren J := {j : gj(x∗) = 0}, k := |J|, G(x) = (gj(x): j ∈J) und\nsetzen\nΩ:= {x ∈Rn : gj(x) < 0, j̸ ∈J}.\nZeigen Sie, dass es sich bei Ωum eine offene konvexe Menge handelt.\nb) Wir setzen\nF : Rn →Rk+m,\nx 7→\n G(x)\nAx −b\n\nund nehmen an, dass Rang DF(x∗) = n ist, wobei DF(x∗) die Jacobima-\ntrix von F in x∗bezeichnet. Verwenden Sie die Lagrange-Multiplikator-\nregel, um die Existenz eines KKT-Punktes (x∗, μ∗, λ∗) zu zeigen.",
+   "page": 60,
+   "section": "3.4"
+  },
+  {
+   "number": "3.10",
+   "title": "Operationen mit konvexen Funktionen",
+   "text": "Es sei Ω⊂Rn konvex und\nfi : Ω→R, i = 1, . . . , m, konvexe Funktionen.\na) Es seien λ1, . . . , λm ≥0, Zeigen Sie, dass die Funktion\nΩ→R,\nx 7→\nm\nX\ni=1\nλifi(x)\nkonvex ist.\nb) Zeigen Sie, dass die Funktion\nΩ→R,\nx 7→max\n1≤i≤m fi(x)\nkonvex ist.",
+   "page": 60,
+   "section": "3.4"
+  },
+  {
+   "number": "3.11",
+   "title": "Sattelpunkt der Lagrange-Funktion",
+   "text": "Zeigen Sie, dass wenn ein kon-\nvexes Minimierungsproblem die Slater-Bedingung erfüllt, es zu jeder Mini-\nmallösung x∗∈Rn ein y∗∈D so gibt, dass (x∗, y∗) ein Sattelpunkt der\nLagrangefunktion ist.",
+   "page": 60,
+   "section": "3.4"
+  },
+  {
+   "number": "3.12",
+   "title": "Differenzierbarkeit reeller konvexer Funktionen",
+   "text": "Wir zeigen, dass\nkonvexe Funktionen fastüberall differenzierbar sind.\na) Es sei f : R →R konvex und r, s, t ∈R mit r < s < t. Zeigen Sie, dass\nf′\n+(r) ≤f′\n−(s) ≤f′\n+(s) ≤f′\n−(t)\ngilt, wobei f′\n±(s) die einseitigen Ableitungen von f in s bezeichnen.\nb) Schließen Sie aus (a), dass für eine konvexe Funktion f : R →R eine\nabzählbare Menge S ⊂R so gibt, dass f auf R \\ S differenzierbar ist.",
+   "page": 60,
+   "section": "3.4"
+  },
+  {
+   "number": "3.13",
+   "title": "Differenzierbarkeit konvexer Funktionen",
+   "text": "Es sei Ω⊂Rn eine offene\nkonvexe Menge und f : Ω→Rn →R eine konvexe Funktion.\na) Zeigen Sie, dass f genau dann in x ∈Rn differenzierbar ist, wenn es n-\nlinear unabhängige Richtungen u1, . . . , un ∈Sn−1 gibt für die Richungs-\nableitung ∂uif(x) existiert.\nb) Zeigen Sie, dass die Funktion\nR2n →R,\n(x, u) 7→∂+\nu f(x)\nhalbstetig von oben ist, d.h. dass lim sup(x,v)→(ξ,u) ∂+\nv f(x) ≤∂+\nu f(ξ) gilt.\nc) Verwenden Sie Aufgabe (2) und den Satz von Fubini-Tonelli, um zu zei-\ngen, dass für fixes u ∈Rn die Menge\nHk,u :=\n\nx ∈Rn : ∂+\nu f(x) + ∂+\n−uf(x) ≥1\nk\n\neine abgeschlossene Nullmenge mit leerem Inneren ist.\nd) Schließen Sie aus (a) und (c), dass f außerhalb einer Nullmenge, deren\nKomplement eine dichte Gδ-Menge ist, differenzierbar ist.\nErinnerung: Eine Menge ist Gδ, falls sie abzählbarer Durchschnitt offener\nMengen ist.",
+   "page": 61,
+   "section": "3.4"
+  },
+  {
+   "number": "4.1",
+   "title": "Wiederholung zu Folgen",
+   "text": "Es sei (ak)k∈N eine Folge in Rn.\na) Es sei n = 1. Zeigen Sie, dass limk→∞(ak −ak+1) = 0, falls (ak)k∈N\nmonoton fallend und nach unten beschränkt ist.\nb) Zeigen Sie, dass eine beschränkte Folge (ak)k∈N genau dann konvergiert,\nwenn Sie nur einen Häufungspunkt besitzt.",
+   "page": 73,
+   "section": "4.4"
+  },
+  {
+   "number": "4.2",
+   "title": "Gradientenverfahren mit Liniensuche",
+   "text": "was kann schon schiefge-\nhen?:\na) Zeigen Sie, dass\nf : R →R,\nx 7→ex\neine nach unten beschränkte konvexe Funktion ist, für die Algorithmus 4.1.1\neine Folge ohne Häufungspunkte erzeugt. Besitzt f stationäre Punkte?\nb) Zeigen Sie, dass\nf : R →R,\nx 7→(x −1)x(x + 1)\nstationäre Punkte hat, aber Algorithmus 4.1.1 mit x0 = −2 eine Folge\nohne Häufungspunkte erzeugt.\nc) Geben Sie eine konvexe Funktion f : Rn →R so an, dass für jedes x0 ∈Rn\ndie Menge\n{x ∈Rn : f(x) ≤f(x0)}\nunbeschränkt ist.",
+   "page": 73,
+   "section": "4.4"
+  },
+  {
+   "number": "4.3",
+   "title": "Unbeschränkte konvexe Mengen und Minima konvexer Funktionen",
+   "text": "Es sei f : Rn →R eine konvexe Funktion.\na) Zeigen Sie, dass eine abgeschlossene konvexe Menge C ⊂Rn genau dann\nunbeschränkt ist, wenn sie einen Halbstrahl enthält.\nb) Zeigen Sie, dass Subniveaumengen konvexer Funktionen konvex sind.\nc) Zeigen Sie, dass die Menge\nMf = {x ∈Rn : f(x) = m}\nmit m = min{f(x): x ∈Rn} genau dann beschränkt ist, wenn jede Sub-\nniveaumenge von f beschränkt ist.",
+   "page": 74,
+   "section": "4.4"
+  },
+  {
+   "number": "4.4",
+   "title": "Konvergenz in endlich vielen Schritten",
+   "text": "Es sei f : Rn →R eine konvexe\nFunktion für die m = min{f(x): x ∈Rn} existiert und für die die Menge\nMf := {x ∈Rn : f(x) = m}\neine kompakte Menge mit nicht-leerem Inneren ist. Zeigen Sie, dass das Subgra-\ndientenverfahren nach endlich vielen Schritten in einem Punkt von Mf stoppt.\nHinweis: Es sei B(z, r) ⊂Mf. Zeigen und verwenden Sie, dass im k-ten Schritt\ndes Verfahrens entweder xk ∈Mf oder der Abstand d(z, {x ∈Rn : f(x) =\nf(xk)}) ≥r ist.",
+   "page": 74,
+   "section": "4.4"
+  },
+  {
+   "number": "4.5",
+   "title": "Powell-Wolfe-Schrittweitenregel",
+   "text": "Es sei fRn →R eine nach unten\nbeschränkte stetig differenzierbare Funktion, ξ ∈Rn und v ∈Sn−1 eine Ab-\nstiegsrichtung von f in ξ. Weiters sei γ ∈(0, 1\n2) und η ∈(γ, 1) gegeben. Zeigen\nSie, dass es ein α > 0 mit\nf(x + αv) −f(x) ≤αγ∇f(x)Tv\nund\n∇f(x + αv)Tv ≥η∇f(x)Tv\ngibt.",
+   "page": 74,
+   "section": "4.4"
+  },
+  {
+   "number": "4.6",
+   "title": "Implementierung des Gradientenverfahrens",
+   "text": "Wir wollen das numeri-\nsche Verhalten des Gradientenverfahrens untersuchen.\na) Implementieren Sie Algorithmus 4.1.1 in einer Programmiersprache Ihrer\nWahl, vorzugsweise in Python.\nWir betrachten dazu die Rosenbrock-Funktion\nf(x, y) = (1 −x)2 + 100(y −x2)2\nAus Gründen der Vergleichbarkeit setzen wir β = 1\n2 und γ = 10−4.\nb) Bestimmen Sie die stationären Punkte von f und zeigen Sie, dass f in\n(1, 1) das Minimum annimmt.\nc) Plotten Sie ein paar Niveaukurven von f, das Mimimum und ein paar\nIterationsschritte des Verfahrens zum Startwert (−12\n10, 1).",
+   "page": 75,
+   "section": "4.4"
+  },
+  {
+   "number": "4.7",
+   "title": "Abstand und Projektion zu Hyperebenen und Halbräumen",
+   "text": "a) Es sei v ∈Rn \\ {0}, a ∈R und H = {x ∈Rn : ⟨x, v⟩= a}. Zeigen Sie,\ndass\nd(x, H) = |⟨x, v⟩−a|\n∥v∥\nfür alle x ∈Rn gilt.\nb) Zeigen Sie, dass für a ∈Rn \\ {0} und b ∈R die Abbildung\nP : Rn →Rn,\nx 7→x −amax{⟨a, x⟩−b, 0}\n∥a∥2\ndie metrische Projektion auf den Halbraum {x ∈Rn : ⟨a, x⟩≤b} ist.",
+   "page": 75,
+   "section": "4.4"
+  },
+  {
+   "number": "4.8",
+   "title": "Implementierung des Subgradientenverfahrens",
+   "text": "Wir wollen das Sub-\ngradienten-Verfahren implementieren.\na) Implementieren Sie ein Subgradienten-Orakel, d.h. die Methode zur Näh-\nerung eines Subgradienten aus Abschnitt 4.1.2, in einer Programmier-\nsprache Ihrer Wahl, vorzugsweise in Python.\nb) Implementieren Sie das Subgradienten-Verfahren (Algorithmus 4.1.7) in\neiner Programmiersprache Ihrer Wahl, vorzugsweise in Python. Ignorieren\nSie dabei das Abbruchkriterium der Vorlesung, da wir keine Möglichkeit\nhaben das algorithmisch zuverlässig zu testen. Wählen Sie stattdessen\neine fixe Anzahl von Schritten.\nc) Testen Sie Ihre Implementierung an der Betragsfunktion auf R mit Start-\nwert x0 = 5.\nd) Testen Sie Ihre Implementierung an der Funktion\nR10 →R,\nx 7→∥Ax −b∥2 + 1\n2∥x∥1\nmit einer zufälligen Matrix A ∈Mat5,10(R) und einem zufälligen b ∈R5\nso, dass Ax = b lösbar ist. Wählen Sie dazu b = Az für eine zufälliges\nz ∈R10.\ne) Testen Sie Ihre Implementierung an der Funktion\nR10 →R,\nx 7→∥Ax −b∥2 + 1\n2∥x∥1\nmit einer zufälligen Matrix A ∈Mat10,5(R) und einem zufälligen b ∈R10\nso, dass Ax = b lösbar ist. Wählen Sie dazu b = Az für eine zufälliges\nz ∈R5. Wie unterscheidet sich die Situation von der in (d)?",
+   "page": 75,
+   "section": "4.4"
+  },
+  {
+   "number": "4.9",
+   "title": "Implementierung des Newton-Verfahrens",
+   "text": "Wir wollen das Newton-Ver-\nfahren implementieren.\na) Implementieren Sie das Newton-Verfahren in einer Programmiersprache\nIhrer Wahl, vorzugsweise Python.\nb) Implementieren Sie das Hybridverfahren (Algorithmus 4.2.5) in einer Pro-\ngrammiersprache Ihrer Wahl, vorzugsweise Python.\nc) Testen Sie Ihre Implementierung des Newton-Verfahrens an der Rosenbrock-\nFunktion aus Aufgabe (4.6) mit Startpunkt x0 = (−1\n2, 1).\nd) Testen Sie das Hybridverfahren (mit den für β und γ aus Aufgabe (4.6))\nan der Rosenbrock-Funktion mit Startwert x0 = (−12\n10, 1).\nBonus in (c) und (d): Vergleichen Sie die Verfahren mit dem Gradientenver-\nfahren.",
+   "page": 76,
+   "section": "4.4"
+  },
+  {
+   "number": "5.1",
+   "title": "Abstand zu konvexen Mengen",
+   "text": "Es sei C ⊂Rn eine abgeschlossene konvexe\nMenge und d(x, C) := inf{∥x−z∥: z ∈C} für x ∈Rn der Abstand von x zu C.\na) Zeigen Sie, dass die Funktion\nRn →R,\nx 7→d(x, C)\nkonvex und nicht-expansiv ist.\nb) Verwenden Sie (a), um zu zeigen, dass diese Funktion fastüberall diffe-\nrenzierbar ist.",
+   "page": 91,
+   "section": "5.4"
+  },
+  {
+   "number": "5.2",
+   "title": "Metrische Projektionen",
+   "text": "Wir wollen die metrische Projektion auf eine\nReihe weiterer Mengen betrachten.\na) Wir betrachten die Menge C+ = {x ∈Rn : x ≥0}. Zeigen Sie, dass\nPCx = x+ := max{x, 0},\nwobei hier das komponentenweise Maximum gemeint ist.\nb) Es sei  ̄B(y, r) mit die abgeschlossene Kugel um y ∈Rn mit Radius r > 0.\nZeigen Sie, dass\nP  ̄B(y,r)x =\n(\nx\nfalls ∥x −y∥≤r\ny +\nr\n∥x−y∥(x −y)\nsonst\n.\nc) Es seien Ci ⊂Rni für i = 1, . . . , m abgeschlossene konvexe Mengen mit\nzugehöriger Projektion PCi : Rni →Rni. Zeigen Sie, dass\nRn1+···+nm →Rn1+···+nm,\nx 7→(PC1x1, . . . , PCmxm)\ndie metrische Projektion auf C1 × · · · Cm ist.\nd) Verwenden Sie (c), um die metrische Projektion auf den Quader\nn\nY\ni=1\n[ai, bi]\nmit ai < bi für i = 1, . . . , n zu bestimmen.",
+   "page": 91,
+   "section": "5.4"
+  },
+  {
+   "number": "5.3",
+   "title": "Mehr zu iterierten metrischen Projektionen",
+   "text": "Wir betrachten die Men-\ngen\nC1 := {x ∈R2 : ∥x∥1 ≤1}\nund\nC2 := {x ∈R2 : x1 = 0}.\na) Zeigen Sie, dass C1 und C2 abgeschlossene konvexe Mengen sind.\nb) Bestimmen Sie PC1 und PC2.\nc) Bestimmen Sie PC1∩C2.\nd) Bestimmen Sie PCix für i = 1, 2 sowie PC1∩C2x für x = (−2, 2).Über-\nprüfen Sie, ob\n(PC1PC2)nx →PC1∩C2x\nbzw.\n(PC2PC1)nx →PC1∩C2x\nfür n →∞gilt.",
+   "page": 92,
+   "section": "5.4"
+  },
+  {
+   "number": "5.4",
+   "title": "Implementierung Projektionsverfahren",
+   "text": "Wir wollen nun Projektions-\nverfahren implementieren und deren numerisches Verhalten untersuchen.\na) Implementieren Sie Algorithmus 5.1.7 in einer Programmiersprache Ihrer\nWahl, vorzugsweise Python.\nb) Bestimmen Sie die KKT-Punkte und die Lösung von\nmin f(x)\nunter\ng(x) ≤0\nmit\nf(x, y) = (x −1)2 + (y + 1)2\nund\ng(x, y) = x2 + y2 −1\nc) Verwenden Sie Ihre Implementierung des Projektionsverfahrens, um das\nMinimum zu finden. Verwenden Sie aus Gründen der Vergleichbarkeit die\nStartpunkte (\n√\n2\n2 ,\n√\n2\n2 ) und (−1\n2, 0). Plotten Sie Niveaulinien der Funkti-\non f, den zulässigen Bereich und die Schritte des Verfahrens.",
+   "page": 92,
+   "section": "5.4"
+  },
+  {
+   "number": "5.5",
+   "title": "Tangentialkegel und Normalenkegel einer konvexen Menge",
+   "text": "Es sei\nC ⊂Rn eine abgeschlossene konvexe Menge\na) Zeigen Sie, dass für x ∈C der Normalenkegel von C in x\nNC(x) = {y ∈Rn : ⟨y, z −x⟩≤0 für alle z ∈C}\nein abgeschlossener konvexer Kegel ist.\nb) Zeigen Sie, dass\nT(C; x) = KK(C −x)\ngilt, wobei C −x = {z −x: z ∈C}.\nc) Bestimmen Sie T(C; x) und NC(x) für C = [−1, 1]×[−1, 1] und x = (1, 1).\nd) Zu einem Kegel K ⊂Rn nennt man die Menge\nK◦= {x ∈Rn : ⟨x, z⟩≤0: für alle z ∈K}\nden zu K polaren Kegel. Zeigen Sie, dass\nNC(x)◦= T(C; x)\nund\nT(C; x)◦= NC(x)\ngilt.\nHinweis: Bidualsatz aus Lineare Algebra 2.\ne) Zeigen Sie, dass z = PCx genau dann wenn x −z ∈NC(z) ist.",
+   "page": 93,
+   "section": "5.4"
+  },
+  {
+   "number": "5.6",
+   "title": "Ungleichungen für das Skalarprodukt",
+   "text": "Es seien x, y, z ∈Rn.\na) Zeigen Sie, dass für x, y mit ⟨y, x −y⟩> 0 die Ungleichung\n∥x∥\n∥y∥≤⟨x, x −y⟩\n⟨y, x −y⟩\ngilt.\nb) Zeigen Sie, dass die folgenden Aussagenäquivalent sind\n(i) ⟨x −y, z −y⟩≤0\n(ii) ⟨z −x, y −x⟩≥∥x −y∥2\n(iii) ∥z −y∥2 ≤∥z −x∥2 −∥y −x∥2",
+   "page": 93,
+   "section": "5.4"
+  },
+  {
+   "number": "5.7",
+   "title": "Gleichmäßige Fr ́echet-Differenzierbarkeit",
+   "text": "Es sei f : Rn →R eine\nstetig differenzierbare Funktion. Weiters sei Ω⊂Rn eine offene konvexe Menge\nauf der der Gradient ∇f gleichmäßig stetig ist. Zeigen Sie, dass es zu jedem\nε > 0 ein δ > 0 so gibt, dass\n|f(x) −f(y) −⟨∇f(y), x −y⟩| ≤ε∥x −y∥\nfür alle x, y ∈Ωmit ∥x −y∥< δ gilt.",
+   "page": 93,
+   "section": "5.4"
+  },
+  {
+   "number": "5.8",
+   "title": "Exaktheit vs. Differenzierbarkeit",
+   "text": "Wir betrachten das Minimierungs-\nproblem\nmin f(x)\nunter\ngi(x) ≤0; für i = 1, . . . , p\nhj(x) = 0 für j = 1, . . . , q\nmit stetig differenzierbaren konvexen f : Rn →R, gi : Rn →R für i = 1, . . . , p\nsowie affinen hj : Rn →R für j = 1, . . . , q. Wir nehmen an, dass das Pro-\nblem einen KKT-Punkt (x∗, y∗) ∈Rn+p+q besitzt, aber ∇f(x∗)̸ = 0 ist. Wir\nbetrachten die Penalty-Funktion\np(x, r) = f(x) + rs(x)\nfür eine Straffunktion s (siehe Definition 5.2.4).\na) Schließen Sie aus Sätzen der Vorlesung, dass x∗eine Lösung des obigen\nMinimierungsproblems ist.\nb) Wir nehmen an, dass es ein R > 0 so gibt, dass\np(x∗, r) = min{p(x, r): x ∈Rn}\nfür alle r > R ist. Zeigen Sie, dass s (und damit p(·, r)) in x∗nicht\ndifferenzierbar ist.",
+   "page": 94,
+   "section": "5.4"
+  },
+  {
+   "number": "5.9",
+   "title": "Ungeschickte Straffunktionen",
+   "text": "Wir betrachten das das Minimierungs-\nproblem\nmin x3\nunter\n−x ≤0\nx −1 ≤0\nUnd verwenden die Straffunktion\nl(x) := max{−x, 0} + max{x −1, 0}\na) Zeigen Sie, dass l(x) = 0 genau dann wenn x ∈[0, 1].\nb) Zeigen Sie, dass p(x, r) = x3 + rl(x) für kein r > 0 ein globales Minimum\nhat.\nc) Wieändert sich die Situation wenn man stattdessen\nl(x) := max{−x, 0}α + max{x −1, 0}α\nmit α > 3 verwendet?",
+   "page": 94,
+   "section": "5.4"
+  },
+  {
+   "number": "5.10",
+   "title": "Implementierung des Penalty-Verfahrens",
+   "text": "a) Implementieren Sie Algorithmus 5.2.2 in einer Programmiersprache Ihrer\nWahl, vorzugsweise Python.\nb) Verwenden Sie Ihre Implementierung, um folgendes Minimierungspro-\nblem zu lösen.\nmin −x −y\nunter\n1 −x2 −y2 = 0\nPlotten Sie Niveaulinien und die Schritte des Verfahrens.\nBonus: Vergleichen Sie das Verhalten bei α = 2 und α = 1, falls Sie\ngeeignete Minimierungsverfahren zur Verfügung haben.\nc) Verwenden Sie Ihre Implementierung, um folgendes Minimierungspro-\nblem zu lösen.\nmin 1000 −x2 −2y2 −z2 −xy −xz\nunter\nx2 + y2 + z2 −25 = 0\n8x + 14y + 7z −56 = 0\nVerwenden Sie den Startpunkt x0 = (3, 2\n10, 3) und Verwenden Sie als\nAbbruchkriterium, dass ∥h(xk)∥= ∥(h1(xk), h2(xk))∥< 10−4 ist.",
+   "page": 95,
+   "section": "5.4"
+  },
+  {
+   "number": "5.11",
+   "title": "Differenzierbarkeit von Potenzen von Normen",
+   "text": "Wir wollen die Frage\nuntersuchen, wann Potenzen von Normen differenzierbar sind.\na) Wir betrachten die p-Norm\n∥x∥p =\n\nn\nX\ni=1\n|xi|p 1\np .\nauf Rn für p ∈(1, ∞). Zeigen Sie, dass für α ∈(0, ∞) die Funktion\nRn →R,\nx 7→∥x∥α\np\ngenau dann stetig differenzierbar ist, wenn α ≥p ist.\nb) Gibt es ein α > 1 für das die Funktion\nRn →R,\nx 7→∥x∥α\n1\ndifferenzierbar ist?",
+   "page": 95,
+   "section": "5.4"
+  },
+  {
+   "number": "6.1",
+   "title": "Lemma von Farkas und Dualitätssatz",
+   "text": "Es seien A ∈Matm,n(R), b ∈Rm\nund c ∈Rn.\n(a) Zeigen Sie mit Hilfe des Lemma von Farkas (Satz 1.3.4), dass das lineare\nUngleichungssystem Ax ≤b genau dann eine Lösung hat, wenn jede nicht-\nnegative Lösung y ∈Rm von ATy = 0 die Ungleichung bTy ≥0 erfüllt.\n(b) Verwenden Sie (a), um zu zeigen, dass ein lineares Programm unbe-\nschränkt ist, wenn das dazu duale lineare Programm einen leeren Zu-\nlässigkeitsbereich hat.",
+   "page": 104,
+   "section": "6.4"
+  },
+  {
+   "number": "6.2",
+   "title": "Duales Programm zum dualen Programm",
+   "text": "Es seien A ∈Matm,n(R),\nb ∈Rm und c ∈Rn.\n(a) Bringen Sie das duale Programm\nmax{bTy: ATy ≤c}\nin Standardform und bestimmen Sie das dazu duale Programm.\n(b)",
+   "page": 104,
+   "section": "6.4"
+  },
+  {
+   "number": "6.3",
+   "title": "Dualitätslücke",
+   "text": "Wir betrachten das Minimierungsproblem\nmin ex2\nunter\n∥x∥−x1 ≤0\n(a) Zeigen Sie, dass Zielfunktion und Nebenbedinungung konvexe Funktionen\nsind.\n(b) Bestimmen Sie den (Minimal-)wert des Problems und eine Lösung, falls\neine solche Existiert.\n(c) Bestimmen Sie das dazu Lagrange-duale Problem.\n(d) Bestimmen Sie (Maximal-)wert des dualen Problems und eine Lösung,\nfalls eine solche existiert.\n(e) Gibt es eine Dualitätslücke?",
+   "page": 104,
+   "section": "6.4"
   }
  ]
 }

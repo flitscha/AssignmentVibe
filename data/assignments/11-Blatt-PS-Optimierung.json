@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "11-Blatt-PS-Optimierung.pdf",
  "sheet_number": 11,
  "discussion_date": "16/17 . 5 . 2026",
@@ -41,7 +42,7 @@
   {
    "number": 4,
    "title": "Implementierung des Gradientenverfahrens",
-   "text": "Implementierung des Gradientenverfahrens. Wir wollen das nume-\nrische Verhalten des Gradientenverfahrens untersuchen.\na) Implementieren Sie Algorithmus 4.1.1 in einer Programmiersprache Ihrer Wahl,\nvorzugsweise in Python. Wir betrachten dazu die Rosenbrock-Funktion\nf(x, y) = (1 −x)2 + 100 (y −x2)2\nund aus Gründen der Vergleichbarkeit setzen wir β = 12 und γ = 10−4 .\nb) Bestimmen Sie die stationären Punkte von f und zeigen Sie, dass f in (1, 1) das\nMinimum annimmt.\nc) Plotten Sie ein paar Niveaukurven von f , das Mimimum und ein paar Iterations-\nschritte des Verfahrens zum Startwert (−12\n10, 1).\nSeite 1 von 1",
+   "text": "Implementierung des Gradientenverfahrens. Wir wollen das nume-\nrische Verhalten des Gradientenverfahrens untersuchen.\na) Implementieren Sie Algorithmus 4.1.1 in einer Programmiersprache Ihrer Wahl,\nvorzugsweise in Python. Wir betrachten dazu die Rosenbrock-Funktion\nf(x, y) = (1 −x)2 + 100 (y −x2)2\nund aus Gründen der Vergleichbarkeit setzen wir β = 12 und γ = 10−4 .\nb) Bestimmen Sie die stationären Punkte von f und zeigen Sie, dass f in (1, 1) das\nMinimum annimmt.\nc) Plotten Sie ein paar Niveaukurven von f , das Mimimum und ein paar Iterations-\nschritte des Verfahrens zum Startwert (−12\n10, 1).",
    "subparts": [
     {
      "label": "a",
@@ -53,7 +54,7 @@
     },
     {
      "label": "c",
-     "text": "Plotten Sie ein paar Niveaukurven von f , das Mimimum und ein paar Iterations-\nschritte des Verfahrens zum Startwert (−12\n10, 1).\nSeite 1 von 1"
+     "text": "Plotten Sie ein paar Niveaukurven von f , das Mimimum und ein paar Iterations-\nschritte des Verfahrens zum Startwert (−12\n10, 1)."
     }
    ],
    "script_references": null

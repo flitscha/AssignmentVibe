@@ -18,7 +18,7 @@ against the bold/italic detection from font_styles.py (see there) - only
 genuinely styled headers count as a block boundary, everything else stays
 part of the surrounding block.
 
-Depends on core.font_styles and core.toc (and, transitively, core.pdf_text).
+Depends on core.font_styles, core.toc and core.exercises (and, transitively, core.pdf_text).
 """
 
 import json
@@ -26,6 +26,7 @@ import re
 import sys
 from pathlib import Path
 
+from . import exercises as exercises_core
 from . import toc
 from .font_styles import styled_type_words_per_page
 
@@ -90,6 +91,12 @@ PROOF_RE = re.compile(
     r"\s+(?P<refnum>\d+(?:\.\d+)+))?\s*[.:]"
     r")"
 )
+
+# Bumped whenever what an ingest writes changes in a way an older file lacks.
+# store.ingest_missing re-reads a script whose knowledge base is older than
+# this, so an update reaches existing courses without anyone knowing to ask.
+#   2: the script's own exercises ("exercises", see core.exercises)
+FORMAT = 2
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 
@@ -264,10 +271,13 @@ def run(in_path: Path, out_path: Path, pdf_path: Path) -> None:
     blocks, rejected = extract_knowledge(text, styled_words_per_page)
     results = attach_proofs(blocks)
     sections = toc.build(pdf_path, results)
+    exercises = exercises_core.extract(pages, sections)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
-        json.dumps({"source": source, "sections": sections, "entries": results},
+        json.dumps({"format": FORMAT, "source": source, "sections": sections,
+                    "entries": results,
+                    "exercises": exercises},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
@@ -278,7 +288,8 @@ def run(in_path: Path, out_path: Path, pdf_path: Path) -> None:
     placed = sum(1 for b in results if b.get("section"))
     print(f"{source}: {len(results)} knowledge entries -> {out_path} "
           f"({rejected} false-positive line-starts rejected; "
-          f"{placed}/{len(results)} placed in {len(sections)} sections)")
+          f"{placed}/{len(results)} placed in {len(sections)} sections; "
+          f"{len(exercises)} exercises)")
     for t, c in sorted(by_type.items()):
         print(f"   {t}: {c}")
 

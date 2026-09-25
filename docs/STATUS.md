@@ -1,70 +1,83 @@
 # Status
 
-Checklist of what exists right now. Three separate questions per row, because
-they're genuinely different things:
+What exists right now, as of 2026-09-25. Three separate questions per row,
+because they're genuinely different things:
 
 - **Implemented** - does the code exist and do what it's supposed to.
-- **Tested by Claude** - did *I* run it and see it work (in WSL Ubuntu 22.04
-  for anything Linux-specific, or on Windows for the platform-independent
-  core), during development.
-- **Tested by you** - have *you* actually run this on your own machine /
-  Omarchy setup. **As of 2026-09-12: nothing has been. That's the honest
-  baseline this file starts from.**
+- **Tested by Claude** - did Claude run it and see it work, on the real
+  material (your `~/Uni` PDFs, in an isolated data directory) or the example
+  set in `example_files/`.
+- **Tested by you** - have you used it on your Omarchy machine.
 
-"Tested by Claude" is real testing (not just "I read the code and it looks
-right"), but it is not a substitute for you trying it - especially anything
-touching Walker/Waybar/Hyprland, none of which exist in the sandbox this was
-built in (see docs/LINUX_PROTOTYPE.md for the detailed breakdown of what
-that means per feature).
+"Tested by Claude" never includes clicking through the real Walker menu or
+looking at the bar - menu flows are tested by scripting the answers the
+picker would give back.
 
 ## Core pipeline (`assignmentvibe/core/`)
 
 | Component | Implemented | Tested by Claude | Tested by you |
 |---|---|---|---|
-| PDF -> raw text (`pdf_text.py`) | ✅ | ✅ both scripts, both platforms | ❌ |
-| Font-style header detection (`font_styles.py`) | ✅ | ✅ | ❌ |
-| Knowledge extraction: definitions/theorems/proofs (`knowledge.py`) | ✅ | ✅ 284 + 131 entries, verified against manual spot-checks | ❌ |
-| Assignment-sheet parsing (`assignments.py`) | ✅ | ✅ all 26 example sheets | ❌ |
-| Prompt building (`prompts.py`) | ✅ | ✅ multiple use cases, see docs/POC_REPORT.md examples | ❌ |
+| PDF -> raw text (`pdf_text.py`) | ✅ | ✅ ten-script corpus | ✅ (via ingest) |
+| Font-style header detection (`font_styles.py`) | ✅ | ✅ | ✅ (via ingest) |
+| Knowledge extraction: definitions/theorems/proofs (`knowledge.py`) | ✅ | ✅ corpus spot checks | ✅ Optimierung |
+| Chunking by the PDF's own outline (`toc.py`) | ✅ | ✅ 100% of entries placed in all ten corpus scripts | ✅ Optimierung |
+| **The script's own exercises (`exercises.py`)** | ✅ new | ✅ Optimierung: 64 exercises, all 34 sheet references resolve; Algebra 103, LinAlg 106 | ❌ |
+| Assignment-sheet parsing (`assignments.py`) | ✅ | ✅ all 26 example sheets | ✅ Optimierung |
+| Section choice: manual, or keyword-suggested (`selection.py`) | ✅ | ✅ | ✅ |
+| Prompt building (`prompts.py`) | ✅ | ✅ see `docs/example_prompts/` | ⚠️ content not yet reviewed |
 
-## Organizer (`assignmentvibe/organizer/`) - NEW this session
+Not covered by `exercises.py`: exercises scattered through running text
+("Exercise 1.2." in the spectral graph theory notes, "Übung 12.47." in
+Stochastik) and scripts without PDF bookmarks. Those yield no exercises
+rather than wrong ones.
 
-| Component | Implemented | Tested by Claude | Tested by you |
-|---|---|---|---|
-| Classification (filename + content + page-count heuristics) | ✅ | ✅ 28/28 example files correctly classified after two fix-forward iterations | ❌ |
-| Move planning (dry run) | ✅ | ✅ | ❌ |
-| Apply (copy/move to library layout) | ✅ | ✅ (copy mode; move mode implemented, not separately exercised) | ❌ |
-| Auto-ingest after organizing (`--ingest`) | ✅ | ✅ (found + fixed a real bug: course-folding mismatch between file placement and ingestion, see ROADMAP.md changelog) | ❌ |
-| Course-name fuzzy-folding across script/sheet guesses | ✅ | ✅ | ❌ |
-| Recursive folder scanning | ❌ | - | - |
-| Handling a Downloads folder with OTHER (non-course) PDFs mixed in | ⚠️ partial (falls to `_unsorted` on low confidence, not verified against real-world noisy folders) | ⚠️ only tested against clean example_files/ | ❌ |
-
-## Linux/Omarchy integration (`assignmentvibe/integrations/`, `cli.py`)
+## The hub (`cli.py pick`, behind the bar click)
 
 | Component | Implemented | Tested by Claude | Tested by you |
 |---|---|---|---|
-| Clipboard fallback chain | ✅ | ✅ fallback path (no wl-copy/xclip in sandbox); real wl-copy/xclip NOT exercised | ❌ |
-| Notification fallback chain | ✅ | ✅ fallback path only (no notify-send in sandbox) | ❌ |
-| Menu/picker fallback chain | ✅ | ✅ stdin fallback only; Walker/rofi/wofi/fzf NOT exercised live | ❌ |
-| `pick` interactive flow end-to-end | ✅ | ✅ via stdin, including a no-picker/no-tty abort test | ❌ |
-| Waybar JSON status output | ✅ | ✅ JSON validity + content checked; actual Waybar rendering NOT checked (no compositor) | ❌ |
-| Bash entry point (`bin/assignmentvibe`), installed vs. non-installed | ✅ | ✅ both code paths | ❌ |
-| OCR for typed/printed text (Tesseract) | ✅ | ✅ error path only (no tesseract binary available, no root in sandbox); recognition quality UNTESTED | ❌ |
-| OCR for **handwriting** | ❌ | - | ❌ (no sample material yet) |
+| Hub: copy / follow-up / open chat, task/sheet/course/chapters/proofs rows | ✅ | ✅ scripted | ✅ |
+| State remembered per course (`context.py`) | ✅ | ✅ | ✅ |
+| Chapter picker with proof/algorithm toggles and live sizes | ✅ | ✅ scripted (the size bug is fixed) | ⚠️ size bug reported, fix not yet tried |
+| **Single proofs: pick them one at a time, or all** | ✅ new | ✅ scripted | ❌ |
+| **Tasks that point into the script show the exercise's title** | ✅ new | ✅ | ❌ |
+| Warning when a referenced exercise is not found | ✅ new | ✅ | ❌ |
+| Follow-ups on right click (`followup`) | ✅ | ✅ | ✅ (wording not yet reviewed) |
+| "Read in new sheets" (`store.ingest_missing`) | ✅ | ✅ | ✅ |
+| Re-read of data made by an older extraction version (`FORMAT`) | ✅ new | ✅ re-reads once, then never | ❌ |
+
+## Desktop integration (`integrations/`, `linux/`)
+
+| Component | Implemented | Tested by Claude | Tested by you |
+|---|---|---|---|
+| Omarchy shell bar widget (`linux/bar-script`, Quickshell) | ✅ | ⚠️ JSON only | ✅ |
+| Menu via `omarchy-menu-select` (Walker) | ✅ | ⚠️ fallback path only | ✅ |
+| Clipboard (`wl-copy`) + notifications | ✅ | ⚠️ fallback path only | ✅ |
+| Semester config, sorter, Super+Space launcher entries | ✅ | ✅ | ✅ |
+| OCR for typed/printed text (Tesseract) | ✅ placeholder | ⚠️ error path only | ❌ |
+| OCR for **handwriting** | ❌ | - | - |
 | Xournal++ integration | ❌ | - | - |
+
+## Known weak spots
+
+- **Page furniture leaks into knowledge entries.** A statement that runs over
+  a page break carries the page number and running header along ("2", "1.1
+  Polyeder und Polytope") - visible in
+  `docs/example_prompts/optimierung_script_exercise.txt`. `exercises.py`
+  already strips these for exercises; `knowledge.py` does not yet.
+- **Matrices lose their shape.** Every cell becomes its own line; exercise 2.9
+  (the simplex one) is barely readable as a result. See ROADMAP.md.
+- **Keyword suggestion is coarse.** For exercise 2.9 it picks 2.4 where 2.3
+  would be better. Choosing chapters by hand is the fix, and remembered.
+- **Modellierung** yields 0 knowledge entries - its notes do not use the
+  numbered "Definition 1.2" style at all.
 
 ## Documentation
 
 | Document | Purpose |
 |---|---|
-| [POC_REPORT.md](POC_REPORT.md) | Original text-pipeline proof of concept: what works, bugs found+fixed, limitations |
-| [LINUX_PROTOTYPE.md](LINUX_PROTOTYPE.md) | First installable CLI + Waybar module: Omarchy research, test coverage, known risks |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Current module map, dependency graph, language policy |
-| [ROADMAP.md](ROADMAP.md) | Prioritized future work, with a changelog of what happened this session |
-| STATUS.md (this file) | The checklist above |
-
-Note: POC_REPORT.md and LINUX_PROTOTYPE.md predate the `core/`/`organizer/`/
-`integrations/` restructuring in this session and still reference the old
-`pipeline/` module paths in places - the *findings* in them (bugs, test
-results, numbers) are all still accurate, only the file paths moved. See
-ARCHITECTURE.md for where things actually live now.
+| [ROADMAP.md](ROADMAP.md) | What's next, in order |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Module map, dependency graph, language policy |
+| [example_prompts/](example_prompts/) | Generated prompts, regenerated by `scripts/rebuild_example_prompts.py` |
+| [POC_REPORT.md](POC_REPORT.md) | The original text-pipeline proof of concept (historical) |
+| [LINUX_PROTOTYPE.md](LINUX_PROTOTYPE.md) | The first installable prototype (historical - predates the hub and the shell bar) |
+| [../linux/omarchy-shell-widget.md](../linux/omarchy-shell-widget.md) | Setting up the bar widget |

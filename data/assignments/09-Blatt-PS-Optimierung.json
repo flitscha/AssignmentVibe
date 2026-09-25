@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "09-Blatt-PS-Optimierung.pdf",
  "sheet_number": 9,
  "discussion_date": "19/20 . 5 . 2026",
@@ -59,7 +60,7 @@
   {
    "number": 4,
    "title": "Sattelpunkt der Lagrange-Funktion",
-   "text": "Sattelpunkt der Lagrange-Funktion. Zeigen Sie, dass wenn ein kon-\nvexes Minimierungsproblem die Slater-Bedingung erfüllt, es zu jeder Minimallösung\nx∗∈Rn ein y∗∈D gibt, sodass (x∗, y∗) ein Sattelpunkt der Lagrangefunktion ist.\nSeite 1 von 1",
+   "text": "Sattelpunkt der Lagrange-Funktion. Zeigen Sie, dass wenn ein kon-\nvexes Minimierungsproblem die Slater-Bedingung erfüllt, es zu jeder Minimallösung\nx∗∈Rn ein y∗∈D gibt, sodass (x∗, y∗) ein Sattelpunkt der Lagrangefunktion ist.",
    "subparts": [],
    "script_references": null
   }

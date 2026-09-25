@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "10-Blatt-PS-Optimierung.pdf",
  "sheet_number": 10,
  "discussion_date": "26/27 . 5 . 2026",
@@ -63,7 +64,7 @@
   {
    "number": 4,
    "title": "Gradientenverfahren mit Liniensuche",
-   "text": "Gradientenverfahren mit Liniensuche. Was kann schon schiefge-\nhen?\na) Zeigen Sie, dass f : R →R, x 7→ex eine nach unten beschränkte konvexe Funktion\nist, für die Algorithmus 4.1.1 eine Folge ohne Häufungspunkte erzeugt. Besitzt f\nstationäre Punkte?\nb) Zeigen Sie, dass f : R →R, x 7→(x −1) x (x + 1) stationäre Punkte hat, aber\nAlgorithmus 4.1.1 mit x0 = −2 eine Folge ohne Häufungspunkte erzeugt.\nc) Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist.\nSeite 1 von 1",
+   "text": "Gradientenverfahren mit Liniensuche. Was kann schon schiefge-\nhen?\na) Zeigen Sie, dass f : R →R, x 7→ex eine nach unten beschränkte konvexe Funktion\nist, für die Algorithmus 4.1.1 eine Folge ohne Häufungspunkte erzeugt. Besitzt f\nstationäre Punkte?\nb) Zeigen Sie, dass f : R →R, x 7→(x −1) x (x + 1) stationäre Punkte hat, aber\nAlgorithmus 4.1.1 mit x0 = −2 eine Folge ohne Häufungspunkte erzeugt.\nc) Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist.",
    "subparts": [
     {
      "label": "a",
@@ -75,7 +76,7 @@
     },
     {
      "label": "c",
-     "text": "Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist.\nSeite 1 von 1"
+     "text": "Finde eine konvexe Funktion f : Rn →R, sodass für jedes x0 ∈Rn die Menge\n{x ∈Rn | f(x) ≤f(x0)} unbeschränkt ist."
     }
    ],
    "script_references": null

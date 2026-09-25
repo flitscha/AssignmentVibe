@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "Algebra.pdf",
  "sections": [
   {
@@ -3383,6 +3384,729 @@
    "section": "7.4",
    "name": null,
    "proof": null
+  }
+ ],
+ "exercises": [
+  {
+   "number": "1",
+   "title": "Für eine komplexe Zahl z = a + ib ∈C setzen wir Re(z)",
+   "text": "= a, Im(z) := b, z := a −ib, |z| =\n√\na2 + b2.\n(a) Zeigen Sie, dass für komplexe Zahlen z, z1, z2 gilt:\n(i) z1 + z2 = z1 + z2, z1z2 = z1z2, z−1 = z−1\n(ii) z + z = 2Re(z), z −z = 2iIm(z), z · z = |z|2\n(iii) |z| = |z|, |z1z2| = |z1| · |z2|, |z−1| = |z|−1\n(iv) |z1 + z2| ≤|z1| + |z2|\n(v) Finden Sie eine Formel für Re(z1z2), Im(z1z2).\n(b) Finden Sie alle komplexen Lösungen der folgenden Gleichungen:\nz2 = −1, z2 = −5, 2z2 −5z + 2 = 0.",
+   "page": 177,
+   "section": "9"
+  },
+  {
+   "number": "2",
+   "title": "Für φ ∈R setzen wir eiφ",
+   "text": "= cos(φ) + i sin(φ) ∈C.\n(a) Zeigen Sie, dass für φ, ψ ∈R stets gilt\n(i) |eiφ| = 1, eiφ = ei(−φ)\n(ii) eiφ·eiψ = ei(φ+ψ) (Hinweis: Verwenden Sie die Additionstheoreme für Sinus und\nCosinus)\n(b) Zeigen Sie, dass für jedes 0̸ = z ∈C eindeutig bestimmte r ∈(0, ∞), φ ∈\n[0, 2π) existieren mit\nz = r · eiφ.\n(Diese Darstellung von z heißt Darstellung in Polarkoordinaten).\n(c) Zeigen Sie, dass für die Darstellung z1 = reiφ, z2 = seiψ in Polarkoordinaten\ngilt:\nz1z2 = rsei(φ+ψ), |z1| = r.\nVeranschaulichen Sie sich damit die Multiplikation von komplexen Zahlen geo-\nmetrisch.\n174\nÜbungsaufgaben",
+   "page": 177,
+   "section": "9"
+  },
+  {
+   "number": "3",
+   "title": null,
+   "text": "Zeigen Sie, dass es für n ≥1 genau n verschiedene komplexe Lösun-\ngen der Gleichung\nzn = 1\ngibt (diese Lösungen heißen n-te Einheitswurzeln). Geben Sie diese Einheitswur-\nzeln in Polarkoordinaten an und veranschaulichen Sie sich ihre Lage in der kom-\nplexen Zahlenebene.",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "4",
+   "title": null,
+   "text": "Zeigen Sie, dass es für n ≥1 immer eine n-te Einheitswurzel gibt,\ndurchderenPotenzenmanalleanderenn-tenEinheitswurzelnerhält(einesolche\nEinheitswurzel heißt primitive n-te Einheitswurzel).",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "5",
+   "title": null,
+   "text": "Beweisen Sie Satz 1.1.2.",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "6",
+   "title": "SeienG, H Gruppenundφ",
+   "text": "G →H einGruppenhomomorphismus.\nZeigen Sie:\n(i) φ(eG) = eH und φ(g−1) = φ(g)−1 für alle g ∈G.\n(ii) Ist φ bijektiv, so ist φ−1 : H →G ebenfalls ein Gruppenhomomorphismus.\nBestimmen Sie alle Gruppenhomomorphismen φ: (Z, +) →(Z, +).",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "7",
+   "title": "SeiGeineGruppeundH < GeineUntergruppe.ZeigenSiedieÄquivalenz der folgenden Aussagen",
+   "text": "(i) gH = Hg für alle g ∈G.\n(ii) ∀h ∈H, g ∈G : g−1hg ∈H.\nEine Untergruppe, welche diese Bedingungen erfüllt, heißt normale Untergrup-\npe von G. Zeigen Sie, dass eine Untergruppe H < G mit |G : H| = 2 automa-\ntisch ein Normalteiler von G ist.",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "8",
+   "title": null,
+   "text": "BestimmenSie(bisaufIsomorphie)sämtlicheGruppenmit1,2,3und\n4 Elementen.",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "9",
+   "title": "Entscheiden Sie für die folgenden Gruppen, welche isomorph sind und welche nicht",
+   "text": "Z/12Z, Z/4Z × Z/3Z, Z/6Z × Z/2Z\n(R, +), (R \\ {0}, ·), (R>0, ·), (C \\ {0}, ·).",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "10",
+   "title": "Zeigen Sie",
+   "text": "(i) Die Menge S1 := {z ∈C | |z| = 1} ist eine Untergruppe von (C \\ {0}, ·).\n(ii) Es gilt (Z, +) ◁(R, +) und R/Z ∼= S1.\n175",
+   "page": 178,
+   "section": "9"
+  },
+  {
+   "number": "11",
+   "title": null,
+   "text": "Beweisen Sie den zweiten Isomorphiesatz (Satz 2.2.6).",
+   "page": 179,
+   "section": "9"
+  },
+  {
+   "number": "12",
+   "title": "Seien G1, G2 Gruppen. Zeigen Sie",
+   "text": "(i)DieMengeG1×G2 istmitkomponentenweisedefinierterVerknüpfungeine\nGruppe. Für i = 1, 2 ist die Abbildung\nπi : G1 × G2 →Gi\n(g1, g2) 7→gi\nein surjektiver Gruppenhomomorphismus.\n(ii) Sei H < G1 × G2 mit πi(H) = Gi für i = 1, 2. Dann gilt\nN1 := {g ∈G1 | (g, e) ∈H} ◁G1\nN2 := {g ∈G2 | (e, g) ∈H} ◁G2.\n(iii] Die Abbildung\nπ: G1 × G2 →G1/N1 × G2/N2\n(g1, g2) 7→(g1N1, g2N2)\nist ein Gruppenhomomorphismus. Die Menge π(H) ist der Graph eines Isomor-\nphismus von G1/N1 nach G2/N2.",
+   "page": 179,
+   "section": "9"
+  },
+  {
+   "number": "13",
+   "title": null,
+   "text": "Beweisen Sie Lemma 2.3.8.",
+   "page": 179,
+   "section": "9"
+  },
+  {
+   "number": "14",
+   "title": null,
+   "text": "(i) Eine Gruppe G mit 55 Elementen operiere auf einer Menge X mit\n39 Elementen. Zeigen Sie, dass es mindestens ein Element x ∈X geben muss\nmit g · x = x für alle g ∈G (ein solches Element heißt Fixpunkt der Operation).\n(ii) Finden Sie ein Beispiel für eine Gruppenoperation wie in (i), die genau einen\nFixpunkt hat.",
+   "page": 179,
+   "section": "9"
+  },
+  {
+   "number": "15",
+   "title": null,
+   "text": "Sei G eine Gruppe mit n Elementen und X = Abb(G, {1, . . . , n})\ndie Menge aller Abbildungen von G in die Menge {1, . . . , n}.\n(i) Zeigen Sie, dass die folgende Vorschrift eine Gruppenoperation von G auf X\ndefiniert:\nG × X →X\n(g, f) 7→(g · f : h 7→f(hg)).\n(ii) Bestimmen Sie alle Fixpunkte dieser Operation.\n(iii) Zeigen Sie, dass jede Untergruppe H < G der Stabilisator eines geeigneten\nf ∈X ist.\n176\nÜbungsaufgaben",
+   "page": 179,
+   "section": "9"
+  },
+  {
+   "number": "16",
+   "title": "Zeigen Sie",
+   "text": "(i) Für n ∈Z ist auf Z/nZ die folgende Multiplikation wohldefiniert:\n(a + nZ) · (b + nZ) := (ab) + nZ.\n(ii) Ist p eine Primzahl, so ist Z/pZ mit + und · ein Körper.\n(iii) Seien a, p ∈N mit p prim und 1 ≤a < p. Dann gilt in Z:\np | ap−1 −1.\nHinweis zu (iii): Betrachten Sie die multiplikative Gruppe (Z/pZ) \\ {0}.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "17",
+   "title": null,
+   "text": "Zeigen Sie, dass für n ≥3 jedes Element von An ein Produkt von\nZykeln der Länge 3 ist.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "18",
+   "title": null,
+   "text": "Zeigen Sie, dass A4 keine Untergruppe mit 6 Elementen hat.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "19",
+   "title": null,
+   "text": "Zeigen Sie, dass\n(Z/nZ) × (Z/mZ) ∼= Z/mnZ\ngenau dann gilt, wenn m und n teilerfremd sind.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "20",
+   "title": null,
+   "text": "Bestimmen Sie (bis auf Isormorphie) alle Gruppen mit 5, 6, 7 Ele-\nmenten.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "21",
+   "title": null,
+   "text": "Zeige Sie, dass jede Untergruppe einer zyklischen Gruppe zyklisch\nist.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "22",
+   "title": null,
+   "text": "Zeigen Sie K(A4) ∼= Z/2Z × Z/2Z und K2(A4) = {id}.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "23",
+   "title": "Seien G, H Gruppen. Zeigen Sie",
+   "text": "(i) Die Menge\nAut(G) := {φ: G →G | φ Gruppenisomorphismus}\nist bezüglich Hintereinanderausführung von Abbildungen eine Gruppe (genannt\ndie Automorphismengruppe von G).\n(ii) Sei θ: H →Aut(G) ein Gruppenhomomorphismus. Dann macht die fol-\ngende Verknüpfung die Menge G × H zu einer Gruppe:\n(g, h) · (g′, h′) := (g · θ(h)(g′), h · h′).\n177\nUm Verwechslung mit der komponentenweise definierten Verknüpfung zu ver-\nmeiden, bezeichnet man diese Gruppe dann mit G ⋊θ H.\n(iii) Die Abbildung\nι: G →G ⋊θ H\ng 7→(g, e)\nist ein injektiver Gruppenhomomorphismus und im(ι) ist eine normale Unter-\ngruppe in G ⋊θ H.",
+   "page": 180,
+   "section": "9"
+  },
+  {
+   "number": "24",
+   "title": "Seien G eine endliche Gruppe und p, q zwei verschiedene Primzahlen. Zeigen Sie",
+   "text": "(i) Falls G nur eine einzige p-Sylow-Untergruppe besitzt, so ist diese eine nor-\nmale Untergruppe in G.\n(ii) Ist S eine p-Sylow-Untergruppe und T eine q-Sylow-Untergruppe von G,\nso gilt S ∩T = {e}.\n(iii) Jede Gruppe mit 30 Elementen besitzt eine nichttriviale normale Unter-\ngruppe.",
+   "page": 181,
+   "section": "9"
+  },
+  {
+   "number": "25",
+   "title": "Sei G eine Gruppe und S < G eine Untergruppe. Wir setzen NorG(S)",
+   "text": "=\n\ng ∈G | gSg−1 = S\n\n.\nZeigen Sie S ◁NorG(S) < G.\nSei nun H ◁G eine normale Untergruppe und S < H eine p-Sylow-Untergruppe\nvon H. Zeigen Sie:\n(i) Für jedes g ∈G existiert ein h ∈H mit gSg−1 = hSh−1.\n(ii) Es gilt NorG(S) · H = G.",
+   "page": 181,
+   "section": "9"
+  },
+  {
+   "number": "26",
+   "title": "Im Matrixring M2(C) betrachten wir die folgende Teilmenge",
+   "text": "H :=\n a\nb\n−b\na\n\n| a, b ∈C\n\n.\nZeigen Sie:\n(i) H ist ein nicht-kommutativer Teilring von M2(C).\n(ii) H× = H \\ {0}.\n(iii) Die folgende Teilmenge von H bildet eine Untergruppe bezüglich Multi-\nplikation\nG =\n\n±\n 1\n0\n0\n1\n\n, ±\n i\n0\n0\n−i\n\n, ±\n\n0\n1\n−1\n0\n\n, ±\n 0\ni\ni\n0\n\n.\n178\nÜbungsaufgaben\n(iv) Bestimmen Sie alle Untergruppen von G und zeigen Sie, dass alle normale\nUntergruppen in G sind.",
+   "page": 181,
+   "section": "9"
+  },
+  {
+   "number": "27",
+   "title": null,
+   "text": "(i) Zeigen Sie, dass der einzige Ringhomomorphismus von Q nach\nQ sowie von R nach R jeweils die Identität ist.\n(ii) Bestimmen Sie alle Ringhomomorphismen φ: C →C mit φ(R) ⊆R.",
+   "page": 182,
+   "section": "9"
+  },
+  {
+   "number": "28",
+   "title": "Sei φ",
+   "text": "R →S ein Ringhomomorphismus. Zeigen Sie:\n(i) φ(R) ist ein Teilring von S.\n(ii) Für jedes Ideal J ◁S ist φ−1(J) ein Ideal in R.\n(iii) Ist φ surjektiv, so ist für jedes Ideal I ◁R auch φ(I) ein Ideal in S.\n(iv) Stimmt Aussage (iii) auch ohne Surjektivität?",
+   "page": 182,
+   "section": "9"
+  },
+  {
+   "number": "29",
+   "title": null,
+   "text": "Beweisen Sie Lemma 3.1.10.",
+   "page": 182,
+   "section": "9"
+  },
+  {
+   "number": "30",
+   "title": "Bestimmen Sie alle ganzzahligen Lösungen des folgenden Systems linearer Kongruenzen",
+   "text": "x ≡1 mod 3\nx ≡2 mod 7\nx ≡3 mod 4.",
+   "page": 182,
+   "section": "9"
+  },
+  {
+   "number": "31",
+   "title": "Sei R ein kommutativer Ring und I ◁R ein Ideal. Wir definieren",
+   "text": "√\nI := {a ∈R | am ∈I für ein m ≥1} .\nZeigen Sie:\n(i)\n√\nI ist ein Ideal in R mit I ⊆\n√\nI.\n(ii) Es gilt\np√\nI =\n√\nI.\nBerechnen sie im Ring R = Z\n√\n2Z,\n√\n4Z,\n√\n6Z.\nFür welche n ∈Z gilt\n√\nnZ = nZ?",
+   "page": 182,
+   "section": "9"
+  },
+  {
+   "number": "32",
+   "title": null,
+   "text": "Sei R ein kommutativer Ring, M eine nichtleere und unter Multi-\nplikation abgeschlossene Teilmenge von R, sowie I ◁R ein Ideal mit I ∩M = ∅.\nZeigen Sie:\n(i) Es gibt ein Ideal p ◁R, welches maximal ist bezüglich der Eigenschaften\nI ⊆p,\np ∩M = ∅.\n(ii) Jedes solche Ideal p ist ein Primideal in R.\n179",
+   "page": 182,
+   "section": "9"
+  },
+  {
+   "number": "33",
+   "title": "Zeigen Sie, dass die beiden folgenden Ideale jeweils nicht von einem Element als Ideal erzeugt werden",
+   "text": "(x1, x2) ◁Q[x1, x2],\n(2, x) ◁Z[x].",
+   "page": 183,
+   "section": "9"
+  },
+  {
+   "number": "34",
+   "title": null,
+   "text": "(i) Zeigen Sie, dass im Ring Z[i] Division mit Rest existiert, es also\nfür a, b ∈Z[i] immer c, r ∈Z[i] gibt mit\nb = ca + r\nund |r| < |a| (der Betrag ist hier der bekannte Betrag von komplexen Zahlen).\n(ii) Beweisen Sie, dass Z[i] ein Hauptidealring ist.",
+   "page": 183,
+   "section": "9"
+  },
+  {
+   "number": "35",
+   "title": "Seiφ",
+   "text": "R ↠S einsurjektiverRinghomomorphismusundRnoethersch.\nZeigen Sie, dass S dann auch noethersch ist. Zeigen Sie dasselbe auch für die Ei-\ngenschaft \"Hauptidealring\".",
+   "page": 183,
+   "section": "9"
+  },
+  {
+   "number": "36",
+   "title": null,
+   "text": "SeiReinIntegritätsring.ZeigenSie,dassR[x]genaudanneinHaupt-\nidealring ist, wenn R ein Körper ist.",
+   "page": 183,
+   "section": "9"
+  },
+  {
+   "number": "37",
+   "title": null,
+   "text": "Bestimmen Sie sämtliche Ideale in Z/12Z und entscheiden Sie, wel-\nche davon Primideale sind.",
+   "page": 183,
+   "section": "9"
+  },
+  {
+   "number": "38",
+   "title": "Sei R = C([0, 1], R) der Ring der stetigen reellwertigen Funktionen auf [0, 1]. Zeigen Sie",
+   "text": "(i) Für jedes echte Ideal I ⪇◁R gibt es ein a ∈[0, 1] mit f(a) = 0 für alle f ∈I.\n(ii) Für jedes a ∈[0, 1] ist die Menge\nma := {f ∈R | f(a) = 0}\nein maximales Ideal in R.\n(iii) Jedes maximale Ideal in R ist von der Gestalt ma für ein a ∈[0, 1].\n(iv) Für a ∈(0, 1) ist die Menge\nIa := {f ∈R | ∃ε > 0: f ≡0 auf (a −ε, a + ε)}\nein Ideal in R, aber kein Primideal.\n(v) Es gibt ein Primideal pa in R mit\nIa ⊆pa ⊊ma.\nInsbesondere ist pa nicht maximal.\n(Hinweis: Verwenden Sie hierfür Aufgabe 32.)\n180\nÜbungsaufgaben",
+   "page": 183,
+   "section": "9"
+  },
+  {
+   "number": "39",
+   "title": null,
+   "text": "(i) Bestimmen Sie den Quotientenkörper des Rings Z[i] der gan-\nzen Gauss’schen Zahlen.\n(ii) Zeigen Sie, dass zwei isomorphe Integritätsringe auch isomorphe Quoti-\nentenkörper besitzen.\n(iii) Geben Sie zwei nicht-isomorphe Integritätsringe an, deren Quotienten-\nkörper isomorph sind.",
+   "page": 184,
+   "section": "9"
+  },
+  {
+   "number": "40",
+   "title": "Überprüfen Sie die folgenden Polynome auf Irreduzibilität im Polynomring Q[x]",
+   "text": "p1 = x2 −2x + 2\np2 = x10 + 2x8 + 4x6 + 6x4 + 8x2 + 10\np3 = 3x2 −9x −27\np4 = x4 + x3 + 2x2 + x + 1.\nWelche der Polynome sind auch irreduzibel in Z[x]?",
+   "page": 184,
+   "section": "9"
+  },
+  {
+   "number": "41",
+   "title": null,
+   "text": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1, . . . , p −1 in Z\nstets\np |\np\ni\n\ngilt. Stimmt die Aussage auch, wenn p keine Primzahl ist?",
+   "page": 184,
+   "section": "9"
+  },
+  {
+   "number": "42",
+   "title": null,
+   "text": "Sei R ein faktorieller Ring und p ◁R ein Primideal. Durch Anwen-\ndung der kanonischen Projektion R →R/p auf die Koeffizienten von Polynomen\nerhalten wir einen Homomorphismus φ: R[x] →(R/p)[x]. Zeigen Sie:\n(i) Sei p ∈R[x] primitiv mit Leitkoeffizient nicht in p. Falls dann φ(p) irredu-\nzibel in (R/p)[x] ist, so ist p auch irreduzibel in R[x].\n(ii) 1 + x3 + x5 ist irreduzibel in Z[x].",
+   "page": 184,
+   "section": "9"
+  },
+  {
+   "number": "43",
+   "title": null,
+   "text": "Bestimmen Sie alle irreduziblen Polynome in C[x] und in R[x]. Ist\nder Grad aller irreduziblen Polynome in Q[x] beschränkt?",
+   "page": 184,
+   "section": "9"
+  },
+  {
+   "number": "44",
+   "title": "Wir betrachten die Menge R",
+   "text": "= {p ∈Q[x] | p′(0) = 0}. Zeigen Sie:\n(i) R ist ein Teilring von Q[x].\n(ii) Jedes Element in R ist ein Produkt von endlich vielen irreduziblen Elemen-\nten aus R.\n(iii) R ist nicht faktoriell.\n181",
+   "page": 184,
+   "section": "9"
+  },
+  {
+   "number": "45",
+   "title": null,
+   "text": "(i) Zeigen Sie, dass Q[\n√\n2] :=\n\na + b\n√\n2 | a, b ∈Q\n\nein Teilkörper\nvon R ist.\n(ii) Zeigen Sie, dass die Ringe Q[\n√\n2] und Q[x]/(x2 −2) isomorph sind.",
+   "page": 185,
+   "section": "9"
+  },
+  {
+   "number": "46",
+   "title": "Sei R ein kommutativer Ring und M ⊆R mit 1 ∈M und M · M ⊆ M. Zeigen Sie",
+   "text": "(i) Die folgende Setzung definiert eine Äquivalenzrelation auf R × M:\n(r, m) ∼(s, n) :⇔∃p ∈M : p(rn −sm) = 0\n(ii) Auf der Menge der Äquivalenzklassen von ∼sind die beiden folgenden Ver-\nknüpfungen wohldefiniert und machen sie zu einem kommutativen Ring:\n[(r, m)] + [(s, n)] := [(rn + sm, mn)]\n[(r, m)] · [(s, n)] := [(rs, mn)].\nDiesen Ring bezeichnet man auch mit M −1R und nennt ihn die Lokalisierung von\nR nach M. Für die Äquivalenzklasse [(r, m)] schreibt man auch r\nm.\n(iii) Die Abbildung\nι: R →M −1R\nr 7→r\n1\nisteinRinghomomorphismus.FallsM keineNullteilervonRenthältistιinjektiv.\nFür m ∈M ist ι(m) in M −1R invertierbar.",
+   "page": 185,
+   "section": "9"
+  },
+  {
+   "number": "47",
+   "title": "SeiR einkommutativerRingund∂",
+   "text": "R[x] →R[x]dieformaleAblei-\ntungsabbildung (d.h. ∂(Pd\ni=0 cixi) := Pd\ni=1 icixi−1). Zeigen Sie für p, q ∈R[x]\nund r ∈R die folgenden Aussagen:\n(i) ∂(p + q) = ∂(p) + ∂(q), ∂(rp) = r∂(p).\n(ii) ∂(pq) = p∂(q) + q∂(p).",
+   "page": 185,
+   "section": "9"
+  },
+  {
+   "number": "48",
+   "title": "Sei k ein Körper und q ∈k[x] ein Polynom. Zeigen Sie",
+   "text": "(i) Es gibt eine Körpererweiterung k ⊆K, so dass q in K[x] in Linearfaktoren\nzerfällt.\n(ii) Falls ggT(q, ∂(q)) = 1 in k[x] gilt, so hat q in K (wie in (i)) keine doppelte\nNullstelle (d.h. alle Linearfaktoren sind verschieden).\n(iii) Sei p eine Primzahl, n = pr für ein r ∈N und q = xn −x ∈Fp[x]. Dann\ngilt ggT(q, ∂(q)) = 1 in Fp[x].\n(iv) Für jede Primzahl p und jedes r ∈N gibt es einen Körper mit genau pr\nElementen.\n182\nÜbungsaufgaben",
+   "page": 185,
+   "section": "9"
+  },
+  {
+   "number": "49",
+   "title": null,
+   "text": "Bestimmen Sie das Minimalpolynom von\n√\n2+\n√\n3 über Q, den Kör-\npergrad\n\nQ(\n√\n2 +\n√\n3) : Q\n\nsowie eine Basis des Q-Vektorraums\nQ(\n√\n2 +\n√\n3).",
+   "page": 186,
+   "section": "9"
+  },
+  {
+   "number": "50",
+   "title": null,
+   "text": "Zeigen Sie\nMin(\n√\n2 + i, R) = x2 −2\n√\n2x + 3 und Min(\n√\n2 + i, Q) = x4 −2x2 + 9.",
+   "page": 186,
+   "section": "9"
+  },
+  {
+   "number": "51",
+   "title": null,
+   "text": "Seien m, n ∈N teilerfremde Zahlen, für die man sowohl ein gleich-\nseitiges m-Eck als auch ein gleichseitiges n-Eck mit Zirkel und Lineal aus 0, 1\nkonstruieren kann. Zeigen Sie, dass man dann auch ein gleichseitiges mn-Eck\nmit Zirkel und Lineal aus 0, 1 konstruieren kann.",
+   "page": 186,
+   "section": "9"
+  },
+  {
+   "number": "52",
+   "title": null,
+   "text": "Sei K ein algebraisch abgeschlossener Körper (d.h. jedes Polynom\naus K[x] zerfällt in K[x] in Linearfaktoren). Zeigen Sie, dass K unendlich ist.",
+   "page": 186,
+   "section": "9"
+  },
+  {
+   "number": "53",
+   "title": "Sei k ⊆K eine Körpererweiterung. Wir definieren Aut(K, k)",
+   "text": "=\n\nφ: K →K | φ bijektiver Ringhomomorphismus, φ|k = idk\n\n.\nZeigen Sie:\n(i) Aut(K, k) ist eine Gruppe bezüglich Hintereinanderausführung.\n(ii) Für jede Untergruppe H < Aut(K, k) ist\nFix(H) := {a ∈K | ∀φ ∈H : φ(a) = a }\nein Körper zwischen k und K.\n(iii) Für jeden Zwischenkörper k ⊆L ⊆K ist Aut(K, L) eine Untergruppe\nvon Aut(K, k).\n(iv) Es gilt L ⊆Fix (Aut(K, L)) und H ⊆Aut (K, Fix(H)) .",
+   "page": 186,
+   "section": "9"
+  },
+  {
+   "number": "54",
+   "title": null,
+   "text": "Sei K ein Körper, P ⊆K[x1, . . . , xn], I = (P) das von P erzeugte\nIdeal und V ⊆Kn. Wir definieren\nV(P) := {a ∈Kn | ∀p ∈P : p(a) = 0}\nI(V ) := {p ∈K[x1, . . . , xn] | ∀a ∈V : p(a) = 0} .\nZeigen Sie:\n(i) V(P) = V(I) = V(\n√\nI).\n(Siehe Aufgabe 31 für die Definition von\n√\nI.)\n(ii) Es gibt eine endliche Teilmenge P ′ ⊆P mit V(P) = V(P ′).\n(iii) I(V ) ist ein Ideal in K[x1, . . . , xn] mit\np\nI(V ) = I(V ).\n(iv) I ⊆I (V(I)) und V ⊆V (I(V )) .\n183",
+   "page": 186,
+   "section": "9"
+  },
+  {
+   "number": "55",
+   "title": null,
+   "text": "Sei R ein kommutativer Ring und I ◁R ein Ideal. Für a ∈R \\\n√\nI betrachten wir die Menge M = {1, a, a2, a3, . . .}, die Lokalisierung M −1R\nunddenkanonischenHomomorphismusι: R →M −1R (vergleicheAufgabe46).\nZeigen Sie:\n(i) Das von ι(I) in M −1R erzeugte Ideal ist nicht der ganze Ring M −1R.\n(ii) Es gibt ein maximales Ideal m ◁M −1R mit ι(I) ⊆m.\n(iii) Es gibt ein Primideal p ◁R mit I ⊆p und a /∈p.\n(iv)\n√\nI ist der Durchschnitt aller über I liegenden Primideale.",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "56",
+   "title": null,
+   "text": "Sei k ⊆K eine Körpererweiterung und K algebraisch abgeschlos-\nsen. Zeigen Sie, dass die folgende Menge der algebraische Abschluss von k ist:\n{a ∈K | a algebraisch über k} .",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "57",
+   "title": "Sei p ∈k[x] und K der Zerfällungskörper von p über k. Zeigen Sie [K",
+   "text": "k] ≤deg(p)!",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "58",
+   "title": null,
+   "text": "Zeigen Sie, dass es für eine Primzahlpotenz q = pr bis auf Isomor-\nphie genau einen Körper mit q Elementen gibt.",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "59",
+   "title": null,
+   "text": "Zeigen Sie, dass jede Körpererweiterung vom Grad 2 normal ist.",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "60",
+   "title": null,
+   "text": "Zeigen Sie, dass jedes irreduzible Polynom aus Fd[x] (wobei d eine\nPrimzahl ist) separabel ist.\nHinweis:VerwendenSieSatz4.5.10unddieSurjektivitätdesFrobenius-Automorphismus.",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "61",
+   "title": null,
+   "text": "Zeigen Sie, dass die Körpererweiterung Q ⊆Q(\n4√\n2, i) normal ist.",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "62",
+   "title": "Sei p eine Primzahl, ξ",
+   "text": "= e2πi/p ∈C und K := Q(ξ). Zeigen Sie,\ndass für jedes j = 1, . . . , p −1 genau ein Q-Automorphismus φj von K existiert\nmit\nφj(ξ) = ξj.",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "63",
+   "title": null,
+   "text": "Berechnen Sie ein primitives Element für die Körpererweiterung\nQ ⊆Q(\n√\n2,\n√\n3).",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "64",
+   "title": "Sei p ∈k[x] ein Polynom vom Grad d und K sein Zerfällungskörper über k. Zeigen Sie",
+   "text": "(i) Es gibt einen injektiven Gruppenhomomorphismus Gal(K, k) ,→Sd.\n(ii) Finden Sie ein Beispiel für ein irreduzibles Polynom p ∈k[x], für das der\nHomomorphismus aus (i) nicht surjektiv ist.\n(iii) Berechnen Sie Gal(K, k) im Fall p = x3 −2.\n184\nÜbungsaufgaben",
+   "page": 187,
+   "section": "9"
+  },
+  {
+   "number": "65",
+   "title": null,
+   "text": "Sei n eine Primzahl und σ, τ ∈Sn Zykel der Länge 2 und n. Zeigen\nSie, dass σ, τ schon die ganze Permutationsgruppe erzeugen.",
+   "page": 188,
+   "section": "9"
+  },
+  {
+   "number": "66",
+   "title": null,
+   "text": "Bestimmen Sie sämtliche Zwischenkörper der Erweiterung\nQ ⊆Q(\n√\n2,\n√\n3).",
+   "page": 188,
+   "section": "9"
+  },
+  {
+   "number": "67",
+   "title": null,
+   "text": "Sei p ∈k[x] ein irreduzibles Polynom sowie K sein Zerfällungs-\nkörper über k. Zeigen Sie, dass es für je zwei Nullstellen a, b ∈K von p ein\nφ ∈Gal(K, k) gibt mit φ(a) = b.",
+   "page": 188,
+   "section": "9"
+  },
+  {
+   "number": "68",
+   "title": "Seien a1, a2, a3, a4 ∈C derart, dass das Polynom f",
+   "text": "= (x −a1)(x −a2)(x −a3)(x −a4)\nKoeffizienten in Q hat. Wir setzen\nb1 := (a1 + a2)(a3 + a4)\nb2 := (a1 + a3)(a2 + a4)\nb3 := (a1 + a4)(a2 + a3)\nund g := (x −b1)(x −b2)(x −b3). Zeigen Sie: Die Koeffizienten von g liegen\nebenfalls in Q. (Tipp: Es ist nicht nötig, die Koeffizienten auszurechnen! Verwenden\nSie den Hauptsatz der Galoistheorie.)",
+   "page": 188,
+   "section": "9"
+  },
+  {
+   "number": "69",
+   "title": "Sei k = F2(t) mit einer Variablen t. Zeigen Sie, dass p",
+   "text": "= x2 −t ∈k[x]\nirreduzibel, der Körper K := k[x]/(p) der Zerfällungskörper von p, aber die Er-\nweiterung k ⊆K keine Galoiserweiterung ist.",
+   "page": 188,
+   "section": "9"
+  },
+  {
+   "number": "70",
+   "title": null,
+   "text": "Für i = 1, . . . , n definieren wir Polynome si ∈Q[y1, ..., yn] durch\nxn + s1xn−1 + · · · + sn−1x + sn = (x + y1) · · · (x + yn).\nEine rationale Funktion f ∈Q(y1, ..., yn) heißt symmetrisch, wenn für jede Per-\nmutation π ∈Sn\nf(yπ(1), ..., yπ(n)) = f(y1, ..., yn)\ngilt. Zeigen Sie:\n(i) Die Polynome si sind symmetrisch.\n(ii) Die Erweiterung Q(s1, ..., sn) ⊆Q(y1, ..., yn) ist Galoissch.\n(iii) Die Galois-Gruppe der Erweiterung aus (ii) ist isomorph zu Sn.\nWas kann man mithilfe des Hauptsatzes der Galoistheorie über symmetrische\nrationale Funktionen aussagen?\n185",
+   "page": 188,
+   "section": "9"
+  },
+  {
+   "number": "71",
+   "title": "Zeigen Sie",
+   "text": "Für jede endliche Gruppe G gibt es eine Galoiserweite-\nrung K ⊆L mit Gal(L, K) ∼= G. (Tipp: Verwenden Sie Aufgabe 70.)",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "72",
+   "title": null,
+   "text": "(i) Finden Sie ein Bespiel für einen freien R-Modul M mit Untermo-\ndul N ⊆M, so dass N nicht frei ist.\n(ii)FindenSieeinBeispielfüreinenR-ModulM mitUntermodulN ⊆M,sodass\nkein Untermodul N ′ ⊆M existiert mit\nN ⊕N ′ = M.\n(iii) Finden Sie ein Bespiel für einen endlich erzeugten R-Modul M mit Unter-\nmodul N ⊆M, so dass N nicht endlich erzeugt ist.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "73",
+   "title": null,
+   "text": "Beweisen Sie Lemma 5.1.9.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "74",
+   "title": "Sei M ein R-Modul und N ⊆M ein Untermodul. Zeigen Sie",
+   "text": "(i) Sind N und M/N endlich erzeugt, so auch M.\n(ii) Ist M endlich erzeugt, so auch M/N, aber nicht unbedingt N.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "75",
+   "title": null,
+   "text": "SeiReinkommutativerRing.ZeigenSiedassRgenaudannnoethersch\nist, wenn alle Primideale von R endlich erzeugt sind.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "76",
+   "title": null,
+   "text": "Sei R ein nullteilerfreier Hauptidealring und M ⊆Rn ein Untermo-\ndul. Zeigen Sie, dass M genau dann die Lösungsmenge eines homogenen linea-\nren Gleichungssystems über R ist, wenn ein Untermodul N ⊆Rn existiert mit\nRn = M ⊕N.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "77",
+   "title": "Seien R ein Integritätsring und M ein R-Modul. Zeigen Sie",
+   "text": "(i) Es ist\nM tor := {m ∈M | ∃0̸ = r ∈R : rm = 0}\nein Untermodul von M.\n(ii) Für N := M/M tor gilt\nN tor = {0}.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "78",
+   "title": null,
+   "text": "BestimmenSiebisaufIsomorphiesämtlicheabelschenGruppenmit\n8, 9, 10, 11 und 12 Elementen.",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "79",
+   "title": "Bestimmen Sie in Abhängigkeit von a, b, c ∈Z sämtliche ganzzahligen Lösungen des folgenden linearen Gleichungssystems",
+   "text": "4x −11y −2z = a\n−5x + 13y + 4z = b\n−10x + 23y + 8z = c\n186\nÜbungsaufgaben",
+   "page": 189,
+   "section": "9"
+  },
+  {
+   "number": "80",
+   "title": "Sei R ein kommutativer Ring und A, B, M, N jeweils R-Moduln. Zeigen Sie",
+   "text": "(i) Es ist\nHomR(A, B) := {f : A →B | f Modulhomomorphismus}\nmit punktweiser Addition und skalarer Multiplikation wieder ein R-Modul.\n(ii) Für jeden Modulhomomorphismus φ: A →B liefern die folgenden Abbil-\ndungen wieder Modulhomomorphismen:\nφ∗: HomR(B, M) →HomR(A, M)\nf 7→f ◦φ.\nφ∗: HomR(M, A) →HomR(M, B)\nf 7→φ ◦f.\n(iii) Finden Sie ein Beispiel, in dem φ injektiv, aber φ∗nicht surjektiv ist, sowie\neines, in dem φ surjektiv aber φ∗nicht injektiv ist.",
+   "page": 190,
+   "section": "9"
+  },
+  {
+   "number": "81",
+   "title": null,
+   "text": "Bestimmen Sie im Ring F2[x] den größten gemeinsamen Teiler von\np = x7 + x4 + x + 1 und q = x3 + x\nsowie eine Darstellung\nggT(p, q) = rp + sq\nmit r, s ∈F2[x].",
+   "page": 190,
+   "section": "9"
+  },
+  {
+   "number": "82",
+   "title": "Bestimmen Sie über dem Ring Q[t] die Smith-Normalform der folgenden Matrix",
+   "text": "t\n0\n0\n0\nt −1\n0\n0\n0\nt2",
+   "page": 190,
+   "section": "9"
+  },
+  {
+   "number": "83",
+   "title": null,
+   "text": "Zeigen Sie, dass Z[√−2] ein euklidischer Ring ist.",
+   "page": 190,
+   "section": "9"
+  },
+  {
+   "number": "84",
+   "title": "Sei φ",
+   "text": "R →S ein Ringhomomorphismus und M ein R-Modul.\nZeigen Sie, dass die in der Vorlesung definierte Skalarmultiplikation von S auf\nM ⊗R S\nwohldefiniert ist und M ⊗R S dadurch ein S-Modul wird.\n187",
+   "page": 190,
+   "section": "9"
+  },
+  {
+   "number": "85",
+   "title": null,
+   "text": "Zeigen Sie, dass die R-bilineare Abbildung\nRm × Rn →Matm,n(R)\n(v, w) 7→vwt\ndie universelle Eigenschaft des Tensorproduktes erfüllt. Also gilt\nRm ⊗R Rn ∼= Matm,n(R).",
+   "page": 191,
+   "section": "9"
+  },
+  {
+   "number": "86",
+   "title": null,
+   "text": "Zeigen Sie\n(Z/mZ) ⊗Z (Z/nZ) ∼= Z/ggT(m, n)Z.",
+   "page": 191,
+   "section": "9"
+  },
+  {
+   "number": "87",
+   "title": null,
+   "text": "SeiR ⊆R2 einRechteck,aufgeteiltinendlichvieleRechteckeR1, . . . , Rn,\ndie sich nur an den Rändern berühren. Seien ai, bi jeweils die Seitenlängen von\nRi und a, b die Seitenlängen von R. Zeigen Sie:\n(i) In R ⊗Q R gilt a ⊗b = Pn\ni=1 ai ⊗bi.\n(ii) Wenn jedes Ri mindestens eine rationale Seitenlänge hat, so hat auch R\nmindestens eine rationale Seitenlänge.",
+   "page": 191,
+   "section": "9"
+  },
+  {
+   "number": "88",
+   "title": null,
+   "text": "Sei R ein nullteilerfreier faktorieller Ring und K = Quot(R) sein\nQuotientenkörper. Zeigen Sie, dass die einzigen über R ganzen Elemente von K\ndie Elemente aus R selbst sind.",
+   "page": 191,
+   "section": "9"
+  },
+  {
+   "number": "89",
+   "title": null,
+   "text": "SeiK einalgebraischabgeschlossenerKörperundI ⊆K[x1, . . . , xn]\nein Ideal. Wir betrachten dessen Nullstellenmenge\nV(I) = {a ∈Kn | ∀p ∈I : p(a) = 0}\nund deren sogenannten Verschwindungsideal\nI(V(I)) = {p ∈K[x1, . . . , xn] | ∀a ∈V(I): p(a) = 0}\n(vergleiche Aufgabe 54). Zeigen Sie\nI(V(I)) =\n√\nI.\nHinweis: Wenden Sie für p ∈I(V(I)) Hilberts Nullstellensatz auf das von I und tp −1\nin K[x1, . . . , xn, t] erzeugte Ideal an.\n188\nÜbungsaufgaben",
+   "page": 191,
+   "section": "9"
+  },
+  {
+   "number": "90",
+   "title": "Sei K ein Körper. Zeigen Sie",
+   "text": "(i) K[x, y]/(x2 −y) ist isomorph zum Polynomring K[t] in einer Variablen.\n(ii) K[x, y]/(xy −1) ist nicht isomorph zu K[t].",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "91",
+   "title": null,
+   "text": "Sei R ein noetherscher Ring und I ◁R ein Ideal. Zeigen Sie, dass es\nin R nur endlich viele minimale Primideale über I gibt.",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "92",
+   "title": "Sei R ein Ring, I ◁R ein Ideal und π",
+   "text": "R →R/I die kanonische\nProjektion. Zeigen Sie, dass die Zuordnung\nJ 7→π(J)\neine Bijektion liefert, zwischen der Menge aller Ideale von R, welche I enthalten,\nund der Menge aller Ideale von R/I. Zeigen Sie weiter, dass sich dabei gerade\nPrimideale entsprechen.",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "93",
+   "title": null,
+   "text": "Für einen Ring R bezeichnen wir mit Spec(R) die Menge seiner\nPrimideale. Für ein Ideal I ◁R definieren wir\nV(I) := {p ∈Spec(R) | I ⊆p} .\nZeigen Sie, dass die Mengen V(I) die Axiome für abgeschlossene Mengen einer\nTopologie erfüllen.",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "94",
+   "title": null,
+   "text": "Seien R, S Ringe. Bestimmen Sie Spec(R × S) in Abhängigkeit von\nSpec(R) und Spec(S).",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "95",
+   "title": null,
+   "text": "Sei R ein Ring und a, b ∈R mit a ∈CR(b) ∩R×. Zeigen Sie, dass\ndann auch a−1 ∈CR(b) gilt. Insbesondere gilt dann\nZ(R) ∩R× = Z(R)×.",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "96",
+   "title": "Für d | m ∈N definieren wir Φm/d",
+   "text": "=\nY\n1 ≤k ≤m\nggT(k, m) = d\n\nt −e\n2πik\nm\n\n.\nZeigen Sie:\n(i) Die Definition Φm/d hängt wirklich nur vom Quotienten m/d ab.\n(ii) Ist m/d eine Primzahl, so stimmt die Definition von Φm/d mit der aus Bei-\nspiel 3.5.23 (ii) überein.\n(iii) Die Koeffizienten von Φm/d sind ganze Zahlen.\n189",
+   "page": 192,
+   "section": "9"
+  },
+  {
+   "number": "97",
+   "title": null,
+   "text": "(i) Zeigen Sie, dass für char(K)̸ = 2 der Quaternionenring QK(a, b)\neinfach ist.\n(ii) Für welche a, b ∈C \\ {0} ist QC(a, b) ein Schiefkörper?",
+   "page": 193,
+   "section": "9"
+  },
+  {
+   "number": "98",
+   "title": "VervollständigenSiedenBeweisdesSatzesvonBurnside(Satz6.3.4)",
+   "text": "Falls A ⊆Matm(K) eine Unteralgebra ist, die transitiv auf Km operiert und eine\nMatrix von Rang 1 enthält, gilt A = Matm(K).",
+   "page": 193,
+   "section": "9"
+  },
+  {
+   "number": "99",
+   "title": null,
+   "text": "Sei A ⊆Matm(C) eine C-Unteralgebra, die unter ∗abgeschlossen\nist. Sei V ⊆Cm ein A-invarianter Unterraum. Zeigen Sie, dass dann auch V ⊥\nein A-invarianter Unterraum ist.",
+   "page": 193,
+   "section": "9"
+  },
+  {
+   "number": "100",
+   "title": null,
+   "text": "Zeigen Sie, dass Matm(K) und für char(K)̸ = 2 auch QK(a, b)\neine zentrale K-Algebra ist.",
+   "page": 193,
+   "section": "9"
+  },
+  {
+   "number": "101",
+   "title": null,
+   "text": "Zeigen Sie, dass die Hamming-Distanz eine Metrik auf Ak defi-\nniert.",
+   "page": 193,
+   "section": "9"
+  },
+  {
+   "number": "102",
+   "title": null,
+   "text": "Beweisen Sie Proposition 7.2.3.",
+   "page": 193,
+   "section": "9"
+  },
+  {
+   "number": "103",
+   "title": null,
+   "text": "Beweisen Sie die universelle Eigenschaft der Garbifizierung im Be-\nweis von Satz 7.4.13.",
+   "page": 193,
+   "section": "9"
   }
  ]
 }

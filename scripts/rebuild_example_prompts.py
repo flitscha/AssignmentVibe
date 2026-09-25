@@ -34,11 +34,17 @@ FAULTY_SOLUTION = (
 )
 
 EXAMPLES = [
-    # (output name, sheet id, task number, course name, chapters, partial solution)
-    ("algebra_no_selection", "A02", 4, "Algebra I", None, None),
-    ("algebra_with_partial_solution", "A07", 1, "Algebra I", None, FAULTY_SOLUTION),
+    # (output name, sheet id, task number, course name, chapters, partial
+    #  solution, single proofs)
+    ("algebra_no_selection", "A02", 4, "Algebra I", None, None, None),
+    ("algebra_with_partial_solution", "A07", 1, "Algebra I", None, FAULTY_SOLUTION,
+     None),
     ("optimierung_chapter_chosen", "07-Blatt-PS-Optimierung", 3,
-     "PS Optimierung", ["3"], None),
+     "PS Optimierung", ["3"], None, None),
+    # A task that is only a pointer into the script ("Lösen Sie Aufgabe (1.11)
+    # vom Skriptum"), with one proof picked out of the chapter.
+    ("optimierung_script_exercise", "03-Blatt-PS-Optimierung", 1,
+     "PS Optimierung", ["1.1"], None, ["Satz 1.1.13"]),
 ]
 
 KNOWLEDGE_FOR_SHEET = {"A": "algebra", "0": "optimierung", "1": "optimierung"}
@@ -50,7 +56,7 @@ def _load(path: Path) -> dict:
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for name, sheet_id, task_number, course, sections, solution in EXAMPLES:
+    for name, sheet_id, task_number, course, sections, solution, proof_of in EXAMPLES:
         sheet = _load(REPO_ROOT / "data" / "assignments" / f"{sheet_id}.json")
         task = next(t for t in sheet["tasks"] if t["number"] == task_number)
         knowledge_name = KNOWLEDGE_FOR_SHEET[sheet_id[0]]
@@ -60,7 +66,8 @@ def main() -> None:
                   if n.get("title")}
 
         prompt = build_prompt(task, sheet, entries, solution, course,
-                              sections=sections, section_titles=titles)
+                              sections=sections, section_titles=titles,
+                              exercises=knowledge.get("exercises"), proof_of=proof_of)
         out_path = OUT_DIR / f"{name}.txt"
         out_path.write_text(prompt + "\n", encoding="utf-8")
         print(f"{out_path.relative_to(REPO_ROOT)}  ({len(prompt)} characters)")

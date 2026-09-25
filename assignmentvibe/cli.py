@@ -172,6 +172,7 @@ def _build_from_args(args) -> str:
         sys.exit(1)
 
     knowledge = store.load_knowledge(course_slug) if course_slug else []
+    exercises = store.load_exercises(course_slug) if course_slug else []
     course_name = store.list_courses().get(course_slug, course_slug or "")
     solution = _resolve_solution(args)
 
@@ -181,6 +182,9 @@ def _build_from_args(args) -> str:
     proofs = getattr(args, "proofs", None)
     if proofs is None:
         proofs = saved.get("proofs")
+    proof_of = getattr(args, "proof_of", None)
+    if proof_of is None:
+        proof_of = saved.get("proof_of")
     algorithms = getattr(args, "algorithms", None)
     if algorithms is None:
         algorithms = bool(saved.get("algorithms"))
@@ -189,7 +193,8 @@ def _build_from_args(args) -> str:
                         sections=sections, include_proofs=proofs,
                         include_algorithms=algorithms,
                         section_titles=store.load_section_titles(course_slug)
-                        if course_slug else {})
+                        if course_slug else {},
+                        exercises=exercises, proof_of=proof_of)
 
 
 def cmd_build(args):
@@ -386,8 +391,10 @@ def _resolve_state(course: str) -> dict:
         "task": task_num,
         "sections": saved.get("sections") or [],
         "proofs": bool(saved.get("proofs")),
+        "proof_of": list(saved.get("proof_of") or []),
         "algorithms": bool(saved.get("algorithms")),
         "sheets": sheets,
+        "exercises": store.load_exercises(course),
     }
 
 
@@ -396,6 +403,50 @@ def _task_of(state: dict) -> dict | None:
     if not sheet or state.get("task") is None:
         return None
     return next((t for t in sheet["tasks"] if t["number"] == state["task"]), None)
+
+
+def _task_title(task: dict, exercises: list[dict]) -> str | None:
+    """What a task is about. A task that only points into the script ("Lösen
+    Sie Aufgabe (1.1) vom Skriptum") has no title of its own - the exercise it
+    points at does."""
+    from .core.prompts import resolve_exercises
+
+    found, _ = resolve_exercises(task, exercises)
+    if len(found) == 1:
+        title = f" {found[0]['title']}" if found[0].get("title") else ""
+        return f"({found[0]['number']}){title}"
+    return task.get("title")
+
+
+def _context_entries(course: str, state: dict) -> list[dict]:
+    """The statements the prompt would carry right now - the chosen chapters,
+    or the ones picked automatically for the current task."""
+    from . import store
+    from .core import selection
+    from .core.prompts import task_context
+
+    entries = store.load_knowledge(course)
+    task = _task_of(state)
+    if task:
+        context, _, _ = task_context(task, entries, state["exercises"],
+                                     state["sections"] or None, state["algorithms"])
+        return context
+    return selection.entries_in(entries, state["sections"], state["algorithms"])
+
+
+def _proofs_summary(state: dict, context_entries: list[dict]) -> str:
+    from .core.prompts import entry_id
+
+    if state["proofs"]:
+        return "all"
+    chosen = [entry_id(e) for e in context_entries
+              if e.get("proof") and entry_id(e) in state["proof_of"]]
+    if not chosen:
+        return "off"
+    names = ", ".join(chosen)
+    if len(names) > 44:
+        names = names[:41] + "…"
+    return f"{names}  ({len(chosen)})"
 
 
 def _sections_summary(course: str, state: dict) -> str:
@@ -408,7 +459,7 @@ def _sections_summary(course: str, state: dict) -> str:
     titles = store.load_section_titles(course)
     entries = selection.entries_in(store.load_knowledge(course), state["sections"],
                                    state["algorithms"])
-    size = _prompt_size(entries, state["proofs"])
+    size = _prompt_size(entries, state["proofs"], state["proof_of"])
     names = ", ".join(toc.label(titles, k) for k in state["sections"])
     if len(names) > 44:
         names = names[:41] + "…"
@@ -422,8 +473,8 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
 
     task_text = "none"
     if task:
-        title = f"  {task['title']}" if task.get("title") else ""
-        task_text = f"{task['number']}{title}"
+        title = _task_title(task, state["exercises"])
+        task_text = f"{task['number']}{f'  {title}' if title else ''}"
     sheet_text = "none read in yet"
     if sheet:
         newest = _latest_sheet(state["sheets"])
@@ -441,7 +492,8 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
         (f"   Sheet     {ARROW}  {sheet_text}", "sheet"),
         (f"   Course    {ARROW}  {course_name}", "course"),
         (f"   Chapters  {ARROW}  {_sections_summary(course, state)}", "sections"),
-        (f"   Proofs    {ARROW}  {'on' if state['proofs'] else 'off'}", "proofs"),
+        (f"   Proofs    {ARROW}  {_proofs_summary(state, _context_entries(course, state))}",
+         "proofs"),
     ]
     rows.append((SEPARATOR + " ", None))
     rows.append((INGEST_ROW, "ingest"))
@@ -475,10 +527,11 @@ def _pick_sheet(state: dict, current_id: str | None) -> dict | None:
     return labels.get(choice) if choice else None
 
 
-def _pick_task(sheet: dict, current: int | None) -> int | None:
+def _pick_task(sheet: dict, current: int | None, exercises: list[dict]) -> int | None:
     labels = {}
     for t in sheet["tasks"]:
-        title = f": {t['title']}" if t.get("title") else ""
+        title = _task_title(t, exercises)
+        title = f": {title}" if title else ""
         labels[f"{'●' if t['number'] == current else '○'} Task {t['number']}{title}"] = t["number"]
     choice = menu.pick("Task", list(labels))
     return labels.get(choice) if choice else None
@@ -525,6 +578,8 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
     from .core.prompts import build_prompt
     from .integrations import clipboard
 
+    from .core.prompts import resolve_exercises
+
     task = _task_of(state)
     prompt = build_prompt(
         task, state["sheet"], store.load_knowledge(course), solution, course_name,
@@ -532,8 +587,18 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
         include_proofs=state["proofs"],
         include_algorithms=state["algorithms"],
         section_titles=store.load_section_titles(course),
+        exercises=state["exercises"],
+        proof_of=state["proof_of"],
     )
     ok, method = clipboard.copy(prompt)
+    _, missing = resolve_exercises(task, state["exercises"])
+    if missing:
+        # The prompt still goes out - the reference is in it - but without the
+        # exercise the model has nothing to solve, and that must not be silent.
+        notify.send("Exercise not found",
+                    f"Aufgabe {', '.join(missing)} is not in the read-in lecture notes. "
+                    "Paste it into the chat yourself, or read the notes in again.",
+                    glyph="⚠")
     if ok:
         notify.send(f"Task {state['task']} copied",
                     f"{len(prompt)} characters - paste it into the chat.", glyph="")
@@ -609,12 +674,21 @@ def cmd_pick(args):
                             "Read a sheet in first ('Read in new sheets').",
                             glyph="⚠")
                 continue
-            picked = _pick_task(state["sheet"], state["task"])
+            picked = _pick_task(state["sheet"], state["task"], state["exercises"])
             if picked is not None:
                 context.set_course(course, sheet=state["sheet"]["sheet_id"], task=picked)
             continue
         if action == "proofs":
-            context.set_course(course, proofs=not state["proofs"])
+            candidates = [e for e in _context_entries(course, state) if e.get("proof")]
+            if not candidates:
+                notify.send("No proofs",
+                            "None of the statements in the chosen chapters has a proof "
+                            "in the notes.", glyph="⚠")
+                continue
+            picked = _pick_proofs(candidates, state["proofs"], state["proof_of"])
+            if picked is not None:
+                proofs, proof_of = picked
+                context.set_course(course, proofs=proofs, proof_of=proof_of)
             continue
         if action == "sections":
             entries = store.load_knowledge(course)
@@ -625,11 +699,11 @@ def cmd_pick(args):
                 continue
             picked = _pick_sections(entries, store.load_sections(course),
                                     state["sections"], state["proofs"],
-                                    state["algorithms"])
+                                    state["algorithms"], state["proof_of"])
             if picked is not None:
-                sections, proofs, algorithms = picked
+                sections, proofs, algorithms, proof_of = picked
                 context.set_course(course, sections=sections, proofs=proofs,
-                                   algorithms=algorithms)
+                                   algorithms=algorithms, proof_of=proof_of)
             continue
 
 
@@ -753,7 +827,8 @@ def cmd_launcher(args, cfg=None, quiet=False):
 # --- Script context: which sections of the script go into the prompt --------
 
 DONE_LABEL = "── DONE ──"
-PROOF_LABEL = "── Proofs: {state} ──"
+PROOF_LABEL = "── Proofs: {state} …"
+PROOF_ALL_LABEL = "── All proofs: {state} ──"
 ALGO_LABEL = "── Algorithms: {state} ──"
 
 
@@ -799,19 +874,23 @@ def _display_depth(rows: list[tuple[int, int]],
     return depth
 
 
-def _prompt_size(entries: list[dict], include_proofs: bool) -> int:
+def _prompt_size(entries: list[dict], include_proofs: bool,
+                 proof_of: list[str] | None = None) -> int:
     """Characters these entries cost a prompt: formatted as build_prompt
-    formats them, with or without their proofs - not the raw statement text."""
-    from .core.prompts import format_knowledge_entry
+    formats them, with the proofs that are switched on - not the raw text."""
+    from .core.prompts import format_knowledge_entry, proof_wanted
 
-    return sum(len(format_knowledge_entry(e, include_proof=include_proofs)) + 1
+    proof_of = set(proof_of or ())
+    return sum(len(format_knowledge_entry(
+                   e, include_proof=proof_wanted(e, include_proofs, proof_of))) + 1
                for e in entries)
 
 
 def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
                   include_algorithms: bool = False,
                   max_rows: int = MAX_PICKER_ROWS,
-                  include_proofs: bool = False) -> list[tuple[str, str]]:
+                  include_proofs: bool = False,
+                  proof_of: list[str] | None = None) -> list[tuple[str, str]]:
     """(menu label, section key) for the nodes of the script's outline that have
     statements beneath them, indented by depth and cut off at the depth that
     fits the row and chunk budgets (max_rows=0 shows all of them).
@@ -850,30 +929,34 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
             name = toc.label(titles, key)
         else:
             name = f"{'Kapitel' if node['level'] == 1 else 'Abschnitt'} {key}"
-        if include_proofs:
-            size = _prompt_size(inside, True)
+        if include_proofs or proof_of:
+            size = _prompt_size(inside, include_proofs, proof_of)
         rows.append((f"[{mark}] {indent}{name}  ({len(inside)}, {size // 1000}k)", key))
     return rows
 
 
 def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str],
                    include_proofs: bool = False,
-                   include_algorithms: bool = False) -> tuple[list[str], bool, bool] | None:
-    """The selection loop. Returns (sections, include_proofs, include_algorithms),
-    or None if the user aborted. A loop rather than a multi-select widget because
-    the picker chain (Walker, wofi, fzf, stdin) only ever returns ONE choice -
-    see integrations/menu.py."""
+                   include_algorithms: bool = False,
+                   proof_of: list[str] | None = None,
+                   ) -> tuple[list[str], bool, bool, list[str]] | None:
+    """The selection loop. Returns (sections, include_proofs, include_algorithms,
+    proof_of), or None if the user aborted. A loop rather than a multi-select
+    widget because the picker chain (Walker, wofi, fzf, stdin) only ever returns
+    ONE choice - see integrations/menu.py."""
     from .core import selection, toc
 
     selected = set(preselected)
+    proof_of = list(proof_of or [])
 
     while True:
         rows = _section_tree(entries, nodes, selected, include_algorithms,
-                             include_proofs=include_proofs)
+                             include_proofs=include_proofs, proof_of=proof_of)
         chosen_entries = selection.entries_in(entries, sorted(selected),
                                               include_algorithms)
-        size = _prompt_size(chosen_entries, include_proofs)
-        proof_label = PROOF_LABEL.format(state="on" if include_proofs else "off")
+        size = _prompt_size(chosen_entries, include_proofs, proof_of)
+        proof_label = PROOF_LABEL.format(state=_proofs_summary(
+            {"proofs": include_proofs, "proof_of": proof_of}, chosen_entries))
         algo_label = ALGO_LABEL.format(state="on" if include_algorithms else "off")
         done_label = f"── DONE: {len(chosen_entries)} statements, {size} characters ──"
 
@@ -884,9 +967,16 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
             return None
         if choice == done_label:
             return (sorted(selected, key=toc.sort_key), include_proofs,
-                    include_algorithms)
+                    include_algorithms, proof_of)
         if choice == proof_label:
-            include_proofs = not include_proofs
+            candidates = [e for e in chosen_entries if e.get("proof")]
+            if not candidates:
+                notify.send("No proofs", "Pick a chapter first - none of the chosen "
+                            "statements has a proof.", glyph="⚠")
+                continue
+            picked = _pick_proofs(candidates, include_proofs, proof_of)
+            if picked is not None:
+                include_proofs, proof_of = picked
             continue
         if choice == algo_label:
             include_algorithms = not include_algorithms
@@ -903,6 +993,62 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
             selected.add(key)
             selected -= {s for s in list(selected)
                          if s != key and selection.covers(key, s)}
+
+
+def _proof_row(e: dict, on: bool) -> str:
+    from .core.prompts import entry_id
+
+    # The number alone says nothing ("Satz 3.1.5"), so the row carries what the
+    # statement is about: its name if it has one, else how it begins.
+    about = e.get("name") or " ".join(e["text"].split())
+    if len(about) > 48:
+        about = about[:47] + "…"
+    # A proof of a few words ("Übung (Aufgabe (1.3)).") is worth seeing as such.
+    n = len(e["proof"])
+    size = f"{n / 1000:.1f}k" if n >= 100 else "<0.1k"
+    return f"[{'✓' if on else ' '}] {entry_id(e)}  {about}  ({size})"
+
+
+def _pick_proofs(candidates: list[dict], include_all: bool,
+                 chosen: list[str]) -> tuple[bool, list[str]] | None:
+    """Which proofs go into the prompt: all of them, or single ones out of the
+    statements the prompt carries. Returns (include_all, chosen ids), or None
+    if the user aborted.
+
+    Unticking one proof while "all" is on keeps the rest - that is what the tick
+    marks show, and the one exception is the likelier wish than "none but that".
+    Picks outside the current chapters are kept, so switching a chapter off and
+    on again does not lose them."""
+    from .core.prompts import entry_id
+
+    chosen_set = set(chosen)
+    ids = [entry_id(e) for e in candidates]
+    while True:
+        on = {i for i in ids if include_all or i in chosen_set}
+        rows = [(_proof_row(e, entry_id(e) in on), entry_id(e)) for e in candidates]
+        size = sum(len(e["proof"]) for e in candidates if entry_id(e) in on)
+        done_label = f"── DONE: {len(on)} of {len(ids)} proofs, {size} characters ──"
+        all_label = PROOF_ALL_LABEL.format(state="on" if include_all else "off")
+
+        choice = menu.pick("Proofs", [done_label, all_label] + [label for label, _ in rows])
+        if choice is None:
+            return None
+        if choice == done_label:
+            return include_all, [c for c in chosen if c in chosen_set] + sorted(
+                chosen_set - set(chosen), key=ids.index)
+        if choice == all_label:
+            include_all = not include_all
+            if not include_all:
+                chosen_set -= set(ids)
+            continue
+
+        key, found = _chosen(choice, rows)
+        if not found:
+            continue
+        if include_all:
+            include_all = False
+            chosen_set |= set(ids)
+        chosen_set ^= {key}
 
 
 def cmd_sections(args):
@@ -1006,7 +1152,9 @@ def build_arg_parser():
         pb.add_argument("--sections", nargs="*", default=None,
                         help="sections, e.g. --sections 3.1 3.2 (or '3' for a whole chapter)")
         pb.add_argument("--proofs", action="store_true", default=None,
-                        help="include proofs (default: off)")
+                        help="include all proofs (default: off)")
+        pb.add_argument("--proof-of", nargs="*", default=None, metavar="STATEMENT",
+                        help='include single proofs, e.g. --proof-of "Satz 3.1.5"')
         pb.add_argument("--algorithms", action="store_true", default=None,
                         help="include algorithms (default: off)")
         pb.set_defaults(func=fn)

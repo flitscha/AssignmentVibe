@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "04-Blatt-PS-Optimierung.pdf",
  "sheet_number": 4,
  "discussion_date": "14/15.4.2026",
@@ -42,8 +43,8 @@
   },
   {
    "number": 5,
-   "title": "Lösen Sie Aufgabe (1.18) vom Skriptum",
-   "text": "Lösen Sie Aufgabe (1.18) vom Skriptum.\nSeite 1 von 1",
+   "title": null,
+   "text": "Lösen Sie Aufgabe (1.18) vom Skriptum.",
    "subparts": [],
    "script_references": [
     "1.18"

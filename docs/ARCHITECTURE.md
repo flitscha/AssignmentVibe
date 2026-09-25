@@ -14,17 +14,24 @@ assignmentvibe/
                     deterministic: same PDF in -> same data out.
     pdf_text.py       PDF -> normalized raw text (font-quirk fixes)
     font_styles.py     bold/italic header detection (depends on pdf_text)
-    knowledge.py         raw text -> definitions/theorems/proofs (depends on font_styles)
-    assignments.py        assignment-sheet PDF -> structured tasks (depends on pdf_text)
-    prompts.py               use-case + task + knowledge -> prompt string (depends on nothing)
+    knowledge.py         raw text -> definitions/theorems/proofs (depends on font_styles,
+                          toc, exercises); writes entries + outline + exercises
+    toc.py                 the PDF's outline -> chapter/section tree, places entries in it
+    exercises.py            the script's own exercises ("(1.1) ..." in "Aufgaben" sections)
+    assignments.py        assignment-sheet PDF -> structured tasks + references
+                          into the script ("Aufgabe (1.1) vom Skriptum")
+    selection.py           which sections go into a prompt: chosen, or keyword-suggested
+    prompts.py               task + exercises + knowledge -> prompt string
+                             (depends on selection, toc, exercises - all pure)
 
   organizer/       Classify & sort PDFs from a Downloads folder into a
                     library layout. Only depends on core.pdf_text (for a
                     light content peek). Deliberately NOT dependent on
                     store.py - "where do files belong" and "what's in the
                     knowledge base" are separate concerns.
-    classify.py       guess doc type (script/sheet) + course for one PDF
-    organize.py         turn a batch of classifications into a move plan
+    sort.py           the one in use: config-driven filing into ~/Uni
+    classify.py       (older heuristic sorter) guess doc type + course for one PDF
+    organize.py         (older heuristic sorter) batch of classifications -> move plan
 
   integrations/    OS-level side-effecting utilities. Each one is
                     independent of the OTHERS (no imports between
@@ -37,14 +44,17 @@ assignmentvibe/
     notify.py           omarchy-notification-send/notify-send -> stderr
     menu.py               omarchy-menu-select/rofi/wofi/fzf -> stdin prompt
     ocr.py                 pytesseract wrapper (placeholder, see docs/LINUX_PROTOTYPE.md)
+    launcher.py             .desktop entries for Super+Space
 
   paths.py         XDG directory locations. Depended on by store/context/
                     clipboard; depends on nothing itself.
   store.py         Ties core/ to the filesystem: ingest a script/sheet PDF,
                     persist it under paths.*, list/load what's there.
                     Depends on core/ and paths.
-  context.py       "What am I working on right now" (for the Waybar
-                    tooltip). Depends on paths only.
+  uniconfig.py     The semester config (~/.config/assignmentvibe/uni.json).
+  context.py       "What am I working on right now", and per course what was
+                    last chosen there (sheet, task, chapters, proofs). Read by
+                    the hub and the bar widget. Depends on paths only.
   cli.py           Orchestration layer - the only module allowed to depend
                     on everything else. This is intentional: cli.py is where
                     independent pieces get wired together, so no OTHER
@@ -54,9 +64,9 @@ assignmentvibe/
 ## Dependency graph
 
 ```
-core.pdf_text  <---  core.font_styles  <---  core.knowledge
+core.pdf_text  <---  core.font_styles  <---  core.knowledge  --->  core.toc, core.exercises
 core.pdf_text  <---  core.assignments
-core.prompts   (standalone)
+core.prompts   --->  core.selection, core.toc, core.exercises   (all pure)
 
 core.pdf_text  <---  organizer.classify  <---  organizer.organize
 
@@ -104,12 +114,11 @@ on one of these, you genuinely don't need to read the others first.
   or the "Aufgabe"/"Besprechung" regexes in `core/assignments.py`) **stay
   German** - they're domain data, not code, and translating them would
   break the actual matching.
-- **User-facing strings stay German**: CLI output (`print(...)`), desktop
-  notification text, and the LLM prompt template in `core/prompts.py`
-  (`USE_CASES[...]["instruction"]` and the `# Aufgabe`/`# Kontext` etc.
-  section headers). This is a personal tool for a German-speaking user
-  working through German course material - the product's own voice stays
-  German even though the code that produces it is English.
+- **User-facing strings are English** (since 789e858): menu rows,
+  notifications, and the prompt's own instruction and headers in
+  `core/prompts.py`. The material a prompt carries - task text, definitions,
+  exercises - stays in whatever language the course is in; the instruction
+  is the tool talking, the rest is quoted source.
 - **JSON schema keys are English** (`tasks`, `sheet_number`,
   `discussion_date`, `script_references`, ...) even though the *values*
   behind them are German text extracted from the PDFs.

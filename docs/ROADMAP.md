@@ -1,148 +1,96 @@
 # Roadmap
 
-Prioritized checklist of what's next, ordered by impact/effort. Each item
-notes its dependencies within the codebase (see ARCHITECTURE.md for the
-module map) and whether it can be worked on independently of the others.
+What's next, in order. Each item names the modules it touches (see
+ARCHITECTURE.md) so it can be picked up without reading everything else.
 
-Legend: 🟢 done this session · 🟡 in progress/partial · ⚪ not started
+Legend: 🟢 done · 🟡 partial · ⚪ not started
 
-## 1. 🟢 Downloads-folder organizer
+## Done
 
-The most important next step per the original project vision
-("Download-organize: Skript-Downloads in richtige Ordner tun") - everything
-downstream (ingesting, prompt-building) only becomes low-friction once PDFs
-don't have to be pointed at by hand every time.
+- 🟢 **Semester config + sorter + launcher.** `~/.config/assignmentvibe/uni.json`
+  says which files belong to which course; `sort` files downloads into
+  `~/Uni`, `launcher` puts them into Super+Space.
+- 🟢 **Hub in the Omarchy shell bar.** One menu that shows where you are and
+  changes one thing at a time, state remembered per course; follow-ups on
+  right click.
+- 🟢 **Chunking by the PDF's own outline** (`core/toc.py`), with a picker that
+  offers chapters or sections depending on how big they are.
+- 🟢 **Exercises from the script itself** (`core/exercises.py`). A sheet task
+  "Lösen Sie Aufgabe (1.11) vom Skriptum" now carries the exercise's text in
+  the prompt, and the automatic chapter suggestion stays inside the chapter the
+  exercise belongs to. Every PS Optimierung task is such a reference; all 34
+  resolve.
+- 🟢 **Single proofs.** Proofs can be switched on one statement at a time
+  (hub row "Proofs", or the "Proofs" row inside the chapter picker), or all at
+  once. `build --proof-of "Satz 3.1.5"` on the command line.
+- 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
+  and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 
-- [x] Classify a PDF as script vs. assignment sheet vs. unknown (filename +
-      content-peek + page-count heuristics) - `organizer/classify.py`
-- [x] Plan + apply a move/copy into a `<library>/<course>/{scripts,sheets}/`
-      layout, dry-run by default - `organizer/organize.py`
-- [x] Fold near-duplicate course-name guesses (e.g. a script's "Algebra" vs.
-      a sheet's "Algebra 1") into one course folder
-- [x] Optional auto-ingest right after organizing (`--ingest`)
-- [ ] Recursive scanning of subfolders (currently top-level only)
-- [ ] Try it against a REAL, messy Downloads folder (the example set is
-      clean by construction - real downloads will have unrelated PDFs,
-      duplicate re-downloads, inconsistent naming)
+## 1. ⚪ Review what the prompts say
 
-**Independent:** yes - only touches `organizer/` (+ a light dependency on
-`core.pdf_text` for the content peek). Does not require touching
-`core/knowledge.py`, `integrations/`, or `cli.py`'s other commands.
+The prompt is the product, and its wording has not been checked against real
+use yet. Concretely:
 
-## 2. ⚪ Live-test on real Omarchy
+- [ ] `SOLVE_INSTRUCTION` in `core/prompts.py` - is "solve it step by step,
+      cite the notes" the right default?
+- [ ] The ten `FOLLOW_UPS` - wording, which are missing, which are never used
+- [ ] How the exercise block and the context block read to the model
+      (`docs/example_prompts/optimierung_script_exercise.txt`)
+- [ ] Whether the context header line ("every definition and theorem of these
+      sections, proofs only for ...") helps or is noise
 
-Everything Wayland/Hyprland/Walker-specific was built against the *documented*
-behavior of `omarchy-menu-select`/`omarchy-notification-send`/Waybar's custom
-module protocol, not verified live (no compositor in this sandbox - see
-docs/LINUX_PROTOTYPE.md, section 4). This is pure verification, not new
-code - the highest-value/lowest-effort item on this list once you're at your
-Omarchy machine.
+**Touches:** `core/prompts.py` only. Regenerate the examples afterwards with
+`scripts/rebuild_example_prompts.py`.
 
-- [ ] Waybar module actually renders + updates (`linux/waybar-module.jsonc`)
-- [ ] `omarchy-menu-select` behaves as assumed on Esc/empty selection
-- [ ] `wl-copy`/`notify-send` work as expected in that session
-- [ ] Emoji in Walker's dmenu rendering (cosmetic risk only)
+## 2. ⚪ Strip page furniture from knowledge entries
 
-**Independent:** yes - doesn't block or get blocked by anything else here.
+A statement that runs over a page break carries the page number and running
+header with it ("2", "1.1 Polyeder und Polytope"), and a section heading plus
+its intro paragraph can end up appended to the statement before it.
+`core/exercises.py` already strips headers per page (`_clean_page`); the same
+idea belongs in `core/knowledge.py`. Bump `knowledge.FORMAT` so existing
+courses get re-read.
 
-## 3. ⚪ Resolve in-script "Aufgaben" cross-references
+**Touches:** `core/knowledge.py` (+ possibly moving `_clean_page` to a shared
+spot). Check against the corpus with `scripts/check_corpus.py`.
 
-Several assignment sheets (mostly PS Optimierung) just say "Lösen Sie
-Aufgabe (2.9) vom Skriptum" instead of repeating the task text - the actual
-task lives inside the script's own unlabeled "X.Y Aufgaben" section, which
-`core/knowledge.py` currently only uses as a block *boundary*, without
-extracting its content (see docs/POC_REPORT.md, section 3). Fixing this
-closes the biggest remaining content gap in the prompt-builder.
+## 3. ⚪ Matrices
 
-- [ ] Extract numbered exercise items from a script's own "Aufgaben" sections
-- [ ] Link `script_references` (already extracted in `core/assignments.py`)
-      to that extracted content
-- [ ] Feed the resolved task text into `core/prompts.py` instead of the bare
-      "vom Skriptum" reference
+Matrices lose their 2D structure during text extraction - every cell becomes
+its own line. Exercise 2.9 (the simplex exercise) is nearly unreadable as a
+result, and some knowledge entries are inflated by it.
 
-**Depends on:** `core/knowledge.py` (extend it) + `core/assignments.py`
-(consume the link) + `core/prompts.py` (use it). Independent of `organizer/`
-and `integrations/`.
+- [ ] Detect matrix-like runs (many short numeric lines between brackets) and
+      rebuild rows from the PDF's coordinates, or at least flag them
 
-## 4. ⚪ Replace keyword-matching context selection with embeddings
+**Touches:** `core/pdf_text.py` and/or `core/knowledge.py`, `core/exercises.py`.
 
-`core/prompts.py`'s `select_context()` is a placeholder (word-overlap
-scoring) - works well on some tasks, picks irrelevant entries on others (see
-docs/POC_REPORT.md, section 4, for concrete good/bad examples).
+## 4. ⚪ Xournal++ integration
 
-- [ ] Embed knowledge entries + task text, rank by similarity instead of
-      token overlap
-- [ ] Keep the manual chapter/section-selection escape hatch from the
-      original vision for cases with too little context to embed against
+The partial solution is the missing third piece of the prompt (task + notes +
+*what I have so far*). Today it can only come from the clipboard.
 
-**Depends on:** `core/prompts.py` only. Independent of everything else.
+- [ ] Find the currently open `.xopp` document (window title via `hyprctl`)
+- [ ] Export the current page (`xournalpp --create-pdf` / `--create-img`)
+- [ ] Either OCR it (item 5) or attach the image - most chat UIs read
+      handwriting from an image better than any local OCR would
 
-## 5. ⚪ Xournal++ integration
+**Touches:** a new `integrations/xournal.py`; `cli.py` for the hub row.
 
-Named explicitly in the original project vision ("Xournal++AI") and
-confirmed to be part of Omarchy's own default toolset
-(`config/xournalpp` in the Omarchy repo). Currently `pick`'s "partial
-solution from image" path requires manually typing a file path.
+## 5. ⚪ Handwriting OCR
 
-- [ ] Detect/export the currently-open `.xopp` document
-- [ ] Feed that export into `integrations/ocr.py`
+`integrations/ocr.py` wraps Tesseract, which does not read handwriting. Only
+worth doing if item 4 shows that attaching an image is not good enough.
 
-**Depends on:** `integrations/ocr.py` + a new integration module. Independent
-of `core/` and `organizer/`.
+## 6. ⚪ Exercises in running text
 
-## 6. ⚪ Handwriting OCR
+`core/exercises.py` only looks inside sections the outline calls
+"Aufgaben"/"Exercises". Scripts that scatter "Exercise 1.2." through the text
+(spectral graph theory) or have no bookmarks at all get no exercises. Only
+matters once a course's sheets actually reference them.
 
-`integrations/ocr.py` currently wraps Tesseract, which is a placeholder for
-typed/printed text only - explicitly not validated for handwriting (no
-sample material yet, see docs/LINUX_PROTOTYPE.md).
+## 7. ⚪ Better automatic chapter suggestion
 
-- [ ] Get handwritten sample pages
-- [ ] Evaluate pix2tex/LaTeX-OCR (or similar) against them
-- [ ] Swap the backend in `integrations/ocr.py` if it's good enough
-
-**Depends on:** `integrations/ocr.py` only.
-
-## 7. ⚪ Table/matrix content in knowledge extraction
-
-Matrices lose their 2D structure during text extraction (every cell becomes
-its own line), inflating some knowledge entries to thousands of characters
-of low-information content (see docs/POC_REPORT.md, section 2).
-
-- [ ] Detect matrix-like blocks and either compress or flag them
-- [ ] Re-measure how much this affects prompt token usage in practice
-
-**Depends on:** `core/pdf_text.py` and/or `core/knowledge.py`.
-
----
-
-## Changelog (what happened in the "documentation + architecture" session)
-
-For context on why some of the above reads the way it does:
-
-- Restructured `pipeline/` + the flat `assignmentvibe/*.py` integrations
-  into `assignmentvibe/{core,organizer,integrations}/` for module
-  independence (see ARCHITECTURE.md) - no logic changes, verified via
-  identical extraction counts (284 + 131 knowledge entries, 26 sheets)
-  before/after on both Windows and WSL Ubuntu.
-- Translated all code comments/docstrings to English (kept literal German
-  domain-matching strings, JSON *values*, and user-facing CLI/prompt text
-  in German - see ARCHITECTURE.md's language policy).
-- Renamed JSON schema keys to English (`aufgaben`->`tasks`,
-  `blatt_nummer`->`sheet_number`, `besprechungstermin`->`discussion_date`,
-  `references_skript`->`script_references`, `num_aufgaben`->`num_tasks`);
-  the CLI's `--aufgabe`/`aufgaben` subcommand became `--task`/`tasks` to
-  match.
-- Built the downloads organizer (item 1 above) from scratch, including the
-  classification heuristics and the move-planning/apply logic.
-- **Found and fixed a real bug while testing organizer + `--ingest`
-  together**: the auto-ingest step used a classification's raw
-  `course_guess` instead of the *resolved* course (after fuzzy-folding a
-  script's guess into its matching sheets' course, or vice versa). This
-  silently split one course into two knowledge bases - one of them orphaned
-  (a sheet's course pointing at a knowledge file that was never created).
-  Fixed by having `organizer.organize.plan()` carry the resolved
-  `course_slug`/`course_display_name` per file, and having `cli.py`'s
-  `--ingest` use that instead of re-deriving it. Verified fixed: the
-  Algebra script and all 14 Algebra sheets now converge on one course, and
-  a prompt built for one of those sheets correctly retrieves knowledge
-  context from the script.
+`core/selection.py` ranks sections by keyword overlap. It is a starting point
+that is corrected by hand and then remembered, so this matters less than it
+did - but embeddings would pick better where a task's vocabulary is thin.

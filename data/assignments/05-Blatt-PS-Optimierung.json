@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "05-Blatt-PS-Optimierung.pdf",
  "sheet_number": 5,
  "discussion_date": "21/22.4.2026",
@@ -42,8 +43,8 @@
   },
   {
    "number": 5,
-   "title": "Lösen Sie Aufgabe (2.3) vom Skriptum",
-   "text": "Lösen Sie Aufgabe (2.3) vom Skriptum.\nSeite 1 von 1",
+   "title": null,
+   "text": "Lösen Sie Aufgabe (2.3) vom Skriptum.",
    "subparts": [],
    "script_references": [
     "2.3"

@@ -1,0 +1,188 @@
+Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
+
+# Course: PS Optimierung
+Sheet 3, due: 24/25.3.2026
+
+# Task 1
+Lösen Sie Aufgabe (1.11) vom Skriptum.
+
+## Exercise 1.11 from the lecture notes: Polytop der doppelt stochastischen Matrizen
+Eine Matrix A ∈Matn,n(R) heißt doppelt stochastisch, falls alle Einträge nicht-
+negativ sind und
+n
+X
+i=1
+aij =
+n
+X
+j=1
+aij = 1
+für alle
+1 ≤i, j ≤n
+gilt. Eine Matrix A ∈Matn,n({0, 1}) heißt Permutationsmatrix, falls in jeder
+Zeile und in jeder Spalte genau ein Eintrag Eins ist.
+a) Zeigen Sie, dass eine Konvexkombination doppelt stochastischer Matrizen
+eine doppelt stochastische Matrix ist.
+b) Zeigen Sie, dass die Menge
+P = {A ∈Matm,n(R): A doppelt stochastisch}
+ein Polytop ist.
+c) Zeigen Sie, dass die Ecken von P Permutationsmatrizen sind.
+d) Zeigen Sie, dass eine Matrix genau dann doppelt stochastisch ist, wenn
+sie Konvexkombination von Permutationsmatrizen ist.
+
+# From the lecture notes: section 1.1 Polyeder und Polytope
+(every definition and theorem of these sections, proofs only for Satz 1.1.13)
+
+Definition 1.1.1:
+Für v ∈Rn und a ∈R nennt man die Menge
+Hv,a := {x ∈Rn : ⟨x, v⟩≤a}
+den durch v und a definierten Halbraum. Ein Polyeder ist eine Menge, die sich als
+endlicher Durchschnitt von Halbräumen darstellen lässt. Ein Polytop ist ein be-
+schränktes Polyeder.
+
+Definition 1.1.4:
+Es sei A ∈Matm,n(R) und b ∈Rm. Wir bezeichnen mit
+P(A, b) := {x ∈Rn : Ax ≤b}
+das durch A und b definierte Polyeder.
+
+Definition 1.1.5:
+Eine Menge C ⊂Rn ist konvex, falls für x, y ∈C und λ ∈[0, 1]
+stets λx + (1 −λ)y ∈C gilt. Für x1, . . . , xm ∈Rn und λ1, . . . , λm ∈[0, 1] nennt
+man die Linearkombination Pm
+i=1 λixi eine Konvexkombination falls Pm
+i=1 λi = 1.
+Für eine Menge A ⊂Rn bezeichnen wir die kleinste konvexe Menge, die A enthält
+als die konvexe Hülle von A. Genauer,
+Konv(A) =
+\
+{C : A ⊂C, C konvex},
+d.h. die konvexe Hülle von A ist der Durchschnitt aller konvexer Mengen, die A
+enthalten.
+
+Satz 1.1.6:
+Für eine Menge A ⊂Rn ist
+Konv(A) =
+n
+k
+X
+i=1
+λixi : xi ∈A, k ∈N, λi ∈[0, 1],
+k
+X
+i=1
+λi = 1
+o
+,
+d.h. die konvexe Hülle einer Menge ist die Menge aller Konvexkombinationen von
+Elementen von A.
+2
+
+1.1 Polyeder und Polytope
+
+Satz 1.1.8:
+Eine Menge P ist genau dann ein Polytop wenn es die konvexe Hülle
+von endlich vielen Punkten ist, d.h. falls es x1, . . . , xk ∈Rn mit
+P = Konv({x1, . . . , xk})
+gibt.
+Wir bekommen diesen Satz als Spezialfall eines entsprechenden Satzes für Poly-
+eder. Für diesen allgemeineren Satz brauchen wir aber noch eine zusätzliche geome-
+trische Vorbereitung.
+
+Definition 1.1.9:
+Eine Menge C ⊂Rn nennt man Kegel, falls tx ∈C für alle x ∈C
+und alle t ∈[0, ∞). Ein Kegel, der als Durchschnitt endlich vieler Halbräume, deren
+begrenzende Hyperebenen den Nullpunkt enthalten, dargestellt werden kann heißt
+polyedrischer Kegel. Mit
+KK (A) =
+\
+{C : A ⊂C, C konvexer Kegel}
+bezeichnen wir den kleinsten konvexen Kegel, der A enthält.
+
+Satz 1.1.12:
+Eine Menge P ⊂Rn ist genau dann ein Polyeder, falls es endlich viele
+Punkte x1, . . . , xk ∈Rn und y1, . . . , ym ∈Rn mit
+P = Konv {x1, . . . , xk} + KK{y1, . . . , ym}
+(1.1)
+gibt.
+Um diesen Satz zu beweisen brauchen wir einen entsprechenden Darstellungssatz
+für polyedrische Kegel.
+
+Satz 1.1.13:
+Es sei C ⊂Rn ein polyedrischer Kegel. Dann gibt es eine endliche
+Menge {x1, . . . , xm} ⊂Rn mit C = KK ({x1, . . . , xm}).
+Proof: Angenommen C ist ein polyedrischer Kegel. Dann gibt es A ∈Matm,n(R)
+mit C = P(A, 0). Wir zeigen nun, dass die Lösungen x1, . . . , xk ∈C der linearen
+Gleichungssysteme Bx = ±ej, B eine Untermatrix von
+A
+I
+
+,
+die aus n linear unabhängigen Zeilen besteht, eine endliche Erzeugendenmenge des
+Kegels bilden, d.h. C = KK {x1, . . . , xk}.
+4
+
+1.1 Polyeder und Polytope
+Wir starten mit dem einfachen Fall C = {x ∈Rn : Ax = 0}. In diesem Fall
+können wir aus A und I durch Auswahl geeigneter Zeilen Untermatrizen A′ und I′
+so auswählen, dass C = {x ∈Rn : A′x = 0} und die Matrix
+A′
+I′
+
+invertierbar ist. Damit bilden die (eindeutigen) Lösungen der linearen Gleichungs-
+systeme
+A′
+I′
+
+x =
+ 0
+±ei
+
+für i = 1, . . . , n −Rang A ein endliches Erzeugendensystem von C. Wir bemerken,
+dass die Beziehung n −Rang A = dim C = dim SpanR(C) gilt.
+Die Aussage für den Fall, dass C kein Untervektorraum ist, zeigen wir mittels
+Induktionüber die Dimension dim SpanR(C) des Spans von C. Da C kein Unter-
+vektorraum ist, können wir Zeilen von A so auswählen, dass diese eine Matrix
+A′
+a
+
+aus linear unabhängigen Zeilen bilden und
+{x ∈Rn : A′x = 0, ax ≤0} ⊂C
+gilt. Nach Konstruktion gibt es also ein xj mit A′xj = 0 und axj = −1. Wir fixieren
+z ∈C und setzen
+μ := min
+ Ai−z
+Ai−xj
+: i = 1, . . . , m, Ai−xj < 0
+
+.
+Da z ∈C gilt Ai−z ≤0 und folglich ist μ ≥0. Wir wählen nun ein l in dem das
+Minimum angenommen wird, d.h. μ =
+Al−z
+Al−x1 und setzen z′ := z −μxj. Wegen
+Al−z′ = Al−z −Al−z
+Al−xj
+Al−xj = 0
+und
+Al−xj̸ = 0
+ist C′ = C ∩{x ∈Rn : Al−x = 0} ein Kegel mit dim R⟨C′⟩≤dim R⟨C⟩−1. Nach
+Induktionsannahme gibt es also ein endliches Erzeugendensystem das aus manchen
+der x1, . . . , xk besteht. Also gibt es λ1, . . . , λk ≥0 mit
+z′ =
+k
+X
+i=1
+λixi
+und daher
+z =
+k
+X
+i=1
+λixi + μxk,
+d.h. C ⊂KK {x1, . . . , xk}. Da alle xi ∈C, gilt auch die umgekehrte Inklusion und
+damit C = KK {x1, . . . , xk}
+5
+
+1 Geometrie linearer Ungleichungen
+
+# What I have so far
+(nothing yet)

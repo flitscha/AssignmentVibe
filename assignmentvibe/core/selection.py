@@ -150,7 +150,16 @@ def suggest_sections(task_text: str, entries: list[dict]) -> list[str]:
 
 def select(task_text: str, entries: list[dict],
            sections: list[str] | None = None,
-           include_algorithms: bool = False) -> tuple[list[dict], list[str]]:
-    """Returns (entries_for_the_prompt, sections_actually_used)."""
-    chosen = sections if sections else suggest_sections(task_text, entries)
+           include_algorithms: bool = False,
+           within: list[str] | None = None) -> tuple[list[dict], list[str]]:
+    """Returns (entries_for_the_prompt, sections_actually_used). `within` keeps
+    the automatic suggestion inside those sections; a hand-made selection is
+    taken as it is."""
+    chosen = sections
+    if not chosen and within:
+        pool = [e for e in entries if (key := section_of(e)) is not None
+                and any(covers(w, key) for w in within)]
+        chosen = suggest_sections(task_text, pool) if pool else None
+    if not chosen:
+        chosen = suggest_sections(task_text, entries)
     return entries_in(entries, chosen, include_algorithms), chosen

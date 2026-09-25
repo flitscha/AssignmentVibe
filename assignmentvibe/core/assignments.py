@@ -32,7 +32,19 @@ from .pdf_text import normalize
 TASK_RE = re.compile(r"(?m)^Aufgabe\s+(?P<num>\d+)\s*:?\s*")
 SUBPART_RE = re.compile(r"(?m)^\s*\(?(?P<label>[a-h]|i{1,3}v?|vi{0,3})\)\s")
 DISCUSSION_DATE_RE = re.compile(r"Besprechung(?:stermin)?(?:\s+am)?:?\s*(?P<date>[^\n)]+)")
-SCRIPT_REF_RE = re.compile(r"(?:Aufgabe|Programmieraufgabe)\s*\((?P<ref>\d+\.\d+)\)\s*vom\s*Skriptum")
+# "Aufgabe (1.1) vom Skriptum", "Programmieraufgabe (2.8) vom Skriptum", and
+# the plainer "Aufgabe 1.1 aus dem Skript" / "im Skriptum" other courses write,
+# and "im Skrip-\ntum" hyphenated across a line (sheet 12).
+SCRIPT_REF_RE = re.compile(
+    r"(?:Programmier|Übungs)?[Aa]ufgabe\s*\(?(?P<ref>\d+(?:\.\d+)?)\)?\s*"
+    r"(?:vom|aus\s+dem|im)\s*Skrip(?:-\s*)?t(?:um)?")
+# The page footer the PS Optimierung sheets carry; it would otherwise end up as
+# the last line of the last task.
+PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
+# Same idea as core.knowledge.FORMAT.
+#   2: page footers stripped, wider script references
+FORMAT = 2
+
 SHEET_NUM_RE = re.compile(r"Blatt\s+(?P<num>\d+)")
 TITLE_END_RE = re.compile(r"[.:]\s")
 
@@ -64,7 +76,7 @@ def split_subparts(body: str) -> list[dict]:
 
 
 def parse_assignment_sheet(pdf_path: Path) -> dict:
-    text = extract_pdf_text(pdf_path)
+    text = PAGE_FOOTER_RE.sub("", extract_pdf_text(pdf_path))
 
     discussion_date = DISCUSSION_DATE_RE.search(text)
     sheet_num = SHEET_NUM_RE.search(text)
@@ -84,6 +96,7 @@ def parse_assignment_sheet(pdf_path: Path) -> dict:
         })
 
     return {
+        "format": FORMAT,
         "source": pdf_path.name,
         "sheet_number": int(sheet_num.group("num")) if sheet_num else None,
         "discussion_date": discussion_date.group("date").strip() if discussion_date else None,

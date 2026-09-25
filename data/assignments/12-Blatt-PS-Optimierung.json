@@ -1,4 +1,5 @@
 {
+ "format": 2,
  "source": "12-Blatt-PS-Optimierung.pdf",
  "sheet_number": 12,
  "discussion_date": "23/24 . 5 . 2026",
@@ -45,14 +46,18 @@
    "title": "Implementierung des Subgradientenverfahrens",
    "text": "Implementierung des Subgradientenverfahrens. Sie Aufgabe (4.8)\nim Skriptum.",
    "subparts": [],
-   "script_references": null
+   "script_references": [
+    "4.8"
+   ]
   },
   {
    "number": 4,
    "title": "Implementierung des Newton-Verfahrens",
-   "text": "Implementierung des Newton-Verfahrens. Sie Aufgabe (4.9) im Skrip-\ntum.\nSeite 1 von 1",
+   "text": "Implementierung des Newton-Verfahrens. Sie Aufgabe (4.9) im Skrip-\ntum.",
    "subparts": [],
-   "script_references": null
+   "script_references": [
+    "4.9"
+   ]
   }
  ]
 }

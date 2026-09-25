@@ -153,6 +153,13 @@ def load_knowledge(course_slug: str) -> list[dict]:
     return _load_json(path, {"entries": []})["entries"]
 
 
+def load_exercises(course_slug: str) -> list[dict]:
+    """The exercises the script itself carries (see core.exercises). Empty for
+    a script ingested before these were extracted - re-ingesting it fills them."""
+    path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
+    return _load_json(path, {}).get("exercises", [])
+
+
 def _matching_pdfs(cfg, course, category: str) -> list[Path]:
     """The course's files of one category, as they lie in the library."""
     import fnmatch
@@ -175,8 +182,14 @@ def ingest_missing(cfg, progress=None) -> dict:
     A sheet is only ever read once: its tasks do not change, and re-reading
     would throw away nothing but cost seconds per sheet. A script is re-read
     when its PDF is newer than what was made from it, which is how an annotated
-    or corrected script replaces its earlier version."""
-    known_sheets = {s["sheet_id"] for s in list_sheets()}
+    or corrected script replaces its earlier version. Both are re-read when they
+    were made by an older version of the extraction (see the FORMAT constants
+    in core.knowledge and core.assignments)."""
+    from .core.assignments import FORMAT as SHEET_FORMAT
+    from .core.knowledge import FORMAT as KNOWLEDGE_FORMAT
+
+    known_sheets = {s["sheet_id"] for s in list_sheets()
+                    if s.get("format", 1) >= SHEET_FORMAT}
     result = {"scripts": [], "sheets": [], "errors": []}
 
     for course in cfg.active_courses():
@@ -185,7 +198,10 @@ def ingest_missing(cfg, progress=None) -> dict:
         script = _course_script(cfg, course)
         if script is not None:
             target = paths.KNOWLEDGE_DIR / f"{slug}.json"
-            if not target.exists() or target.stat().st_mtime < script.stat().st_mtime:
+            outdated = (not target.exists()
+                        or target.stat().st_mtime < script.stat().st_mtime
+                        or _load_json(target, {}).get("format", 1) < KNOWLEDGE_FORMAT)
+            if outdated:
                 if progress:
                     progress(f"Lecture notes: {course.name}")
                 try:
