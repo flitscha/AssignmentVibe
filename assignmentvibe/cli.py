@@ -401,7 +401,6 @@ def _task_of(state: dict) -> dict | None:
 def _sections_summary(course: str, state: dict) -> str:
     from . import store
     from .core import selection, toc
-    from .core.prompts import format_knowledge_entry
 
     if not state["sections"]:
         return "picked automatically by keyword"
@@ -409,8 +408,7 @@ def _sections_summary(course: str, state: dict) -> str:
     titles = store.load_section_titles(course)
     entries = selection.entries_in(store.load_knowledge(course), state["sections"],
                                    state["algorithms"])
-    size = sum(len(format_knowledge_entry(e, include_proof=state["proofs"])) + 1
-               for e in entries)
+    size = _prompt_size(entries, state["proofs"])
     names = ", ".join(toc.label(titles, k) for k in state["sections"])
     if len(names) > 44:
         names = names[:41] + "…"
@@ -626,7 +624,8 @@ def cmd_pick(args):
                             glyph="⚠")
                 continue
             picked = _pick_sections(entries, store.load_sections(course),
-                                    state["sections"])
+                                    state["sections"], state["proofs"],
+                                    state["algorithms"])
             if picked is not None:
                 sections, proofs, algorithms = picked
                 context.set_course(course, sections=sections, proofs=proofs,
@@ -800,9 +799,19 @@ def _display_depth(rows: list[tuple[int, int]],
     return depth
 
 
+def _prompt_size(entries: list[dict], include_proofs: bool) -> int:
+    """Characters these entries cost a prompt: formatted as build_prompt
+    formats them, with or without their proofs - not the raw statement text."""
+    from .core.prompts import format_knowledge_entry
+
+    return sum(len(format_knowledge_entry(e, include_proof=include_proofs)) + 1
+               for e in entries)
+
+
 def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
                   include_algorithms: bool = False,
-                  max_rows: int = MAX_PICKER_ROWS) -> list[tuple[str, str]]:
+                  max_rows: int = MAX_PICKER_ROWS,
+                  include_proofs: bool = False) -> list[tuple[str, str]]:
     """(menu label, section key) for the nodes of the script's outline that have
     statements beneath them, indented by depth and cut off at the depth that
     fits the row and chunk budgets (max_rows=0 shows all of them).
@@ -813,8 +822,6 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
     bibliography or a foreword is not something to hand to the model."""
     from .core import selection, toc
 
-    from .core.prompts import format_knowledge_entry
-
     grouped = selection.group_by_section(entries, include_algorithms)
     titles = {n["key"]: n["title"] for n in nodes if n.get("title")}
 
@@ -823,17 +830,15 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
         inside = [e for k, v in grouped.items() if selection.covers(node["key"], k)
                   for e in v]
         if inside:
-            # The size the row actually costs a prompt, which is the formatted
-            # statements without their proofs - not the raw entries.
-            size = sum(len(format_knowledge_entry(e, include_proof=False)) + 1
-                       for e in inside)
-            filled.append((node, len(inside), size))
+            # The depth is measured on statements alone, so toggling proofs
+            # changes the numbers on the rows but never which rows there are.
+            filled.append((node, inside, _prompt_size(inside, False)))
 
     depth = (_display_depth([(n["level"], size) for n, _, size in filled], max_rows)
              if max_rows else None)
 
     rows = []
-    for node, count, size in filled:
+    for node, inside, size in filled:
         if depth is not None and node["level"] > depth:
             continue
         key = node["key"]
@@ -845,12 +850,15 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
             name = toc.label(titles, key)
         else:
             name = f"{'Kapitel' if node['level'] == 1 else 'Abschnitt'} {key}"
-        rows.append((f"[{mark}] {indent}{name}  ({count}, {size // 1000}k)", key))
+        if include_proofs:
+            size = _prompt_size(inside, True)
+        rows.append((f"[{mark}] {indent}{name}  ({len(inside)}, {size // 1000}k)", key))
     return rows
 
 
-def _pick_sections(entries: list[dict], nodes: list[dict],
-                   preselected: list[str]) -> tuple[list[str], bool, bool] | None:
+def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str],
+                   include_proofs: bool = False,
+                   include_algorithms: bool = False) -> tuple[list[str], bool, bool] | None:
     """The selection loop. Returns (sections, include_proofs, include_algorithms),
     or None if the user aborted. A loop rather than a multi-select widget because
     the picker chain (Walker, wofi, fzf, stdin) only ever returns ONE choice -
@@ -858,14 +866,13 @@ def _pick_sections(entries: list[dict], nodes: list[dict],
     from .core import selection, toc
 
     selected = set(preselected)
-    include_proofs = False
-    include_algorithms = False
 
     while True:
-        rows = _section_tree(entries, nodes, selected, include_algorithms)
+        rows = _section_tree(entries, nodes, selected, include_algorithms,
+                             include_proofs=include_proofs)
         chosen_entries = selection.entries_in(entries, sorted(selected),
                                               include_algorithms)
-        size = sum(len(e["text"]) for e in chosen_entries)
+        size = _prompt_size(chosen_entries, include_proofs)
         proof_label = PROOF_LABEL.format(state="on" if include_proofs else "off")
         algo_label = ALGO_LABEL.format(state="on" if include_algorithms else "off")
         done_label = f"── DONE: {len(chosen_entries)} statements, {size} characters ──"
