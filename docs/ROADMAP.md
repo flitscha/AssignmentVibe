@@ -29,16 +29,15 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 
 Nothing is chosen automatically any more - no selection, no context. With an
 OpenRouter key in `~/.config/assignmentvibe/openrouter.key`, the hub's
-"✨ Let Jev pick the notes" row asks Jev (TypeSafe's decision model) one yes/no
-question per statement and one per proof, and makes the answer the selection.
-Built, but not yet run against the real API.
+"✨ Let Jev pick the context" row asks Jev (TypeSafe's decision model) one
+yes/no question per statement and one per proof, and makes the answer the
+selection. Over `max_context_chars` the least certain proofs are dropped.
 
-- [ ] First real call: does `ENDPOINT` in `integrations/jev.py` answer? (The
-      OpenRouter docs show both `/api/alpha/decisions` and
-      `/api/v1/api/alpha/decisions`.)
-- [ ] `python scripts/compare_jev.py` (and `algebra`): how many statements per
-      pick, how many from the exercise's own chapter, how many empty picks?
-- [ ] Tune `JEV_THRESHOLD` in `core/selection.py` from those numbers
+- [x] First real call works (2026-09-27)
+- [ ] Jev picks proofs often - measure with `python scripts/compare_jev.py`
+      and set `jev_proof_threshold` in settings.json from that
+- [ ] How many statements per pick, how many from the exercise's own
+      chapter, how many empty picks?
 - [ ] Does `usage.cost` arrive? If not the counter shows "~$" (estimated)
 
 **Touches:** `integrations/jev.py`, `core/selection.py`, `cli.py`.

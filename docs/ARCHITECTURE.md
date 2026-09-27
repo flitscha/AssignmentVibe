@@ -50,6 +50,8 @@ assignmentvibe/
                               whether a task needs it; counts requests/tokens/cost.
                               No key or no network -> JevUnavailable, selection
                               stays as it was
+    editor.py                omarchy-launch-config-editor / xdg-terminal-exec
+                              $EDITOR -> False (caller shows the path)
 
   paths.py         XDG directory locations. Depended on by store/context/
                     clipboard; depends on nothing itself.
@@ -57,6 +59,8 @@ assignmentvibe/
                     persist it under paths.*, list/load what's there.
                     Depends on core/ and paths.
   uniconfig.py     The semester config (~/.config/assignmentvibe/uni.json).
+  settings.py      How the tool behaves (~/.config/assignmentvibe/settings.json):
+                    context length, Jev thresholds, algorithms default.
   context.py       "What am I working on right now", and per course what was
                     last chosen there (sheet, task, chapters, proofs). Read by
                     the hub and the bar widget. Depends on paths only.

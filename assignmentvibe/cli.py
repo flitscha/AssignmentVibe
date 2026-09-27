@@ -146,21 +146,56 @@ def _resolve_solution(args) -> str | None:
     return None
 
 
+_loaded_settings: dict | None = None
+
+
+def _settings() -> dict:
+    """settings.json, or its defaults when it is broken - a typo there should
+    not take the whole menu down. Read once per run: the hub redraws after every
+    click, and a broken file would otherwise say so after every click."""
+    global _loaded_settings
+    if _loaded_settings is None:
+        _loaded_settings = _read_settings()
+    return _loaded_settings
+
+
+def _read_settings() -> dict:
+    from . import settings
+
+    try:
+        return settings.load()
+    except settings.SettingsError as e:
+        notify.send("settings.json ignored", str(e), glyph="⚠")
+        return dict(settings.DEFAULTS)
+
+
 def _jev_pick(task: dict, knowledge: list[dict], exercises: list[dict],
-              include_algorithms: bool = False) -> tuple[list[str], list[str]] | None:
-    """(statement ids, proof ids) Jev judges the task to need, or None when it
-    could not be asked - said in a notification, since the user pressed for it."""
+              include_algorithms: bool = False
+              ) -> tuple[list[str], list[str], list[str]] | None:
+    """(statement ids, proof ids, proofs dropped for length) Jev judges the task
+    to need, or None when it could not be asked - said in a notification, since
+    the user pressed for it.
+
+    Over settings' max_context_chars, the least certain proofs go first; the
+    statements stay, since those are what the solution has to cite."""
     from .core import selection
     from .core.prompts import task_query
     from .integrations import jev
 
+    config = _settings()
     items = selection.judgement_items(knowledge, include_algorithms)
     try:
         statement_p, proof_p = jev.judge(task_query(task, exercises), items)
     except jev.JevUnavailable as e:
         notify.send("Jev unavailable", f"The selection is unchanged. {e}", glyph="⚠")
         return None
-    return selection.pick_from_judgement(statement_p, proof_p)
+    statements, proofs = selection.pick_from_judgement(
+        statement_p, proof_p, config["jev_statement_threshold"],
+        config["jev_proof_threshold"])
+    entries = selection.chosen(knowledge, [], statements, include_algorithms)
+    proofs, dropped = selection.trim_proofs(entries, proofs, proof_p,
+                                            config["max_context_chars"])
+    return statements, proofs, dropped
 
 
 def _build_from_args(args) -> str:
@@ -205,7 +240,7 @@ def _build_from_args(args) -> str:
         proof_of = saved.get("proof_of")
     algorithms = getattr(args, "algorithms", None)
     if algorithms is None:
-        algorithms = bool(saved.get("algorithms"))
+        algorithms = bool(saved.get("algorithms", _settings()["algorithms_by_default"]))
 
     statements = getattr(args, "statements", None)
     if statements is None and not getattr(args, "sections", None):
@@ -215,7 +250,7 @@ def _build_from_args(args) -> str:
         if picked is None:
             print("Jev could not be asked - see the notification.", file=sys.stderr)
             sys.exit(1)
-        sections, (statements, proof_of), proofs = [], picked, False
+        sections, (statements, proof_of, _), proofs = [], picked, False
 
     return build_prompt(task, sheet, knowledge, solution, course_name,
                         sections=sections, include_proofs=proofs,
@@ -386,6 +421,7 @@ FOLLOWUP_ROW = "💬 Copy a follow-up …"
 BROWSER_ROW = "🌐 Open chat"
 INGEST_ROW = "⟳  Read in new sheets"
 JEV_ROW = "   ✨ Let Jev pick the context"
+CONFIG_ROW = "⚙  Config files …"
 SOLUTION_ROW = "📋 Partial solution from clipboard"
 SEPARATOR = "───────────────────────────────"
 
@@ -430,7 +466,7 @@ def _resolve_state(course: str) -> dict:
         "statements": list(saved.get("statements") or []),
         "proofs": bool(saved.get("proofs")),
         "proof_of": list(saved.get("proof_of") or []),
-        "algorithms": bool(saved.get("algorithms")),
+        "algorithms": bool(saved.get("algorithms", _settings()["algorithms_by_default"])),
         "sheets": sheets,
         "exercises": store.load_exercises(course),
     }
@@ -459,6 +495,7 @@ def _task_title(task: dict, exercises: list[dict]) -> str | None:
 def _context_summary(course: str, state: dict) -> str:
     from . import store
     from .core import selection, toc
+    from .core.prompts import context_size
 
     if not state["sections"] and not state["statements"]:
         return "none - the prompt carries no lecture notes"
@@ -466,7 +503,7 @@ def _context_summary(course: str, state: dict) -> str:
     titles = store.load_section_titles(course)
     entries = selection.chosen(store.load_knowledge(course), state["sections"],
                                state["statements"], state["algorithms"])
-    size = _prompt_size(entries, state["proofs"], state["proof_of"])
+    size = context_size(entries, state["proofs"], state["proof_of"])
     names = ", ".join([toc.label(titles, k) for k in state["sections"]]
                       + state["statements"])
     if len(names) > 44:
@@ -515,6 +552,7 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
         rows.append((f"{JEV_ROW}  ·  {jev.usage_summary(compact=True)}", "jev"))
     rows.append((SEPARATOR + " ", None))
     rows.append((INGEST_ROW, "ingest"))
+    rows.append((CONFIG_ROW, "config"))
     return rows
 
 
@@ -677,17 +715,28 @@ def _jev_into_state(course: str, state: dict) -> bool:
     if picked is None:
         return False
     from .core import selection
+    from .core.prompts import context_size
 
-    statements, proofs = picked
+    statements, proofs, dropped = picked
     sections, singles = selection.compress(knowledge, set(statements),
                                            state["algorithms"])
     context.set_course(course, sections=sections, statements=singles,
                        proof_of=proofs, proofs=False)
     state = {"sections": sections, "statements": singles, "proof_of": proofs}
+    lines = _selection_lines(course, state, limit=10)
+    if dropped:
+        limit = _settings()["max_context_chars"]
+        shown = ", ".join(dropped[:4]) + (f" +{len(dropped) - 4} more"
+                                          if len(dropped) > 4 else "")
+        lines.append(f"{_count(dropped, 'proof')} left out to stay under "
+                     f"{limit // 1000}k characters, least certain first: {shown}")
+        size = context_size(selection.chosen(knowledge, [], statements, True),
+                            False, proofs)
+        if size > limit:
+            lines.append(f"⚠ Still {size // 1000}k characters without any proof")
     notify.send(f"Jev picked {_count(statements, 'statement')}, "
                 f"{_count(proofs, 'proof')}",
-                "\n".join(_selection_lines(course, state, limit=10)
-                          + ["", jev.usage_summary()]), glyph="✓")
+                "\n".join(lines + ["", jev.usage_summary()]), glyph="✓")
     return True
 
 
@@ -710,6 +759,55 @@ def cmd_jev(args):
         for line in _selection_lines(course, _resolve_state(course)):
             _print(line)
     _print(f"Jev: {jev.usage_summary()}")
+
+
+def _config_files() -> list[tuple[str, str, object]]:
+    """(name, what it is for, path) for the config page, in the order they
+    matter. Files that are made on demand say so."""
+    key = paths.OPENROUTER_KEY_FILE
+    files = [
+        ("uni.json", "semester, courses, where their PDFs are", paths.CONFIG_FILE),
+        ("settings.json", "context length, Jev thresholds, algorithms",
+         paths.SETTINGS_FILE),
+        ("openrouter.key", "API key for Jev" + ("" if key.exists() else
+                                               " - not there yet, opens a new one"), key),
+    ]
+    if paths.JEV_USAGE_FILE.exists():
+        files.append(("jev_usage.json", "Jev's cost counter - empty it to start at $0",
+                      paths.JEV_USAGE_FILE))
+    return files
+
+
+def _pick_config_file() -> bool:
+    """The config page: every file the tool reads that is meant to be edited,
+    one click from the editor. True if one was opened."""
+    from . import settings
+    from .integrations import editor
+
+    files = _config_files()
+    options = [(f"   {name:<15}{ARROW}  {about}", path) for name, about, path in files]
+    choice = menu.pick("Config files", [label for label, _ in options])
+    path, found = _chosen(choice, options)
+    if not found:
+        return False
+
+    # Nothing to open would be an empty buffer that says nothing; each file
+    # starts out as a template that explains itself.
+    if path == paths.CONFIG_FILE and not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(STARTER_CONFIG, encoding="utf-8")
+    elif path == paths.SETTINGS_FILE:
+        settings.ensure_file()
+    elif path == paths.OPENROUTER_KEY_FILE and not path.exists():
+        # Created here rather than by the editor, so it is private from the
+        # first byte instead of world-readable until someone runs chmod.
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch(mode=0o600)
+
+    if not editor.open_file(path):
+        notify.send("No editor found", f"Open it yourself: {path}", glyph="⚠")
+        return False
+    return True
 
 
 def cmd_pick(args):
@@ -759,6 +857,12 @@ def cmd_pick(args):
             return
         if action == "ingest":
             _do_ingest(cfg)
+            continue
+        if action == "config":
+            # The editor opens in its own window; the menu would only sit
+            # behind it, stale once the file is saved.
+            if _pick_config_file():
+                return
             continue
         if action == "course":
             picked = _pick_course(cfg, course)
@@ -978,18 +1082,6 @@ def _display_depth(rows: list[tuple[int, int]],
     return depth
 
 
-def _prompt_size(entries: list[dict], include_proofs: bool,
-                 proof_of: list[str] | None = None) -> int:
-    """Characters these entries cost a prompt: formatted as build_prompt
-    formats them, with the proofs that are switched on - not the raw text."""
-    from .core.prompts import format_knowledge_entry, proof_wanted
-
-    proof_of = set(proof_of or ())
-    return sum(len(format_knowledge_entry(
-                   e, include_proof=proof_wanted(e, include_proofs, proof_of))) + 1
-               for e in entries)
-
-
 def _section_tree(entries: list[dict], nodes: list[dict], chosen: set[str],
                   include_algorithms: bool = False,
                   max_rows: int = MAX_PICKER_ROWS,
@@ -1006,6 +1098,7 @@ def _section_tree(entries: list[dict], nodes: list[dict], chosen: set[str],
     The box says how much of a node's statements are among `chosen` (ids):
     "✓" all, "◐" some - Jev's picks, or a chapter with one statement unticked."""
     from .core import selection, toc
+    from .core.prompts import context_size
     from .core.prompts import entry_id
 
     grouped = selection.group_by_section(entries, include_algorithms)
@@ -1018,7 +1111,7 @@ def _section_tree(entries: list[dict], nodes: list[dict], chosen: set[str],
         if inside:
             # The depth is measured on statements alone, so toggling proofs
             # changes the numbers on the rows but never which rows there are.
-            filled.append((node, inside, _prompt_size(inside, False)))
+            filled.append((node, inside, context_size(inside, False)))
 
     depth = (_display_depth([(n["level"], size) for n, _, size in filled], max_rows)
              if max_rows else None)
@@ -1038,7 +1131,7 @@ def _section_tree(entries: list[dict], nodes: list[dict], chosen: set[str],
         else:
             name = f"{'Kapitel' if node['level'] == 1 else 'Abschnitt'} {key}"
         if include_proofs or proof_of:
-            size = _prompt_size(inside, include_proofs, proof_of)
+            size = context_size(inside, include_proofs, proof_of)
         rows.append((f"[{mark}] {indent}{name}  ({len(inside)}, {size // 1000}k)", key))
     return rows
 
@@ -1060,20 +1153,26 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
     picked show as such. selection.compress turns it back into sections plus
     single statements on the way out."""
     from .core import selection
+    from .core.prompts import context_size
     from .core.prompts import entry_id
 
     ids = {entry_id(e) for e in selection.chosen(entries, sections, statements,
                                                  include_algorithms)}
     proof_of = list(proof_of or [])
+    limit = _settings()["max_context_chars"]
+    # A row that could not change anything is left out.
+    has_algorithms = any(e.get("type") in selection.ALGORITHM_TYPES for e in entries)
 
     while True:
         chosen_entries = selection.chosen(entries, [], sorted(ids), include_algorithms)
         with_proof = [e for e in chosen_entries if e.get("proof")]
         proofs_on = [e for e in with_proof
                      if include_proofs or entry_id(e) in proof_of]
-        size = _prompt_size(chosen_entries, include_proofs, proof_of)
+        size = context_size(chosen_entries, include_proofs, proof_of)
+        over = "  ⚠ over the limit" if size > limit else ""
         done_label = (f"── ✓ Done · {_count(chosen_entries, 'statement')}, "
-                      f"{_count(proofs_on, 'proof')} · {size / 1000:.1f}k characters ──"
+                      f"{_count(proofs_on, 'proof')} · {size / 1000:.1f}k of "
+                      f"{limit // 1000}k characters{over} ──"
                       if ids else "── ✓ Done · nothing chosen ──")
         statements_label = STATEMENTS_ROW.format(
             state=f"{len(ids)} chosen" if ids else "none - tick a chapter below")
@@ -1087,7 +1186,9 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
         # without its leading spaces, so comparing with == silently misses the
         # indented rows.
         top = [(done_label, "done"), (statements_label, "statements"),
-               (proofs_label, "proofs"), (algorithms_label, "algorithms")]
+               (proofs_label, "proofs")]
+        if has_algorithms:
+            top.append((algorithms_label, "algorithms"))
         if ids or proof_of or include_proofs:
             top.append((CLEAR_ROW, "clear"))
         options = top + [(SEPARATOR, None)] + [(label, ("section", key))
@@ -1347,8 +1448,10 @@ def build_arg_parser():
                         help="include all proofs (default: off)")
         pb.add_argument("--proof-of", nargs="*", default=None, metavar="STATEMENT",
                         help='include single proofs, e.g. --proof-of "Satz 3.1.5"')
-        pb.add_argument("--algorithms", action="store_true", default=None,
-                        help="include algorithms (default: off)")
+        pb.add_argument("--algorithms", action=argparse.BooleanOptionalAction,
+                        default=None,
+                        help="count algorithms as statements (default: as last "
+                             "set for the course, else settings.json)")
         pb.add_argument("--statements", nargs="*", default=None, metavar="STATEMENT",
                         help='single statements, e.g. --statements "Satz 3.1.5"')
         pb.add_argument("--jev", action="store_true",

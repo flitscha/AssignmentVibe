@@ -43,7 +43,11 @@ rather than wrong ones.
 | **Context picker** (was "Chapters"): chapters tick all their statements (✓/◐), live sizes, "Clear all" | ✅ reworked | ✅ scripted | ❌ |
 | **Statements list** in the context picker: every statement of the touched sections, Select all / Deselect all | ✅ new | ✅ scripted | ❌ |
 | **Proofs list** (one row instead of toggle + list), Select all / Deselect all | ✅ reworked | ✅ scripted | ❌ |
-| **"✨ Let Jev pick the context" row** in the hub, below Context, with last and total cost | ✅ new | ✅ scripted, faked Jev | ❌ |
+| **"✨ Let Jev pick the context" row** in the hub, below Context, with last and total cost | ✅ | ✅ scripted, faked Jev | ✅ |
+| Least certain proofs dropped when Jev's pick is over `max_context_chars` | ✅ new | ✅ faked Jev on real sizes (44 statements: 27 proofs -> 6 kept, 14.9k) | ❌ |
+| `settings.json` (context length, Jev thresholds, algorithms default), validated | ✅ new | ✅ | ❌ |
+| **"⚙ Config files …"** page in the hub, opens a file in the editor | ✅ new | ⚠️ menu scripted; the editor launch itself not run | ❌ |
+| Algorithms on by default; the row hidden where a script has none | ✅ new | ✅ | ❌ |
 | **Tasks that point into the script show the exercise's title** | ✅ new | ✅ | ❌ |
 | Warning when a referenced exercise is not found | ✅ new | ✅ | ❌ |
 | Follow-ups on right click (`followup`) | ✅ | ✅ | ✅ (wording not yet reviewed) |

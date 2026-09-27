@@ -96,6 +96,16 @@ def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
     return out
 
 
+def context_size(entries: list[dict], include_proofs: bool,
+                 proof_of: "set[str] | list[str] | None" = None) -> int:
+    """Characters these entries cost a prompt: formatted as build_prompt
+    formats them, with the proofs that are switched on - not the raw text."""
+    proof_of = set(proof_of or ())
+    return sum(len(format_knowledge_entry(
+                   e, include_proof=proof_wanted(e, include_proofs, proof_of))) + 1
+               for e in entries)
+
+
 def resolve_exercises(task: dict, exercises: list[dict] | None) -> tuple[list[dict], list[str]]:
     """The script's own exercises a task refers to ("Lösen Sie Aufgabe (1.1) vom
     Skriptum"), and the references that could not be found."""
@@ -186,7 +196,7 @@ def build_prompt(
                     else "the definitions and theorems chosen for this task")
         if sections and singles:
             contents += ", plus the single statements named"
-        if include_algorithms:
+        if any(e.get("type") in selection.ALGORITHM_TYPES for e in context):
             contents += ", algorithms included"
         with_proof = [entry_id(e) for e in context
                       if not include_proofs and e.get("proof") and entry_id(e) in proof_of]

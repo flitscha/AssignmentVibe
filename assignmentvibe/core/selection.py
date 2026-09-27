@@ -156,18 +156,50 @@ def judgement_items(entries: list[dict],
     return items
 
 
-# Jev answers each yes/no question with a probability; at or above this it
-# counts as yes.
+# Jev answers each yes/no question with a probability; at or above the
+# threshold it counts as yes. settings.json can move both.
 JEV_THRESHOLD = 0.5
 
 
 def pick_from_judgement(statement_p: dict[str, float], proof_p: dict[str, float],
-                        threshold: float = JEV_THRESHOLD
+                        threshold: float = JEV_THRESHOLD,
+                        proof_threshold: float | None = None
                         ) -> tuple[list[str], list[str]]:
     """(statement ids, proof ids) from Jev's answers, in the order asked. A
     statement whose proof is wanted comes along even when it was not judged
     needed by itself - a proof without its statement is unreadable."""
-    proofs = [i for i, p in proof_p.items() if p >= threshold]
+    if proof_threshold is None:
+        proof_threshold = threshold
+    proofs = [i for i, p in proof_p.items() if p >= proof_threshold]
     wanted = set(proofs)
     picked = [i for i, p in statement_p.items() if p >= threshold or i in wanted]
     return picked, proofs
+
+
+def trim_proofs(entries: list[dict], proof_ids: list[str],
+                proof_p: dict[str, float], max_chars: int
+                ) -> tuple[list[str], list[str]]:
+    """(kept, dropped): proofs dropped least certain first until `entries` with
+    the kept proofs fit into `max_chars`, then the most certain of the dropped
+    ones put back where they still fit. Only proofs go - they are what makes
+    a pick long (the Optimierung notes: 31k characters of statements, 65k of
+    proofs), and a statement Jev picked is one the task needs to cite. If the
+    statements alone are over the limit, every proof is dropped and the result
+    is still over; the caller says so."""
+    from .prompts import context_size
+
+    kept = list(proof_ids)
+    dropped = []
+    for worst in sorted(proof_ids, key=lambda i: proof_p.get(i, 0.0)):
+        if context_size(entries, False, kept) <= max_chars:
+            break
+        kept.remove(worst)
+        dropped.append(worst)
+    # Dropping stops at the first proof that makes it fit, but the one that
+    # tipped it over may have been long: a shorter, more certain proof dropped
+    # earlier can fit again now. Most certain first.
+    for proof in sorted(dropped, key=lambda i: -proof_p.get(i, 0.0)):
+        if context_size(entries, False, kept + [proof]) <= max_chars:
+            kept.append(proof)
+            dropped.remove(proof)
+    return [i for i in proof_ids if i in kept], dropped

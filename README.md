@@ -195,18 +195,29 @@ Optimierung · task 1
   **Statements** listet die Sätze der berührten Abschnitte zum einzelnen An-
   und Abhaken, **Proofs** die Beweise der gewählten Sätze – beide mit
   „Select all“ / „Deselect all“ oben. Beweise sind standardmäßig aus (sie
-  verraten oft die Lösung).
+  verraten oft die Lösung), Algorithmen an; die Zeile „Algorithms“ gibt es
+  nur in Kursen, deren Skript welche hat. Die Done-Zeile zeigt die Länge
+  gegen das Limit aus `settings.json`.
 - **Jev** (optional): Liegt ein OpenRouter-Key in
   `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint unter
   „Context“ die Zeile „✨ Let Jev pick the context“. Jev fragt pro Satz
   „braucht die Lösung das?“ und pro Beweis „hilft der Beweis?“ und ersetzt
   damit die Auswahl, die sich danach unter „Context“ weiter anpassen lässt.
+  Wird die Auswahl länger als `max_context_chars`, fallen Beweise heraus, die
+  unsichersten zuerst – Sätze bleiben immer drin.
   Die Zeile zeigt die Kosten der letzten Auswahl, die Gesamtkosten und die
   Zahl der Anfragen (so, wie OpenRouter sie meldet). Die genaue Liste steht in
   der Benachrichtigung nach dem Wählen und im Tooltip des Widgets. Im
   Terminal: `assignmentvibe jev`, `jev --usage`.
 - **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
   rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
+- **Config files …** (unten im Hub) listet alle Dateien, die man bearbeiten
+  soll – `uni.json`, `settings.json`, `openrouter.key`, `jev_usage.json` – und
+  öffnet die gewählte im Standard-Editor (nvim). Fehlt eine, wird sie mit
+  erklärender Vorlage angelegt, der Key gleich mit `chmod 600`.
+  `settings.json` kennt `max_context_chars` (15000), `jev_statement_threshold`
+  und `jev_proof_threshold` (0.5; höher = Jev nimmt weniger) und
+  `algorithms_by_default` (true).
 
 ## Nur die Verarbeitungs-Pipeline (plattformunabhängig)
 
@@ -224,8 +235,9 @@ ab (Dev-Skript zum Regressionstesten der `core/`-Module).
 assignmentvibe/
   core/            PDF -> Text/Wissen/Aufgaben/Prompt (reine Engine, keine Seiteneffekte)
   organizer/        sort.py = Config-gesteuertes Einsortieren; organize.py = alte Heuristik
-  integrations/      Clipboard/Notify/Menu/OCR (je unabhaengig, mit Fallback-Ketten)
+  integrations/      Clipboard/Notify/Menu/OCR/Editor/Jev (je unabhaengig, mit Fallback-Ketten)
   uniconfig.py      Semester-Config (~/.config/assignmentvibe/uni.json)
+  settings.py       Verhalten (~/.config/assignmentvibe/settings.json)
   paths.py, store.py, context.py, cli.py    App-Schicht / Orchestrierung
 bin/              assignmentvibe (Einstiegspunkt), uni-sort (Super+Shift+U)
 linux/            Widget für die Omarchy-Leiste (+ alte Waybar-Konfiguration)

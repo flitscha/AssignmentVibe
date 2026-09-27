@@ -28,6 +28,9 @@ COURSES_FILE = DATA_DIR / "courses.json"
 # The one file the user edits, once per semester. See assignmentvibe/uniconfig.py.
 CONFIG_FILE = CONFIG_DIR / "uni.json"
 
+# How the tool behaves: context length, Jev thresholds. See settings.py.
+SETTINGS_FILE = CONFIG_DIR / "settings.json"
+
 # OpenRouter API key for Jev (integrations/jev.py). A file rather than only an
 # environment variable because the bar widget is started by the shell bar, not
 # from a login shell, and would not see a variable exported in .bashrc.
