@@ -174,8 +174,17 @@ Optimierung · task 1
 ```
 
 - **Aufgaben aus dem Skript:** Sagt ein Blatt nur „Lösen Sie Aufgabe (1.11)
-  vom Skriptum“, landet der Text dieser Aufgabe aus dem Skript im Prompt,
-  und die automatische Kapitelwahl bleibt in deren Kapitel.
+  vom Skriptum“, landet der Text dieser Aufgabe aus dem Skript im Prompt.
+- **Kein Kontext ohne Auswahl:** Ist kein Kapitel und kein Satz gewählt,
+  enthält der Prompt kein Skript – es wird nichts mehr geraten.
+- **Jev** (optional): Liegt ein OpenRouter-Key in
+  `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint im Hub
+  unter „Chapters“ die Zeile „✨ Let Jev pick the notes“. Jev fragt pro Satz
+  „braucht die Aufgabe das?“ und pro Beweis „hilft der Beweis?“ und ersetzt
+  damit die Auswahl; in der Kapitelauswahl lassen sich die einzelnen Sätze
+  unter „Single statements“ wieder abwählen. Dieselbe Zeile zeigt, wie viele
+  Anfragen, Tokens und Dollar Jev bisher gekostet hat (Kosten so, wie
+  OpenRouter sie meldet). Im Terminal: `assignmentvibe jev`, `jev --usage`.
 - **Beweise:** standardmäßig aus (sie verraten oft die Lösung). In der
   Kapitelauswahl schaltet „Proofs: off/all“ alle mit einem Klick an und aus,
   die Zeile darunter öffnet die Liste, um einzelne Beweise der gewählten

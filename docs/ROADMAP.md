@@ -17,8 +17,7 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
   offers chapters or sections depending on how big they are.
 - 🟢 **Exercises from the script itself** (`core/exercises.py`). A sheet task
   "Lösen Sie Aufgabe (1.11) vom Skriptum" now carries the exercise's text in
-  the prompt, and the automatic chapter suggestion stays inside the chapter the
-  exercise belongs to. Every PS Optimierung task is such a reference; all 34
+  the prompt. Every PS Optimierung task is such a reference; all 34
   resolve.
 - 🟢 **Single proofs.** In the chapter picker, "Proofs: off/all" toggles all
   proofs in one click and the row below opens a list to pick single ones;
@@ -27,18 +26,21 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 
-## 0. 🟡 Jev picks the chapters
+## 0. 🟡 Jev picks statements and proofs
 
-With an OpenRouter key in `~/.config/assignmentvibe/openrouter.key`, the
-automatic chapter choice asks Jev (TypeSafe's decision model) to rate every
-section of the script on a four-level rubric, instead of matching keywords.
-Built, but not yet measured against the real API.
+Nothing is chosen automatically any more - no selection, no context. With an
+OpenRouter key in `~/.config/assignmentvibe/openrouter.key`, the hub's
+"✨ Let Jev pick the notes" row asks Jev (TypeSafe's decision model) one yes/no
+question per statement and one per proof, and makes the answer the selection.
+Built, but not yet run against the real API.
 
-- [ ] `python scripts/compare_jev.py` (and `algebra`): does Jev land in the
-      right chapter more often than the keyword ranking?
-- [ ] Tune `RELEVANCE_THRESHOLD` in `core/selection.py` from those numbers
-- [ ] If it wins: single statements too (one yes/no question per Satz
-      inside the chosen sections)
+- [ ] First real call: does `ENDPOINT` in `integrations/jev.py` answer? (The
+      OpenRouter docs show both `/api/alpha/decisions` and
+      `/api/v1/api/alpha/decisions`.)
+- [ ] `python scripts/compare_jev.py` (and `algebra`): how many statements per
+      pick, how many from the exercise's own chapter, how many empty picks?
+- [ ] Tune `JEV_THRESHOLD` in `core/selection.py` from those numbers
+- [ ] Does `usage.cost` arrive? If not the counter shows "~$" (estimated)
 
 **Touches:** `integrations/jev.py`, `core/selection.py`, `cli.py`.
 
@@ -105,8 +107,6 @@ worth doing if item 4 shows that attaching an image is not good enough.
 (spectral graph theory) or have no bookmarks at all get no exercises. Only
 matters once a course's sheets actually reference them.
 
-## 7. ⚪ Better automatic chapter suggestion
+## 7. 🟢 ~~Better automatic chapter suggestion~~
 
-`core/selection.py` ranks sections by keyword overlap. It is a starting point
-that is corrected by hand and then remembered, so this matters less than it
-did - but embeddings would pick better where a task's vocabulary is thin.
+Replaced: the keyword guess is gone, and Jev (item 0) picks on request.

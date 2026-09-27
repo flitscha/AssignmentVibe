@@ -1,53 +1,68 @@
 """
-Ask Jev (TypeSafe's decision model, via OpenRouter) how relevant each section
-of the lecture notes is to a task.
+Ask Jev (TypeSafe's decision model, via OpenRouter) which statements of the
+lecture notes a task needs, and which of their proofs.
 
-Jev does not write text. It answers typed questions - here one Score question
-per section, on a four-level rubric - with probabilities, in well under a
-second, and bills only the input: the whole Optimierung script (~8k tokens)
-costs a small fraction of a cent per task. That makes it a fit for the one
-judgement the keyword ranking in core.selection cannot make: a task like
-"Bestimmen Sie alle ganzzahligen Lösungen ..." carries no subject vocabulary,
-but a model can still tell which chapter it belongs to.
+Jev does not write text. It answers typed questions with probabilities, in well
+under a second, and bills only the input. Here every statement gets a yes/no
+("Noul") question, and every statement with a proof a second one about the
+proof - two questions per Satz, answered in parallel. The whole Optimierung
+script with its proofs is ~100k characters, so it is split into a few requests
+that run side by side; a pick costs a fraction of a cent.
 
 The API key is read from $OPENROUTER_API_KEY, else from
-~/.config/assignmentvibe/openrouter.key. Without one, `configured()` is False
-and the caller keeps its keyword ranking; every failure after that raises
-JevUnavailable, so the caller can fall back the same way.
+~/.config/assignmentvibe/openrouter.key. Every failure raises JevUnavailable,
+so the caller can say so and leave the selection as it was.
+
+Every answered request is counted in ~/.local/state/assignmentvibe/
+jev_usage.json - requests, input tokens, and the cost OpenRouter reports in
+`usage.cost`. Where a response lacks the cost it is estimated from the tokens
+at the list price and marked as estimated.
 
 Depends only on assignmentvibe.paths - no dependency on core or on any other
-integration module. Standard library only: one POST does not justify an SDK.
+integration module. Standard library only: a few POSTs do not justify an SDK.
 """
 
 import json
 import os
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 from .. import paths
 
 ENDPOINT = "https://openrouter.ai/api/alpha/decisions"
 
-# Pinned, not "~typesafe/jev-latest": the relevance threshold in core.selection
-# was tuned against this version's scores, and -latest moves without notice.
+# Pinned, not "~typesafe/jev-latest": the threshold in core.selection is tuned
+# against this version's probabilities, and -latest moves without notice.
 MODEL = "typesafe/jev-1.13"
 
+# List price, for estimating a request whose response carries no cost. Output
+# is free.
+USD_PER_INPUT_TOKEN = 0.042 / 1_000_000
+
 # Jev's context on OpenRouter is 32k tokens for state and questions together.
-# Maths notes tokenize badly (∈, ⊂, subscripts), so this assumes ~2 characters
-# per token and leaves room for the questions.
-MAX_STATE_CHARS = 48_000
+# Maths notes tokenize badly (∈, ⊂, subscripts), so a request is kept to what
+# ~2 characters per token would still fit.
+MAX_REQUEST_CHARS = 56_000
 
-TIMEOUT_S = 10
+TIMEOUT_S = 15
+PARALLEL_REQUESTS = 6
 
-# Ordered from "leave it out" to "this is what the task is about". The middle
-# levels are what makes the expected value useful: a section the solution cites
-# once should rank above one that only shares the topic.
-RUBRIC = [
-    "Unrelated to the task.",
-    "Same broad topic, but nothing in it would be cited in a solution.",
-    "Contains some definitions or theorems a solution would use.",
-    "Contains the central definitions or theorems the task is about.",
-]
+STATEMENT_QUESTION = {
+    "instructions": "Does a solution to the task need {id} from the lecture notes?",
+    "criteria": {
+        "true": "The solution uses or cites it, or it is what the task asks about.",
+        "false": "The solution can be written without it.",
+    },
+}
+PROOF_QUESTION = {
+    "instructions": "Does the proof of {id} from the lecture notes help to solve the task?",
+    "criteria": {
+        "true": ("The task asks for the same or a similar argument, or the "
+                 "solution reuses a technique from this proof."),
+        "false": "Knowing the statement is enough; its proof is not needed.",
+    },
+}
 
 
 class JevUnavailable(Exception):
@@ -69,7 +84,8 @@ def configured() -> bool:
 
 
 def decide(state, questions: dict, model: str = MODEL) -> dict:
-    """One Decisions API call. Returns the parsed response ("answers", "usage")."""
+    """One Decisions API call. Returns the parsed response ("answers", "usage").
+    Does not count it - judge() does, once all its requests are back."""
     key = api_key()
     if not key:
         raise JevUnavailable(f"no API key (set OPENROUTER_API_KEY or write it to "
@@ -94,31 +110,104 @@ def decide(state, questions: dict, model: str = MODEL) -> dict:
         raise JevUnavailable("answer was not JSON") from e
 
 
-def rank(task: str, sections: dict[str, str],
-         model: str = MODEL) -> tuple[dict[str, float], float | None]:
-    """(relevance per section key in 0..1, cost in USD). All sections go into one
-    request as state, with one question each, answered in parallel."""
-    if not sections:
-        return {}, 0.0
-    # Question names are opaque ids: section keys like "3.1.2" are not
-    # guaranteed to be valid names, and the mapping back is ours anyway.
-    ids = {f"s{i}": key for i, key in enumerate(sections)}
-    questions = {
-        qid: {
-            "type": "score",
-            "instructions": (f"How much of what is needed to solve the task is in "
-                             f"section {key} of the lecture notes?"),
-            "criteria": RUBRIC,
-        }
-        for qid, key in ids.items()
-    }
-    response = decide({"task": task, "lecture_note_sections": sections},
-                      questions, model)
-    answers = response.get("answers") or {}
-    relevance = {}
-    for qid, key in ids.items():
-        score = (answers.get(qid) or {}).get("score")
-        if not isinstance(score, (int, float)):
-            raise JevUnavailable(f"no score for section {key}")
-        relevance[key] = score / (len(RUBRIC) - 1)
-    return relevance, (response.get("usage") or {}).get("cost")
+def _question(template: dict, item_id: str) -> dict:
+    return {"type": "noul",
+            "instructions": template["instructions"].format(id=item_id),
+            "criteria": template["criteria"]}
+
+
+def _batches(task: str, items: dict[str, dict]) -> list[list[str]]:
+    """Item ids split into requests that each stay under MAX_REQUEST_CHARS -
+    an item (statement, proof, its questions) is never split across two."""
+    question_chars = len(json.dumps(STATEMENT_QUESTION)) + len(json.dumps(PROOF_QUESTION))
+    room = MAX_REQUEST_CHARS - len(task) - 200
+    batches, current, used = [], [], 0
+    for item_id, item in items.items():
+        size = len(json.dumps(item, ensure_ascii=False)) + question_chars
+        if current and used + size > room:
+            batches.append(current)
+            current, used = [], 0
+        current.append(item_id)
+        used += size
+    if current:
+        batches.append(current)
+    return batches
+
+
+def _ask(task: str, items: dict[str, dict], ids: list[str], model: str) -> dict:
+    questions = {}
+    for n, item_id in enumerate(ids):
+        questions[f"s{n}"] = _question(STATEMENT_QUESTION, item_id)
+        if items[item_id].get("proof"):
+            questions[f"p{n}"] = _question(PROOF_QUESTION, item_id)
+    state = {"task": task, "lecture_notes": {i: items[i] for i in ids}}
+    return decide(state, questions, model)
+
+
+def judge(task: str, items: dict[str, dict],
+          model: str = MODEL) -> tuple[dict[str, float], dict[str, float]]:
+    """(P(statement needed), P(proof helps)) per item id, in the order given.
+    `items` is {id: {"statement": text, "proof": text or absent}} - see
+    core.selection.judgement_items."""
+    if not items:
+        return {}, {}
+    batches = _batches(task, items)
+    with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as pool:
+        responses = list(pool.map(lambda ids: _ask(task, items, ids, model), batches))
+    for response in responses:
+        record(response.get("usage") or {})
+
+    statement_p, proof_p = {}, {}
+    for ids, response in zip(batches, responses):
+        answers = response.get("answers") or {}
+        for n, item_id in enumerate(ids):
+            statement_p[item_id] = _probability(answers, f"s{n}", item_id)
+            if items[item_id].get("proof"):
+                proof_p[item_id] = _probability(answers, f"p{n}", item_id)
+    return statement_p, proof_p
+
+
+def _probability(answers: dict, qid: str, item_id: str) -> float:
+    value = (answers.get(qid) or {}).get("noul")
+    if not isinstance(value, (int, float)):
+        raise JevUnavailable(f"no answer for {item_id}")
+    return float(value)
+
+
+# --- Usage counter ------------------------------------------------------------
+
+def usage() -> dict:
+    """{"requests", "input_tokens", "cost_usd", "estimated_usd"} since the file
+    was started; estimated_usd is the part of cost_usd that was estimated."""
+    blank = {"requests": 0, "input_tokens": 0, "cost_usd": 0.0, "estimated_usd": 0.0}
+    try:
+        stored = json.loads(paths.JEV_USAGE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return blank
+    return {**blank, **stored}
+
+
+def record(response_usage: dict) -> dict:
+    total = usage()
+    tokens = response_usage.get("input_tokens") or 0
+    total["requests"] += 1
+    total["input_tokens"] += tokens
+    cost = response_usage.get("cost")
+    if isinstance(cost, (int, float)):
+        total["cost_usd"] += cost
+    else:
+        total["cost_usd"] += tokens * USD_PER_INPUT_TOKEN
+        total["estimated_usd"] += tokens * USD_PER_INPUT_TOKEN
+    paths.JEV_USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    paths.JEV_USAGE_FILE.write_text(json.dumps(total, indent=1), encoding="utf-8")
+    return total
+
+
+def usage_summary(total: dict | None = None) -> str:
+    """"12 requests · 214k tokens · $0.0090" - "~$" when part of it is estimated."""
+    total = total or usage()
+    tokens = total["input_tokens"]
+    tokens_text = f"{tokens / 1000:.0f}k" if tokens >= 1000 else str(tokens)
+    approx = "~" if total["estimated_usd"] else ""
+    return (f"{total['requests']} requests · {tokens_text} tokens · "
+            f"{approx}${total['cost_usd']:.4f}")

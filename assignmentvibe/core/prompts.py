@@ -2,11 +2,9 @@
 Step 4: use-case + task + (simulated) partial solution + knowledge context
 -> finished LLM prompt.
 
-Context selection (prototype): simple keyword scoring between the task text
-and the knowledge entries (Definition/Satz/...) - not embedding-based
-retrieval, but it demonstrates that automatic chapter/theorem selection
-works in principle. Replace with real embedding search for a production
-version.
+Context is only what was chosen - whole sections, single statements (by hand
+or by Jev, see integrations/jev.py), single proofs. Nothing chosen, no context:
+a guess the user did not ask for costs prompt space and can mislead the model.
 
 The prompt itself is English while the material it carries (task text,
 definitions, theorems) is whatever language the course is in. That mix is
@@ -16,8 +14,6 @@ Depends on nothing else in this project (pure functions over plain dicts).
 """
 
 import json
-import math
-import re
 import sys
 from pathlib import Path
 
@@ -68,98 +64,10 @@ FOLLOW_UPS = [
      "Give me a small concrete example I can follow to see that this is true."),
 ]
 
-# German stopwords - the source material and task texts are German, so the
-# keyword scoring below has to filter German stopwords to be useful.
-STOPWORDS = set(
-    "der die das ein eine einer einem einen und oder ist sei seien sind man "
-    "wir sie es zu von mit fuer auf im in an als dass wenn falls genau also "
-    "nicht auch bzw etc oben unten sowie oft oder wie oben also nach vom "
-    "zum zur bei aus dem den des"
-    .split()
-)
-
-
-# German inflection is enough to break exact matching on the words that matter:
-# a task says "Epigraphs" where the script says "Epigraph", "Funktionen" where
-# it says "Funktion". A full stemmer would be overkill (and a dependency), so
-# we strip the handful of endings that actually cause misses, and only when
-# enough of the word survives to stay distinctive.
-GERMAN_ENDINGS = ("en", "es", "er", "em", "e", "n", "s")
-MIN_STEM_LENGTH = 5
-
-
-def stem(word: str) -> str:
-    for ending in GERMAN_ENDINGS:
-        if word.endswith(ending) and len(word) - len(ending) >= MIN_STEM_LENGTH:
-            return word[: -len(ending)]
-    return word
-
-
-def tokenize(text: str) -> set[str]:
-    # 3 letters, not 4: "epi" in "epi(f)" is exactly the kind of short technical
-    # token that identifies the relevant definition.
-    words = re.findall(r"[A-Za-zÄÖÜäöüß]{3,}", text.lower())
-    return {stem(w) for w in words if w not in STOPWORDS}
-
-
-def entry_tokens(entry: dict) -> set[str]:
-    """Tokens of an entry - its name counts as much as its body.
-
-    Some results are only findable through the name: the algebra script states
-    "Satz 2.2.6 (2. Isomorphiesatz)" whose text never contains the word
-    "Isomorphiesatz", so a task saying "Beweisen Sie den zweiten Isomorphiesatz"
-    could not reach it at all. The proof is deliberately NOT tokenized: it adds
-    length without saying what the entry is about."""
-    return tokenize(f"{entry.get('name') or ''} {entry.get('text', '')}")
-
-
-def _inverse_document_frequency(entries: list[dict]) -> dict[str, float]:
-    """How rare each token is across the script. Without this, "funktion" and
-    "menge" - which appear in half the entries and say nothing about which one
-    is relevant - count as much as "epigraph", which appears in two."""
-    document_count = len(entries) or 1
-    frequency: dict[str, int] = {}
-    for entry in entries:
-        for token in entry_tokens(entry):
-            frequency[token] = frequency.get(token, 0) + 1
-    return {token: math.log(document_count / count)
-            for token, count in frequency.items()}
-
-
-def score_entry(task_tokens: set[str], entry: dict,
-                idf: dict[str, float] | None = None) -> float:
-    """Sum of the rarity of the shared tokens, damped by how long the entry is.
-
-    Both halves matter. Without rarity weighting, common vocabulary decides the
-    ranking. Without the length damping, a long Korollar-plus-proof outscores a
-    two-line Definition purely by having more words to collide with - which is
-    exactly how "Korollar 4.1.6" (gradient descent) beat "Definition 3.1.4"
-    (epigraph) on a task about epigraphs."""
-    tokens = entry_tokens(entry)
-    shared = task_tokens & tokens
-    if not shared:
-        return 0.0
-    weights = idf if idf is not None else {}
-    # Default weight 1.0 keeps the function meaningful when called without a
-    # corpus (tests, single entries).
-    overlap = sum(weights.get(token, 1.0) for token in shared)
-    return overlap / math.sqrt(len(tokens) or 1)
-
-
-def select_context(task_text: str, knowledge_entries: list[dict], top_k: int = 3) -> list[dict]:
-    task_tokens = tokenize(task_text)
-    idf = _inverse_document_frequency(knowledge_entries)
-    scored = [(score_entry(task_tokens, e, idf), e) for e in knowledge_entries]
-    scored = [t for t in scored if t[0] > 0]
-    # Ties broken by the script's own order, so the output is stable between runs.
-    scored.sort(key=lambda t: -t[0])
-    return [e for _, e in scored[:top_k]]
-
-
-# Proofs stay out unless asked for. Retrieval is good enough to surface the very
-# theorem a task asks you to prove - "Zeigen Sie: f konvex <=> epi(f) konvex"
-# pulls up Satz 3.1.5, which states exactly that - so shipping its proof along
-# would hand over the solution inside the context block.
+# Proofs stay out unless asked for. The theorem a task asks you to prove is
+# exactly what a good selection contains - "Zeigen Sie: f konvex <=> epi(f)
+# konvex" is Satz 3.1.5 - so shipping its proof along would hand over the
+# solution inside the context block.
 INCLUDE_PROOFS_BY_DEFAULT = False
 
 
@@ -203,35 +111,12 @@ def resolve_exercises(task: dict, exercises: list[dict] | None) -> tuple[list[di
     return found, missing
 
 
-def task_query(task: dict, exercises: list[dict] | None
-               ) -> tuple[str, list[str], list[dict]]:
-    """(text to rank sections by, chapters to rank within, exercises the task
-    refers to) - shared by the keyword ranking below and by Jev in cli.py, so
-    both judge the same text."""
+def task_query(task: dict, exercises: list[dict] | None) -> str:
+    """What the task asks, as one text to judge relevance against. A task that
+    only says "Aufgabe (1.1) vom Skriptum" says nothing by itself - the
+    exercise it points at does."""
     found, _ = resolve_exercises(task, exercises)
-    text = "\n".join([task["text"]] + [e["text"] for e in found])
-    chapters = sorted({e["section"].split(".")[0] for e in found if e.get("section")})
-    return text, chapters, found
-
-
-def task_context(task: dict, knowledge_entries: list[dict],
-                 exercises: list[dict] | None = None,
-                 sections: list[str] | None = None,
-                 include_algorithms: bool = False,
-                 ) -> tuple[list[dict], list[str], list[dict]]:
-    """(statements for the prompt, sections they came from, exercises the task
-    refers to).
-
-    A task that only says "Aufgabe (1.1) vom Skriptum" has no vocabulary to rank
-    sections by, so the exercise's own text stands in for it. And an exercise
-    sits at the end of the chapter it practises - the ranking is kept inside
-    that chapter, where a stray keyword from chapter 6 cannot win."""
-    from . import selection
-
-    text, chapters, found = task_query(task, exercises)
-    context, used = selection.select(text, knowledge_entries, sections,
-                                     include_algorithms, within=chapters or None)
-    return context, used, found
+    return "\n".join([task["text"]] + [e["text"] for e in found])
 
 
 def build_prompt(
@@ -246,16 +131,20 @@ def build_prompt(
     section_titles: dict[str, str] | None = None,
     exercises: list[dict] | None = None,
     proof_of: list[str] | None = None,
+    statements: list[str] | None = None,
 ) -> str:
-    """`sections` selects script sections to include in full (see
-    core.selection); without it, the sections its keyword ranking suggests are
-    used. `proof_of` names single statements ("Satz 3.1.5") whose proofs go in
-    even while `include_proofs` is off."""
+    """`sections` selects script sections to include in full and `statements`
+    single ones by id ("Satz 3.1.5", see core.selection); with neither, the
+    prompt carries no lecture notes at all. `proof_of` names statements whose
+    proofs go in even while `include_proofs` is off."""
+    from . import selection
     from .toc import label as section_label
 
     section_titles = section_titles or {}
-    context, used_sections, referenced = task_context(
-        task, knowledge_entries, exercises, sections, include_algorithms)
+    sections = list(sections or ())
+    context = selection.chosen(knowledge_entries, sections, statements,
+                               include_algorithms)
+    referenced, _ = resolve_exercises(task, exercises)
     if include_proofs is None:
         include_proofs = INCLUDE_PROOFS_BY_DEFAULT
     proof_of = set(proof_of or ())
@@ -283,10 +172,20 @@ def build_prompt(
     if context:
         # Naming the sections lets the reader (and the model) see what the
         # context covers - and, just as usefully, what it does not.
-        where = (", ".join(section_label(section_titles, s) for s in used_sections)
-                 if used_sections else "?")
-        lines.append(f"# From the lecture notes: section {where}")
-        contents = "every definition and theorem of these sections"
+        singles = [entry_id(e) for e in context
+                   if not any(selection.covers(k, selection.section_of(e) or "")
+                              for k in sections)]
+        where = []
+        if sections:
+            where.append("section " + ", ".join(section_label(section_titles, k)
+                                                 for k in sections))
+        if singles:
+            where.append(", ".join(singles))
+        lines.append(f"# From the lecture notes: {'; '.join(where)}")
+        contents = ("every definition and theorem of these sections" if sections
+                    else "the definitions and theorems chosen for this task")
+        if sections and singles:
+            contents += ", plus the single statements named"
         if include_algorithms:
             contents += ", algorithms included"
         with_proof = [entry_id(e) for e in context

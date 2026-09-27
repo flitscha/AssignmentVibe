@@ -10,46 +10,21 @@ x ≡1 mod 3
 x ≡2 mod 7
 x ≡3 mod 4.
 
-# From the lecture notes: section 4.3 Lösung der antiken Konstruktionsprobleme
-(every definition and theorem of these sections, proofs omitted)
+# From the lecture notes: Satz 3.1.11
+(the definitions and theorems chosen for this task, proofs omitted)
 
-Proposition 4.3.1:
-Sei L ⊆C ein unter komplexer Konjugation abgeschlossener Körper.
-Wenna ∈CineinemSchrittausLkonstruierbarist,sogibteseinb ∈Lmita ∈L(
-√
-b).
+Satz 3.1.11 (Chinesischer Restsatz):
+. Sei R ein Ring und I1, . . . , In ◁R Ideale mit
+Ii + Ij = R
+für i̸ = j.
+Dann induzieren die kanonischen Projektionen einen Isomorphismus
+R/(I1 ∩· · · ∩In) ∼= R/I1 × · · · × R/In.
+Insbesondere gibt es für jede Wahl von a1, . . . , an ∈R ein Element a ∈R mit
+a ≡ai mod Ii
+für i = 1, . . . , n.
 
-Satz 4.3.2:
-Jedes a ∈Kon(M) ist algebraisch über k = Q(M ∪M). Es gilt stets
-[k(a) : k] = 2r
-für ein r ∈N.
-
-Satz 4.3.3 (Quadratur des Kreises):
-. Für M = {0, 1} gilt
-√π /∈Kon(M).
-Also kann man zu einem gegebenen Kreis mit Radius 1 mit Zirkel und Lineal kein Quadrat
-mit gleichem Flächeninhalt konstruieren.
-
-Satz 4.3.4 (Würfelverdoppelung):
-. Für M = {0, 1} gilt
-3√
-2 /∈Kon(M).
-Also lässt sich zu einem Würfel mit Volumen 1 mit Zirkel und Lineal kein Würfel mit Volu-
-men 2 konstruieren.
-
-Satz 4.3.5 (Dreiteilung des Winkels):
-. Mit M = {0, 1, eπi/3} gilt
-eπi/9 /∈Kon(M).
-Also lässt sich ein Winkel von 60◦mit Zirkel und Lineal nicht in drei gleich große Winkel
-aufteilen.
-
-4.3. LÖSUNG DER ANTIKEN KONSTRUKTIONSPROBLEME
-81
-
-Satz 4.3.6 (Konstruktion regelmäßiger p-Ecke):
-. IstpeinePrimzahlunddasregelmä-
-ßigep-EckmitZirkelundLinealkonstruierbar,soistp−1eineZweierpotenz.Insbesondere
-kann man ein regelmäßiges 7-Eck nicht mit Zirkel und Lineal konstruieren.
+3.1. GRUNDLAGEN
+41
 
 # What I have so far
 x=1 mod 3 und x=3 mod 4 ergibt zusammen x=9 mod 12 (CRT fuer 3 und 4, da teilerfremd). Jetzt noch x=2 mod 7 kombinieren: ich setze x=9+12k und loese 9+12k=2 mod 7, also 12k=-7=0 mod 7, also k=0 mod 7 (da 12=5 mod 7 und 5 invertierbar). Also x=9 mod 84 als einzige Loesung.

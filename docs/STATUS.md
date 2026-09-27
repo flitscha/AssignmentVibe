@@ -23,8 +23,9 @@ picker would give back.
 | Chunking by the PDF's own outline (`toc.py`) | ✅ | ✅ 100% of entries placed in all ten corpus scripts | ✅ Optimierung |
 | **The script's own exercises (`exercises.py`)** | ✅ new | ✅ Optimierung: 64 exercises, all 34 sheet references resolve; Algebra 103, LinAlg 106 | ❌ |
 | Assignment-sheet parsing (`assignments.py`) | ✅ | ✅ all 26 example sheets | ✅ Optimierung |
-| Section choice: manual, or keyword-suggested (`selection.py`) | ✅ | ✅ | ✅ |
-| **Section choice by Jev** when an OpenRouter key is set (`integrations/jev.py`), keyword ranking as fallback | ✅ new | ⚠️ only against a faked API - no key available to Claude; `scripts/compare_jev.py` measures it | ❌ |
+| Selection: chapters and/or single statements; nothing chosen, no context (`selection.py`) | ✅ changed | ✅ | ❌ (the keyword guess is gone) |
+| **Jev picks statements and proofs** (`integrations/jev.py`), one yes/no per Satz and per proof | ✅ new | ⚠️ only against a faked API - no key available to Claude; `scripts/compare_jev.py` measures it | ❌ |
+| Jev usage counter: requests, tokens, cost as OpenRouter reports it (else estimated, shown as "~$") | ✅ new | ✅ with faked responses | ❌ |
 | Prompt building (`prompts.py`) | ✅ | ✅ see `docs/example_prompts/` | ⚠️ content not yet reviewed |
 
 Not covered by `exercises.py`: exercises scattered through running text
@@ -39,6 +40,8 @@ rather than wrong ones.
 | Hub: copy / follow-up / open chat, task/sheet/course/chapters rows | ✅ | ✅ scripted | ✅ |
 | State remembered per course (`context.py`) | ✅ | ✅ | ✅ |
 | Chapter picker with proof/algorithm toggles and live sizes | ✅ | ✅ scripted (the size bug is fixed) | ⚠️ size bug reported, fix not yet tried |
+| **"✨ Let Jev pick the notes" row** in the hub, below Chapters, with the running totals | ✅ new | ✅ scripted, faked Jev | ❌ |
+| **Single statements** in the chapter picker ("◐" on their chapter, a list to untick them) | ✅ new | ✅ scripted | ❌ |
 | **Proofs: one-click all on/off, plus a list for single ones** (chapter picker) | ✅ new | ✅ scripted | ❌ |
 | **Tasks that point into the script show the exercise's title** | ✅ new | ✅ | ❌ |
 | Warning when a referenced exercise is not found | ✅ new | ✅ | ❌ |
@@ -67,8 +70,6 @@ rather than wrong ones.
   already strips these for exercises; `knowledge.py` does not yet.
 - **Matrices lose their shape.** Every cell becomes its own line; exercise 2.9
   (the simplex one) is barely readable as a result. See ROADMAP.md.
-- **Keyword suggestion is coarse.** For exercise 2.9 it picks 2.4 where 2.3
-  would be better. Choosing chapters by hand is the fix, and remembered.
 - **Modellierung** yields 0 knowledge entries - its notes do not use the
   numbered "Definition 1.2" style at all.
 

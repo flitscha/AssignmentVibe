@@ -1,18 +1,20 @@
 """
-Dev helper: does Jev pick better sections than the keyword ranking?
+Dev helper: does Jev pick sensible statements for a task?
 
 The script's own exercises are the test set - each one sits at the end of the
-chapter it practises, so its chapter is a known right answer. Every exercise's
-text is ranked against the WHOLE script (no `within`: that restriction exists
-exactly because the chapter is already known, and would make the test trivial),
-once by keyword, once by Jev, and the suggestion counts as right when its top
-section lies in the exercise's chapter.
+chapter it practises, so most of what it needs should come from that chapter.
+For every exercise, Jev judges every statement and proof of the whole script;
+the report shows how many it picked and how many of those lie in the
+exercise's own chapter. Not a ground truth (a chapter-4 exercise may well need a
+chapter-1 definition), but a pick that is mostly elsewhere, or empty, or thirty
+statements long, is visibly off.
 
     python scripts/compare_jev.py                 # data/knowledge/optimierung.json
     python scripts/compare_jev.py algebra --limit 10
-    python scripts/compare_jev.py --dry-run       # sizes only, no API call
+    python scripts/compare_jev.py --dry-run       # batch sizes only, no API call
 
-Needs an OpenRouter key (see integrations/jev.py) unless --dry-run.
+Needs an OpenRouter key (see integrations/jev.py) unless --dry-run. Every call
+is counted in the same usage totals the hub shows.
 """
 
 import argparse
@@ -25,11 +27,8 @@ REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from assignmentvibe.core import selection  # noqa: E402
+from assignmentvibe.core.prompts import entry_id  # noqa: E402
 from assignmentvibe.integrations import jev  # noqa: E402
-
-
-def chapter(key: str) -> str:
-    return key.split(".")[0]
 
 
 def main() -> None:
@@ -41,47 +40,50 @@ def main() -> None:
 
     data = json.loads((REPO_ROOT / "data" / "knowledge" / f"{args.course}.json")
                       .read_text(encoding="utf-8"))
-    entries, exercises = data["entries"], data.get("exercises") or []
-    titles = {n["key"]: n["title"] for n in data.get("sections") or []
-              if n.get("key") and n.get("title")}
-    exercises = [e for e in exercises if e.get("section")]
+    entries = data["entries"]
+    exercises = [e for e in data.get("exercises") or [] if e.get("section")]
     if args.limit:
         exercises = exercises[:args.limit]
 
-    digests = selection.section_digests(entries, titles, budget=jev.MAX_STATE_CHARS)
-    size = sum(len(d) for d in digests.values())
-    print(f"{args.course}: {len(exercises)} exercises, {len(digests)} sections, "
-          f"{size} characters of state per call")
+    items = selection.judgement_items(entries)
+    sections = {entry_id(e): selection.section_of(e) or ""
+                for e in selection.statements(entries)}
+    batches = jev._batches("x" * 1500, items)
+    print(f"{args.course}: {len(exercises)} exercises, {len(items)} statements, "
+          f"{sum(1 for i in items.values() if 'proof' in i)} proofs -> "
+          f"{len(batches)} requests per pick")
     if args.dry_run:
         return
     if not jev.configured():
         sys.exit("No OpenRouter key - see integrations/jev.py.")
 
-    hits = {"keyword": 0, "jev": 0}
-    cost, seconds = 0.0, []
+    before = jev.usage()
+    seconds, sizes, in_chapter = [], [], []
     for ex in exercises:
         text = f"{ex.get('title') or ''}\n{ex['text']}"
-        want = chapter(ex["section"])
-
-        by_keyword = selection.suggest_sections(text, entries)
+        chapter = ex["section"].split(".")[0]
         start = time.monotonic()
-        relevance, call_cost = jev.rank(text, digests)
+        statement_p, proof_p = jev.judge(text, items)
         seconds.append(time.monotonic() - start)
-        cost += call_cost or 0.0
-        by_jev = selection.suggest_from_relevance(relevance)
+        picked, proofs = selection.pick_from_judgement(statement_p, proof_p)
 
-        row = []
-        for name, picked in (("keyword", by_keyword), ("jev", by_jev)):
-            ok = bool(picked) and chapter(picked[0]) == want
-            hits[name] += ok
-            row.append(f"{'✓' if ok else '✗'} {name} {','.join(picked) or '-'}")
-        print(f"({ex['number']:>5}) ch.{want:<3} " + "   ".join(row))
+        own = [i for i in picked if sections.get(i, "").split(".")[0] == chapter]
+        sizes.append(len(picked))
+        in_chapter.append(len(own) / len(picked) if picked else 0.0)
+        shown = ", ".join(picked[:6]) + (" …" if len(picked) > 6 else "")
+        print(f"({ex['number']:>5}) ch.{chapter:<3} {len(picked):>2} picked, "
+              f"{len(own):>2} in ch., {len(proofs)} proofs   {shown}")
 
+    after = jev.usage()
     n = len(exercises) or 1
     seconds.sort()
-    print(f"\nright chapter: keyword {hits['keyword']}/{n}, jev {hits['jev']}/{n}")
-    print(f"jev: median {seconds[len(seconds) // 2]:.2f}s, max {seconds[-1]:.2f}s, "
-          f"total ${cost:.4f}")
+    print(f"\nper exercise: {sum(sizes) / n:.1f} statements, "
+          f"{100 * sum(in_chapter) / n:.0f}% from its own chapter, "
+          f"{sizes.count(0)} empty picks")
+    print(f"per pick: median {seconds[len(seconds) // 2]:.2f}s, max {seconds[-1]:.2f}s")
+    print(f"this run: {after['requests'] - before['requests']} requests, "
+          f"{after['input_tokens'] - before['input_tokens']} tokens, "
+          f"${after['cost_usd'] - before['cost_usd']:.4f}")
 
 
 if __name__ == "__main__":

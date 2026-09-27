@@ -20,7 +20,8 @@ assignmentvibe/
     exercises.py            the script's own exercises ("(1.1) ..." in "Aufgaben" sections)
     assignments.py        assignment-sheet PDF -> structured tasks + references
                           into the script ("Aufgabe (1.1) vom Skriptum")
-    selection.py           which sections go into a prompt: chosen, or keyword-suggested
+    selection.py           which sections and single statements go into a prompt -
+                            only what was chosen; also turns Jev's answers into a pick
     prompts.py               task + exercises + knowledge -> prompt string
                              (depends on selection, toc, exercises - all pure)
 
@@ -45,9 +46,10 @@ assignmentvibe/
     menu.py               omarchy-menu-select/rofi/wofi/fzf -> stdin prompt
     ocr.py                 pytesseract wrapper (placeholder, see docs/LINUX_PROTOTYPE.md)
     launcher.py             .desktop entries for Super+Space
-    jev.py                   rates each script section's relevance to a task
-                              (Jev via OpenRouter); no key or no network ->
-                              JevUnavailable, and cli.py keeps the keyword pick
+    jev.py                   asks Jev (via OpenRouter) per statement and per proof
+                              whether a task needs it; counts requests/tokens/cost.
+                              No key or no network -> JevUnavailable, selection
+                              stays as it was
 
   paths.py         XDG directory locations. Depended on by store/context/
                     clipboard; depends on nothing itself.

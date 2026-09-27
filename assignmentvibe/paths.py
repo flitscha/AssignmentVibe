@@ -32,6 +32,8 @@ CONFIG_FILE = CONFIG_DIR / "uni.json"
 # environment variable because the bar widget is started by the shell bar, not
 # from a login shell, and would not see a variable exported in .bashrc.
 OPENROUTER_KEY_FILE = CONFIG_DIR / "openrouter.key"
+# Running totals of what Jev has cost: requests, tokens, dollars.
+JEV_USAGE_FILE = STATE_DIR / "jev_usage.json"
 
 # Generated .desktop entries land here, which is what Walker (Super+Space) reads.
 APPLICATIONS_DIR = _xdg("XDG_DATA_HOME", "~/.local/share") / "applications"

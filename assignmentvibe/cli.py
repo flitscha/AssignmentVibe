@@ -16,6 +16,7 @@ Subcommands:
   context show|clear                        current working context
   build   ...                                build a prompt, print to stdout
   copy    ...                                 build a prompt + copy to clipboard
+  jev [--usage]                                 let Jev pick statements + proofs for the task
   followup                                     copy a canned reply for the chat
   pick                                           the hub menu (top-bar click)
   waybar-status                                   JSON status for the Waybar module
@@ -145,28 +146,21 @@ def _resolve_solution(args) -> str | None:
     return None
 
 
-def _jev_sections(task: dict, knowledge: list[dict], exercises: list[dict],
-                  titles: dict[str, str]) -> list[str] | None:
-    """Jev's pick of sections for a task, or None to leave the choice to the
-    keyword ranking inside build_prompt - without a key that is silent, a
-    failing call says so, since then the pick got worse without asking."""
-    from .integrations import jev
-
-    if not knowledge or not jev.configured():
-        return None
+def _jev_pick(task: dict, knowledge: list[dict], exercises: list[dict],
+              include_algorithms: bool = False) -> tuple[list[str], list[str]] | None:
+    """(statement ids, proof ids) Jev judges the task to need, or None when it
+    could not be asked - said in a notification, since the user pressed for it."""
     from .core import selection
     from .core.prompts import task_query
+    from .integrations import jev
 
-    text, chapters, _ = task_query(task, exercises)
-    digests = selection.section_digests(knowledge, titles, within=chapters or None,
-                                        budget=jev.MAX_STATE_CHARS)
+    items = selection.judgement_items(knowledge, include_algorithms)
     try:
-        relevance, _cost = jev.rank(text, digests)
+        statement_p, proof_p = jev.judge(task_query(task, exercises), items)
     except jev.JevUnavailable as e:
-        notify.send("Jev unavailable", f"Chapters picked by keyword instead. {e}",
-                    glyph="⚠")
+        notify.send("Jev unavailable", f"The selection is unchanged. {e}", glyph="⚠")
         return None
-    return selection.suggest_from_relevance(relevance) or None
+    return selection.pick_from_judgement(statement_p, proof_p)
 
 
 def _build_from_args(args) -> str:
@@ -213,15 +207,23 @@ def _build_from_args(args) -> str:
     if algorithms is None:
         algorithms = bool(saved.get("algorithms"))
 
-    titles = store.load_section_titles(course_slug) if course_slug else {}
-    if not sections and not getattr(args, "no_jev", False):
-        sections = _jev_sections(task, knowledge, exercises, titles)
+    statements = getattr(args, "statements", None)
+    if statements is None and not getattr(args, "sections", None):
+        statements = saved.get("statements")
+    if getattr(args, "jev", False):
+        picked = _jev_pick(task, knowledge, exercises, algorithms)
+        if picked is None:
+            print("Jev could not be asked - see the notification.", file=sys.stderr)
+            sys.exit(1)
+        sections, (statements, proof_of), proofs = [], picked, False
 
     return build_prompt(task, sheet, knowledge, solution, course_name,
                         sections=sections, include_proofs=proofs,
                         include_algorithms=algorithms,
-                        section_titles=titles,
-                        exercises=exercises, proof_of=proof_of)
+                        section_titles=store.load_section_titles(course_slug)
+                        if course_slug else {},
+                        exercises=exercises, proof_of=proof_of,
+                        statements=statements)
 
 
 def cmd_build(args):
@@ -279,7 +281,10 @@ def cmd_waybar_status(args):
         except (FileNotFoundError, OSError):
             sheet_text = sheet_id
 
-    sections = ", ".join(state.get("sections") or []) or "picked automatically by keyword"
+    chosen = list(state.get("sections") or [])
+    if state.get("statements"):
+        chosen.append(_count(state["statements"], "statement"))
+    sections = ", ".join(chosen) or "none"
     print(json.dumps({
         "text": f"{BAR_ICON} {short} A{state['task']}",
         "tooltip": (f"Course: {name}\n{sheet_text}, task {state['task']}\n"
@@ -376,6 +381,7 @@ COPY_ROW = "▶  Copy prompt"
 FOLLOWUP_ROW = "💬 Copy a follow-up …"
 BROWSER_ROW = "🌐 Open chat"
 INGEST_ROW = "⟳  Read in new sheets"
+JEV_ROW = "   ✨ Let Jev pick the notes"
 SOLUTION_ROW = "📋 Partial solution from clipboard"
 SEPARATOR = "───────────────────────────────"
 
@@ -417,6 +423,7 @@ def _resolve_state(course: str) -> dict:
         "sheet": sheet,
         "task": task_num,
         "sections": saved.get("sections") or [],
+        "statements": list(saved.get("statements") or []),
         "proofs": bool(saved.get("proofs")),
         "proof_of": list(saved.get("proof_of") or []),
         "algorithms": bool(saved.get("algorithms")),
@@ -464,18 +471,17 @@ def _sections_summary(course: str, state: dict) -> str:
     from . import store
     from .core import selection, toc
 
-    if not state["sections"]:
-        from .integrations import jev
-        # Only whether a key is there - asking Jev would put a network call
-        # between the click and the menu. The pick itself happens on copy.
-        by = "by Jev" if jev.configured() else "by keyword"
-        return f"picked automatically {by}" + (" · all proofs" if state["proofs"] else "")
+    if not state["sections"] and not state["statements"]:
+        return "none - the prompt carries no lecture notes"
 
     titles = store.load_section_titles(course)
-    entries = selection.entries_in(store.load_knowledge(course), state["sections"],
-                                   state["algorithms"])
+    entries = selection.chosen(store.load_knowledge(course), state["sections"],
+                               state["statements"], state["algorithms"])
     size = _prompt_size(entries, state["proofs"], state["proof_of"])
-    names = ", ".join(toc.label(titles, k) for k in state["sections"])
+    parts = [toc.label(titles, k) for k in state["sections"]]
+    if state["statements"]:
+        parts.append(_count(state["statements"], "statement"))
+    names = ", ".join(parts)
     if len(names) > 44:
         names = names[:41] + "…"
     # Proofs are set inside the chapter picker, so this row is where the hub
@@ -512,6 +518,11 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
         (f"   Course    {ARROW}  {course_name}", "course"),
         (f"   Chapters  {ARROW}  {_sections_summary(course, state)}", "sections"),
     ]
+    from .integrations import jev
+    # Under the row it changes, so the result shows right above the next click.
+    # Only with a key and a task - without either it could only fail.
+    if task and jev.configured():
+        rows.append((f"{JEV_ROW}   ({jev.usage_summary()})", "jev"))
     rows.append((SEPARATOR + " ", None))
     rows.append((INGEST_ROW, "ingest"))
     return rows
@@ -598,16 +609,13 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
     from .core.prompts import resolve_exercises
 
     task = _task_of(state)
-    knowledge = store.load_knowledge(course)
-    titles = store.load_section_titles(course)
-    sections = state["sections"] or _jev_sections(task, knowledge,
-                                                  state["exercises"], titles)
     prompt = build_prompt(
-        task, state["sheet"], knowledge, solution, course_name,
-        sections=sections,
+        task, state["sheet"], store.load_knowledge(course), solution, course_name,
+        sections=state["sections"],
+        statements=state["statements"],
         include_proofs=state["proofs"],
         include_algorithms=state["algorithms"],
-        section_titles=titles,
+        section_titles=store.load_section_titles(course),
         exercises=state["exercises"],
         proof_of=state["proof_of"],
     )
@@ -626,6 +634,64 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
     else:
         notify.send("Prompt built",
                     f"No clipboard available, saved to: {method}", glyph="⚠")
+
+
+def _count(items: list, noun: str) -> str:
+    return f"{len(items)} {noun}{'' if len(items) == 1 else 's'}"
+
+
+def _jev_into_state(course: str, state: dict) -> bool:
+    """Let Jev pick for the current task, and make that the course's selection.
+    It replaces what was chosen before, chapters included: Jev looks at the
+    whole script, so keeping the old chapters would add back what it left out."""
+    from . import store
+    from .integrations import jev
+
+    knowledge = store.load_knowledge(course)
+    if not knowledge:
+        notify.send("No knowledge base", "Read the lecture notes in first.", glyph="⚠")
+        return False
+    notify.send("Asking Jev", "Which statements and proofs does this task need?",
+                glyph="⟳")
+    picked = _jev_pick(_task_of(state), knowledge, state["exercises"],
+                       state["algorithms"])
+    if picked is None:
+        return False
+    statements, proofs = picked
+    context.set_course(course, sections=[], statements=statements,
+                       proof_of=proofs, proofs=False)
+    notify.send("Jev picked",
+                f"{_count(statements, 'statement')}, {_count(proofs, 'proof')}\n"
+                f"{jev.usage_summary()}", glyph="✓")
+    return True
+
+
+def cmd_jev(args):
+    """The hub's Jev row from the terminal: pick for the current task and
+    remember it, then print what was picked and the running totals."""
+    from . import store
+    from .core import selection
+    from .core.prompts import entry_id
+    from .integrations import jev
+
+    if not args.usage:
+        course = context.current_course()
+        if not course:
+            print("No current course - open the hub once first.", file=sys.stderr)
+            sys.exit(1)
+        state = _resolve_state(course)
+        if _task_of(state) is None:
+            print("No current task.", file=sys.stderr)
+            sys.exit(1)
+        if not _jev_into_state(course, state):
+            sys.exit(1)
+        state = _resolve_state(course)
+        by_id = {entry_id(e): e
+                 for e in selection.statements(store.load_knowledge(course), True)}
+        for i in state["statements"]:
+            proof = "  + proof" if i in state["proof_of"] else ""
+            _print(_statement_row(by_id[i], True)[4:] + proof)
+    _print(jev.usage_summary())
 
 
 def cmd_pick(args):
@@ -708,11 +774,16 @@ def cmd_pick(args):
                 continue
             picked = _pick_sections(entries, store.load_sections(course),
                                     state["sections"], state["proofs"],
-                                    state["algorithms"], state["proof_of"])
+                                    state["algorithms"], state["proof_of"],
+                                    state["statements"])
             if picked is not None:
-                sections, proofs, algorithms, proof_of = picked
+                sections, proofs, algorithms, proof_of, statements = picked
                 context.set_course(course, sections=sections, proofs=proofs,
-                                   algorithms=algorithms, proof_of=proof_of)
+                                   algorithms=algorithms, proof_of=proof_of,
+                                   statements=statements)
+            continue
+        if action == "jev":
+            _jev_into_state(course, state)
             continue
 
 
@@ -841,6 +912,7 @@ DONE_LABEL = "── DONE ──"
 # The toggle is the one-click case, the list the occasional one.
 PROOF_LABEL = "── Proofs: {state} ──"
 PROOF_PICK_LABEL = "── Proofs: pick single ones … ──"
+SINGLES_LABEL = "── Single statements ({n}) … ──"
 ALGO_LABEL = "── Algorithms: {state} ──"
 
 
@@ -902,7 +974,8 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
                   include_algorithms: bool = False,
                   max_rows: int = MAX_PICKER_ROWS,
                   include_proofs: bool = False,
-                  proof_of: list[str] | None = None) -> list[tuple[str, str]]:
+                  proof_of: list[str] | None = None,
+                  partly: set[str] | None = None) -> list[tuple[str, str]]:
     """(menu label, section key) for the nodes of the script's outline that have
     statements beneath them, indented by depth and cut off at the depth that
     fits the row and chunk budgets (max_rows=0 shows all of them).
@@ -910,7 +983,10 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
     Parents are offered alongside their children, so "give me all of chapter 3"
     is one keystroke rather than four - selection.entries_in treats a parent key
     as everything nested under it. Nodes with nothing in them are left out; a
-    bibliography or a foreword is not something to hand to the model."""
+    bibliography or a foreword is not something to hand to the model.
+
+    `partly` holds the sections single statements were picked from; those rows
+    show "◐" instead of an empty box."""
     from .core import selection, toc
 
     grouped = selection.group_by_section(entries, include_algorithms)
@@ -934,6 +1010,8 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
             continue
         key = node["key"]
         mark = "✓" if any(selection.covers(s, key) for s in selected) else " "
+        if mark == " " and any(selection.covers(key, k) for k in partly or ()):
+            mark = "◐"
         indent = "   " * (node["level"] - 1)
         # Without an outline there are no titles, only numbers - and then the
         # row has to say what the number counts.
@@ -951,28 +1029,40 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
                    include_proofs: bool = False,
                    include_algorithms: bool = False,
                    proof_of: list[str] | None = None,
-                   ) -> tuple[list[str], bool, bool, list[str]] | None:
+                   statements: list[str] | None = None,
+                   ) -> tuple[list[str], bool, bool, list[str], list[str]] | None:
     """The selection loop. Returns (sections, include_proofs, include_algorithms,
-    proof_of), or None if the user aborted. A loop rather than a multi-select
+    proof_of, single statements), or None if the user aborted. A loop rather than a multi-select
     widget because the picker chain (Walker, wofi, fzf, stdin) only ever returns
     ONE choice - see integrations/menu.py."""
     from .core import selection, toc
 
+    from .core.prompts import entry_id
+
     selected = set(preselected)
     proof_of = list(proof_of or [])
+    singles = list(statements or [])
+    by_id = {entry_id(e): e for e in selection.statements(entries, True)}
 
     while True:
+        # A single statement inside a chosen section is part of it already.
+        singles = [i for i in singles if i in by_id and not any(
+            selection.covers(s, selection.section_of(by_id[i]) or "") for s in selected)]
+        partly = {selection.section_of(by_id[i]) for i in singles} - {None}
         rows = _section_tree(entries, nodes, selected, include_algorithms,
-                             include_proofs=include_proofs, proof_of=proof_of)
-        chosen_entries = selection.entries_in(entries, sorted(selected),
-                                              include_algorithms)
+                             include_proofs=include_proofs, proof_of=proof_of,
+                             partly=partly)
+        chosen_entries = selection.chosen(entries, sorted(selected), singles,
+                                          include_algorithms)
         size = _prompt_size(chosen_entries, include_proofs, proof_of)
         proof_label = PROOF_LABEL.format(state=_proofs_summary(
             {"proofs": include_proofs, "proof_of": proof_of}, chosen_entries))
         algo_label = ALGO_LABEL.format(state="on" if include_algorithms else "off")
         done_label = f"── DONE: {len(chosen_entries)} statements, {size} characters ──"
 
+        single_label = SINGLES_LABEL.format(n=len(singles))
         labels = ([done_label, proof_label, PROOF_PICK_LABEL, algo_label]
+                  + ([single_label] if singles else [])
                   + [label for label, _ in rows])
         choice = menu.pick("Lecture notes context", labels)
 
@@ -980,7 +1070,7 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
             return None
         if choice == done_label:
             return (sorted(selected, key=toc.sort_key), include_proofs,
-                    include_algorithms, proof_of)
+                    include_algorithms, proof_of, singles)
         if choice == proof_label:
             # Off -> all. Anything on - all, or single picks - -> off, and the
             # single picks go with it: clearing them is the usual reason to
@@ -1003,6 +1093,11 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
         if choice == algo_label:
             include_algorithms = not include_algorithms
             continue
+        if singles and choice == single_label:
+            kept = _pick_singles([by_id[i] for i in singles])
+            if kept is not None:
+                singles = kept
+            continue
 
         key, found = _chosen(choice, rows)
         if not found or key is None:
@@ -1017,7 +1112,28 @@ def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str
                          if s != key and selection.covers(key, s)}
 
 
-def _proof_row(e: dict, on: bool) -> str:
+def _pick_singles(picked: list[dict]) -> list[str] | None:
+    """The single statements (Jev's pick, usually), to untick the ones that do
+    not belong. Only removes: adding goes through the chapters, or through Jev.
+    Returns the ids kept, or None if the user aborted."""
+    from .core.prompts import entry_id
+
+    ids = [entry_id(e) for e in picked]
+    on = set(ids)
+    while True:
+        rows = [(_statement_row(e, entry_id(e) in on), entry_id(e)) for e in picked]
+        done_label = f"── DONE: {len(on)} of {len(ids)} statements ──"
+        choice = menu.pick("Single statements", [done_label] + [label for label, _ in rows])
+        if choice is None:
+            return None
+        if choice == done_label:
+            return [i for i in ids if i in on]
+        key, found = _chosen(choice, rows)
+        if found:
+            on ^= {key}
+
+
+def _statement_row(e: dict, on: bool) -> str:
     from .core.prompts import entry_id
 
     # The number alone says nothing ("Satz 3.1.5"), so the row carries what the
@@ -1025,10 +1141,14 @@ def _proof_row(e: dict, on: bool) -> str:
     about = e.get("name") or " ".join(e["text"].split())
     if len(about) > 48:
         about = about[:47] + "…"
+    return f"[{'✓' if on else ' '}] {entry_id(e)}  {about}"
+
+
+def _proof_row(e: dict, on: bool) -> str:
     # A proof of a few words ("Übung (Aufgabe (1.3)).") is worth seeing as such.
     n = len(e["proof"])
     size = f"{n / 1000:.1f}k" if n >= 100 else "<0.1k"
-    return f"[{'✓' if on else ' '}] {entry_id(e)}  {about}  ({size})"
+    return f"{_statement_row(e, on)}  ({size})"
 
 
 def _pick_proofs(candidates: list[dict], include_all: bool,
@@ -1174,9 +1294,16 @@ def build_arg_parser():
                         help='include single proofs, e.g. --proof-of "Satz 3.1.5"')
         pb.add_argument("--algorithms", action="store_true", default=None,
                         help="include algorithms (default: off)")
-        pb.add_argument("--no-jev", action="store_true",
-                        help="pick sections by keyword even with an OpenRouter key")
+        pb.add_argument("--statements", nargs="*", default=None, metavar="STATEMENT",
+                        help='single statements, e.g. --statements "Satz 3.1.5"')
+        pb.add_argument("--jev", action="store_true",
+                        help="let Jev pick statements and proofs for this build")
         pb.set_defaults(func=fn)
+
+    p_jev = sub.add_parser("jev", help="let Jev pick statements and proofs for the current task")
+    p_jev.add_argument("--usage", action="store_true",
+                       help="only print how many requests, tokens and dollars so far")
+    p_jev.set_defaults(func=cmd_jev)
 
     p_fu = sub.add_parser("followup", help="copy a canned follow-up to the clipboard")
     p_fu.set_defaults(func=cmd_followup)
