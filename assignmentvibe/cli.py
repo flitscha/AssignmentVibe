@@ -550,7 +550,11 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
     # Only with a key and a task - without either it could only fail.
     if task and jev.configured():
         rows.append((f"{JEV_ROW}  ·  {jev.usage_summary(compact=True)}", "jev"))
-    rows.append((SEPARATOR + " ", None))
+    # No separator before these two, though they are a group of their own: the
+    # Omarchy menu caps its height at 70% of the screen, which on a 900px-high
+    # (logical) screen is 630px - and a row is 50px plus 3px spacing, a
+    # separator included. Twelve rows need 633px and scroll; eleven fit. The
+    # glyphs and the missing indent set these two apart well enough.
     rows.append((INGEST_ROW, "ingest"))
     rows.append((CONFIG_ROW, "config"))
     return rows
