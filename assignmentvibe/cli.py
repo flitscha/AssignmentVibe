@@ -281,15 +281,19 @@ def cmd_waybar_status(args):
         except (FileNotFoundError, OSError):
             sheet_text = sheet_id
 
-    chosen = list(state.get("sections") or [])
-    if state.get("statements"):
-        chosen.append(_count(state["statements"], "statement"))
-    sections = ", ".join(chosen) or "none"
+    # The exact selection, since this is where it can be read without opening
+    # anything. Only loads the knowledge base when there is something to name.
+    chosen = (_selection_lines(course, state, limit=15)
+              if state.get("sections") or state.get("statements") else [])
+    notes = "\n".join(f"  {line}" for line in chosen) or "  none"
+    tooltip = (f"Course: {name}\n{sheet_text}, task {state['task']}\n\n"
+               f"Lecture notes in the prompt:\n{notes}\n")
+    if paths.JEV_USAGE_FILE.exists():
+        from .integrations import jev
+        tooltip += f"\nJev: {jev.usage_summary()}\n"
     print(json.dumps({
         "text": f"{BAR_ICON} {short} A{state['task']}",
-        "tooltip": (f"Course: {name}\n{sheet_text}, task {state['task']}\n"
-                    f"Chapters: {sections}\n\n"
-                    f"Left: menu · Right: follow-ups · Middle: reset"),
+        "tooltip": tooltip + "\nLeft: menu · Right: follow-ups · Middle: reset",
     }, ensure_ascii=False))
 
 
@@ -478,10 +482,8 @@ def _sections_summary(course: str, state: dict) -> str:
     entries = selection.chosen(store.load_knowledge(course), state["sections"],
                                state["statements"], state["algorithms"])
     size = _prompt_size(entries, state["proofs"], state["proof_of"])
-    parts = [toc.label(titles, k) for k in state["sections"]]
-    if state["statements"]:
-        parts.append(_count(state["statements"], "statement"))
-    names = ", ".join(parts)
+    names = ", ".join([toc.label(titles, k) for k in state["sections"]]
+                      + state["statements"])
     if len(names) > 44:
         names = names[:41] + "…"
     # Proofs are set inside the chapter picker, so this row is where the hub
@@ -522,7 +524,7 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
     # Under the row it changes, so the result shows right above the next click.
     # Only with a key and a task - without either it could only fail.
     if task and jev.configured():
-        rows.append((f"{JEV_ROW}   ({jev.usage_summary()})", "jev"))
+        rows.append((f"{JEV_ROW}  ·  {jev.usage_summary(compact=True)}", "jev"))
     rows.append((SEPARATOR + " ", None))
     rows.append((INGEST_ROW, "ingest"))
     return rows
@@ -636,6 +638,27 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
                     f"No clipboard available, saved to: {method}", glyph="⚠")
 
 
+def _selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
+    """One line per chosen section and per single statement, "+ proof" where
+    its proof goes in too - the exact list, for the tooltip and notifications.
+    `limit` cuts it with an "… and N more" line."""
+    from . import store
+    from .core import selection, toc
+    from .core.prompts import entry_id
+
+    knowledge = store.load_knowledge(course)
+    titles = store.load_section_titles(course)
+    lines = [f"Section {toc.label(titles, k)}" for k in state.get("sections") or []]
+    by_id = {entry_id(e): e for e in selection.statements(knowledge, True)}
+    proofs = set(state.get("proof_of") or ())
+    for i in state.get("statements") or []:
+        label = _statement_label(by_id[i]) if i in by_id else i
+        lines.append(label + ("  + proof" if i in proofs else ""))
+    if limit and len(lines) > limit:
+        lines = lines[:limit - 1] + [f"… and {len(lines) - limit + 1} more"]
+    return lines
+
+
 def _count(items: list, noun: str) -> str:
     return f"{len(items)} {noun}{'' if len(items) == 1 else 's'}"
 
@@ -660,18 +683,17 @@ def _jev_into_state(course: str, state: dict) -> bool:
     statements, proofs = picked
     context.set_course(course, sections=[], statements=statements,
                        proof_of=proofs, proofs=False)
-    notify.send("Jev picked",
-                f"{_count(statements, 'statement')}, {_count(proofs, 'proof')}\n"
-                f"{jev.usage_summary()}", glyph="✓")
+    state = {"statements": statements, "proof_of": proofs}
+    notify.send(f"Jev picked {_count(statements, 'statement')}, "
+                f"{_count(proofs, 'proof')}",
+                "\n".join(_selection_lines(course, state, limit=10)
+                          + ["", jev.usage_summary()]), glyph="✓")
     return True
 
 
 def cmd_jev(args):
     """The hub's Jev row from the terminal: pick for the current task and
     remember it, then print what was picked and the running totals."""
-    from . import store
-    from .core import selection
-    from .core.prompts import entry_id
     from .integrations import jev
 
     if not args.usage:
@@ -685,13 +707,9 @@ def cmd_jev(args):
             sys.exit(1)
         if not _jev_into_state(course, state):
             sys.exit(1)
-        state = _resolve_state(course)
-        by_id = {entry_id(e): e
-                 for e in selection.statements(store.load_knowledge(course), True)}
-        for i in state["statements"]:
-            proof = "  + proof" if i in state["proof_of"] else ""
-            _print(_statement_row(by_id[i], True)[4:] + proof)
-    _print(jev.usage_summary())
+        for line in _selection_lines(course, _resolve_state(course)):
+            _print(line)
+    _print(f"Jev: {jev.usage_summary()}")
 
 
 def cmd_pick(args):
@@ -1133,15 +1151,19 @@ def _pick_singles(picked: list[dict]) -> list[str] | None:
             on ^= {key}
 
 
-def _statement_row(e: dict, on: bool) -> str:
+def _statement_label(e: dict) -> str:
     from .core.prompts import entry_id
 
-    # The number alone says nothing ("Satz 3.1.5"), so the row carries what the
-    # statement is about: its name if it has one, else how it begins.
+    # The number alone says nothing ("Satz 3.1.5"), so the label carries what
+    # the statement is about: its name if it has one, else how it begins.
     about = e.get("name") or " ".join(e["text"].split())
     if len(about) > 48:
         about = about[:47] + "…"
-    return f"[{'✓' if on else ' '}] {entry_id(e)}  {about}"
+    return f"{entry_id(e)}  {about}"
+
+
+def _statement_row(e: dict, on: bool) -> str:
+    return f"[{'✓' if on else ' '}] {_statement_label(e)}"
 
 
 def _proof_row(e: dict, on: bool) -> str:

@@ -25,7 +25,8 @@ picker would give back.
 | Assignment-sheet parsing (`assignments.py`) | ✅ | ✅ all 26 example sheets | ✅ Optimierung |
 | Selection: chapters and/or single statements; nothing chosen, no context (`selection.py`) | ✅ changed | ✅ | ❌ (the keyword guess is gone) |
 | **Jev picks statements and proofs** (`integrations/jev.py`), one yes/no per Satz and per proof | ✅ new | ⚠️ only against a faked API - no key available to Claude; `scripts/compare_jev.py` measures it | ❌ |
-| Jev usage counter: requests, tokens, cost as OpenRouter reports it (else estimated, shown as "~$") | ✅ new | ✅ with faked responses | ❌ |
+| Jev cost counter: last pick and total, with request counts; cost as OpenRouter reports it (else estimated, shown as "~$") | ✅ new | ✅ with faked responses | ❌ |
+| The exact selection (each section and statement, "+ proof") in the bar tooltip and in the notification after a Jev pick | ✅ new | ✅ | ❌ |
 | Prompt building (`prompts.py`) | ✅ | ✅ see `docs/example_prompts/` | ⚠️ content not yet reviewed |
 
 Not covered by `exercises.py`: exercises scattered through running text

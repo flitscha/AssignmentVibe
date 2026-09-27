@@ -13,20 +13,19 @@ The API key is read from $OPENROUTER_API_KEY, else from
 ~/.config/assignmentvibe/openrouter.key. Every failure raises JevUnavailable,
 so the caller can say so and leave the selection as it was.
 
-Every answered request is counted in ~/.local/state/assignmentvibe/
-jev_usage.json - requests, input tokens, and the cost OpenRouter reports in
-`usage.cost`. Where a response lacks the cost it is estimated from the tokens
-at the list price and marked as estimated.
+Every pick is counted in ~/.local/state/assignmentvibe/jev_usage.json - its
+requests and the cost OpenRouter reports in `usage.cost`, both for the last pick
+and in total. Where a response lacks the cost it is estimated from its tokens at
+the list price and shown as "~$".
 
 Depends only on assignmentvibe.paths - no dependency on core or on any other
 integration module. Standard library only: a few POSTs do not justify an SDK.
+The network modules are imported where they are used: the bar reads the usage
+totals from here every few seconds and needs none of them.
 """
 
 import json
 import os
-import urllib.error
-import urllib.request
-from concurrent.futures import ThreadPoolExecutor
 
 from .. import paths
 
@@ -86,6 +85,9 @@ def configured() -> bool:
 def decide(state, questions: dict, model: str = MODEL) -> dict:
     """One Decisions API call. Returns the parsed response ("answers", "usage").
     Does not count it - judge() does, once all its requests are back."""
+    import urllib.error
+    import urllib.request
+
     key = api_key()
     if not key:
         raise JevUnavailable(f"no API key (set OPENROUTER_API_KEY or write it to "
@@ -149,13 +151,14 @@ def judge(task: str, items: dict[str, dict],
     """(P(statement needed), P(proof helps)) per item id, in the order given.
     `items` is {id: {"statement": text, "proof": text or absent}} - see
     core.selection.judgement_items."""
+    from concurrent.futures import ThreadPoolExecutor
+
     if not items:
         return {}, {}
     batches = _batches(task, items)
     with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as pool:
         responses = list(pool.map(lambda ids: _ask(task, items, ids, model), batches))
-    for response in responses:
-        record(response.get("usage") or {})
+    record([response.get("usage") or {} for response in responses])
 
     statement_p, proof_p = {}, {}
     for ids, response in zip(batches, responses):
@@ -177,9 +180,11 @@ def _probability(answers: dict, qid: str, item_id: str) -> float:
 # --- Usage counter ------------------------------------------------------------
 
 def usage() -> dict:
-    """{"requests", "input_tokens", "cost_usd", "estimated_usd"} since the file
-    was started; estimated_usd is the part of cost_usd that was estimated."""
-    blank = {"requests": 0, "input_tokens": 0, "cost_usd": 0.0, "estimated_usd": 0.0}
+    """{"requests", "input_tokens", "cost_usd", "estimated_usd", "last"} since
+    the file was started. estimated_usd is the part of cost_usd that was
+    estimated; "last" is {"requests", "cost_usd", "estimated"} of the last pick."""
+    blank = {"requests": 0, "input_tokens": 0, "cost_usd": 0.0,
+             "estimated_usd": 0.0, "last": None}
     try:
         stored = json.loads(paths.JEV_USAGE_FILE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -187,27 +192,47 @@ def usage() -> dict:
     return {**blank, **stored}
 
 
-def record(response_usage: dict) -> dict:
+def record(responses: list[dict]) -> dict:
+    """Count one pick: the `usage` of each of its responses."""
     total = usage()
-    tokens = response_usage.get("input_tokens") or 0
-    total["requests"] += 1
-    total["input_tokens"] += tokens
-    cost = response_usage.get("cost")
-    if isinstance(cost, (int, float)):
+    last = {"requests": len(responses), "cost_usd": 0.0, "estimated": False}
+    for response_usage in responses:
+        tokens = response_usage.get("input_tokens") or 0
+        cost = response_usage.get("cost")
+        if not isinstance(cost, (int, float)):
+            cost = tokens * USD_PER_INPUT_TOKEN
+            total["estimated_usd"] += cost
+            last["estimated"] = True
+        total["input_tokens"] += tokens
         total["cost_usd"] += cost
-    else:
-        total["cost_usd"] += tokens * USD_PER_INPUT_TOKEN
-        total["estimated_usd"] += tokens * USD_PER_INPUT_TOKEN
+        last["cost_usd"] += cost
+    total["requests"] += len(responses)
+    total["last"] = last
     paths.JEV_USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
     paths.JEV_USAGE_FILE.write_text(json.dumps(total, indent=1), encoding="utf-8")
     return total
 
 
-def usage_summary(total: dict | None = None) -> str:
-    """"12 requests · 214k tokens · $0.0090" - "~$" when part of it is estimated."""
+def _dollars(amount: float, estimated: bool) -> str:
+    return f"{'~' if estimated else ''}${amount:.4f}"
+
+
+def usage_summary(total: dict | None = None, compact: bool = False) -> str:
+    """"last pick $0.0011 (3 requests) · total $0.0042 (12 requests)", or with
+    `compact` "last $0.0011 · total $0.0042 · 12 requests" for a menu row. "~$"
+    where part of the amount is estimated."""
     total = total or usage()
-    tokens = total["input_tokens"]
-    tokens_text = f"{tokens / 1000:.0f}k" if tokens >= 1000 else str(tokens)
-    approx = "~" if total["estimated_usd"] else ""
-    return (f"{total['requests']} requests · {tokens_text} tokens · "
-            f"{approx}${total['cost_usd']:.4f}")
+    if not total["requests"]:
+        return "not used yet"
+    last = total.get("last")
+    if compact:
+        parts = [f"last {_dollars(last['cost_usd'], last['estimated'])}"] if last else []
+        parts.append(f"total {_dollars(total['cost_usd'], bool(total['estimated_usd']))}")
+        parts.append(f"{total['requests']} requests")
+        return " · ".join(parts)
+    text = (f"total {_dollars(total['cost_usd'], bool(total['estimated_usd']))} "
+            f"({total['requests']} requests)")
+    if last:
+        text = (f"last pick {_dollars(last['cost_usd'], last['estimated'])} "
+                f"({last['requests']} requests) · {text}")
+    return text

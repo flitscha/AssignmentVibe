@@ -182,9 +182,11 @@ Optimierung · task 1
   unter „Chapters“ die Zeile „✨ Let Jev pick the notes“. Jev fragt pro Satz
   „braucht die Aufgabe das?“ und pro Beweis „hilft der Beweis?“ und ersetzt
   damit die Auswahl; in der Kapitelauswahl lassen sich die einzelnen Sätze
-  unter „Single statements“ wieder abwählen. Dieselbe Zeile zeigt, wie viele
-  Anfragen, Tokens und Dollar Jev bisher gekostet hat (Kosten so, wie
-  OpenRouter sie meldet). Im Terminal: `assignmentvibe jev`, `jev --usage`.
+  unter „Single statements“ wieder abwählen. Dieselbe Zeile zeigt die Kosten
+  der letzten Auswahl, die Gesamtkosten und die Zahl der Anfragen (Kosten so,
+  wie OpenRouter sie meldet). Die genaue Liste der gewählten Sätze steht in
+  der Benachrichtigung nach dem Wählen und im Tooltip des Widgets. Im
+  Terminal: `assignmentvibe jev`, `jev --usage`.
 - **Beweise:** standardmäßig aus (sie verraten oft die Lösung). In der
   Kapitelauswahl schaltet „Proofs: off/all“ alle mit einem Klick an und aus,
   die Zeile darunter öffnet die Liste, um einzelne Beweise der gewählten
