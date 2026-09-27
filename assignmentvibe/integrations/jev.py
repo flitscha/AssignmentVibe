@@ -40,12 +40,14 @@ MODEL = "typesafe/jev-1.13"
 USD_PER_INPUT_TOKEN = 0.042 / 1_000_000
 
 # Jev's context on OpenRouter is 32k tokens for state and questions together.
-# Maths notes tokenize badly (∈, ⊂, subscripts), so a request is kept to what
-# ~2 characters per token would still fit.
-MAX_REQUEST_CHARS = 56_000
+# A request uses at most half of it, even at ~2 characters per token (maths
+# notes tokenize badly: ∈, ⊂, subscripts) - answers from a window packed to the
+# brim are the ones to distrust, and more, smaller requests run side by side
+# anyway.
+MAX_REQUEST_CHARS = 32_000
 
 TIMEOUT_S = 15
-PARALLEL_REQUESTS = 6
+PARALLEL_REQUESTS = 8
 
 STATEMENT_QUESTION = {
     "instructions": "Does a solution to the task need {id} from the lecture notes?",

@@ -385,7 +385,7 @@ COPY_ROW = "▶  Copy prompt"
 FOLLOWUP_ROW = "💬 Copy a follow-up …"
 BROWSER_ROW = "🌐 Open chat"
 INGEST_ROW = "⟳  Read in new sheets"
-JEV_ROW = "   ✨ Let Jev pick the notes"
+JEV_ROW = "   ✨ Let Jev pick the context"
 SOLUTION_ROW = "📋 Partial solution from clipboard"
 SEPARATOR = "───────────────────────────────"
 
@@ -456,22 +456,7 @@ def _task_title(task: dict, exercises: list[dict]) -> str | None:
     return task.get("title")
 
 
-def _proofs_summary(state: dict, context_entries: list[dict]) -> str:
-    from .core.prompts import entry_id
-
-    if state["proofs"]:
-        return "all"
-    chosen = [entry_id(e) for e in context_entries
-              if e.get("proof") and entry_id(e) in state["proof_of"]]
-    if not chosen:
-        return "off"
-    names = ", ".join(chosen)
-    if len(names) > 44:
-        names = names[:41] + "…"
-    return f"{names}  ({len(chosen)})"
-
-
-def _sections_summary(course: str, state: dict) -> str:
+def _context_summary(course: str, state: dict) -> str:
     from . import store
     from .core import selection, toc
 
@@ -486,10 +471,13 @@ def _sections_summary(course: str, state: dict) -> str:
                       + state["statements"])
     if len(names) > 44:
         names = names[:41] + "…"
-    # Proofs are set inside the chapter picker, so this row is where the hub
-    # says they are on - and only then; "off" is the default and not news.
-    proofs = _proofs_summary(state, entries)
-    proofs = "" if proofs == "off" else f" · proofs: {proofs}"
+    # Proofs are set inside the context picker, so this row is where the hub
+    # says they are on - and only then; none is the default and not news.
+    from .core.prompts import proof_wanted
+
+    with_proof = [e for e in entries if e.get("proof")]
+    on = [e for e in with_proof if proof_wanted(e, state["proofs"], state["proof_of"])]
+    proofs = f" · {len(on)} of {_count(with_proof, 'proof')}" if on else ""
     return f"{names}  ({len(entries)}, {size // 1000}k){proofs}"
 
 
@@ -518,7 +506,7 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
         (f"   Task      {ARROW}  {task_text}", "task"),
         (f"   Sheet     {ARROW}  {sheet_text}", "sheet"),
         (f"   Course    {ARROW}  {course_name}", "course"),
-        (f"   Chapters  {ARROW}  {_sections_summary(course, state)}", "sections"),
+        (f"   Context   {ARROW}  {_context_summary(course, state)}", "context"),
     ]
     from .integrations import jev
     # Under the row it changes, so the result shows right above the next click.
@@ -651,9 +639,17 @@ def _selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
     lines = [f"Section {toc.label(titles, k)}" for k in state.get("sections") or []]
     by_id = {entry_id(e): e for e in selection.statements(knowledge, True)}
     proofs = set(state.get("proof_of") or ())
-    for i in state.get("statements") or []:
+    singles = state.get("statements") or []
+    for i in singles:
         label = _statement_label(by_id[i]) if i in by_id else i
         lines.append(label + ("  + proof" if i in proofs else ""))
+    # Proofs of statements inside a whole section have no line of their own.
+    if state.get("proofs"):
+        lines.append("+ all their proofs")
+    else:
+        inside = selection.entries_in(knowledge, state.get("sections") or [], True)
+        lines += [f"+ proof of {entry_id(e)}" for e in inside
+                  if entry_id(e) in proofs and entry_id(e) not in singles]
     if limit and len(lines) > limit:
         lines = lines[:limit - 1] + [f"… and {len(lines) - limit + 1} more"]
     return lines
@@ -680,10 +676,14 @@ def _jev_into_state(course: str, state: dict) -> bool:
                        state["algorithms"])
     if picked is None:
         return False
+    from .core import selection
+
     statements, proofs = picked
-    context.set_course(course, sections=[], statements=statements,
+    sections, singles = selection.compress(knowledge, set(statements),
+                                           state["algorithms"])
+    context.set_course(course, sections=sections, statements=singles,
                        proof_of=proofs, proofs=False)
-    state = {"statements": statements, "proof_of": proofs}
+    state = {"sections": sections, "statements": singles, "proof_of": proofs}
     notify.send(f"Jev picked {_count(statements, 'statement')}, "
                 f"{_count(proofs, 'proof')}",
                 "\n".join(_selection_lines(course, state, limit=10)
@@ -783,14 +783,14 @@ def cmd_pick(args):
             if picked is not None:
                 context.set_course(course, sheet=state["sheet"]["sheet_id"], task=picked)
             continue
-        if action == "sections":
+        if action == "context":
             entries = store.load_knowledge(course)
             if not entries:
                 notify.send("No knowledge base",
                             f"No lecture notes have been read in for '{courses[course]}' yet.",
                             glyph="⚠")
                 continue
-            picked = _pick_sections(entries, store.load_sections(course),
+            picked = _pick_context(entries, store.load_sections(course),
                                     state["sections"], state["proofs"],
                                     state["algorithms"], state["proof_of"],
                                     state["statements"])
@@ -924,14 +924,16 @@ def cmd_launcher(args, cfg=None, quiet=False):
 
 # --- Script context: which sections of the script go into the prompt --------
 
-DONE_LABEL = "── DONE ──"
-# Two rows for one setting, because a menu row is exactly one action - the
-# Omarchy menu has no second button per row (even Right does what Enter does).
-# The toggle is the one-click case, the list the occasional one.
-PROOF_LABEL = "── Proofs: {state} ──"
-PROOF_PICK_LABEL = "── Proofs: pick single ones … ──"
-SINGLES_LABEL = "── Single statements ({n}) … ──"
-ALGO_LABEL = "── Algorithms: {state} ──"
+# The rows above the outline in the context picker. A menu row is exactly one
+# action - the Omarchy menu has no second button per row - so every setting that
+# is more than on/off opens its own list, and says on the row what it is now.
+STATEMENTS_ROW = "   Statements  ▸  {state} …"
+PROOFS_ROW = "   Proofs      ▸  {state} …"
+ALGORITHMS_ROW = "   Algorithms  ▸  {state}"
+CLEAR_ROW = "   ✕ Clear all"
+# The first rows of the Statements and Proofs lists.
+SELECT_ALL_ROW = "   ✓ Select all"
+DESELECT_ALL_ROW = "   ✕ Deselect all"
 
 
 # How many rows the picker may show. The list is walked with arrow keys and
@@ -988,24 +990,23 @@ def _prompt_size(entries: list[dict], include_proofs: bool,
                for e in entries)
 
 
-def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
+def _section_tree(entries: list[dict], nodes: list[dict], chosen: set[str],
                   include_algorithms: bool = False,
                   max_rows: int = MAX_PICKER_ROWS,
                   include_proofs: bool = False,
-                  proof_of: list[str] | None = None,
-                  partly: set[str] | None = None) -> list[tuple[str, str]]:
+                  proof_of: list[str] | None = None) -> list[tuple[str, str]]:
     """(menu label, section key) for the nodes of the script's outline that have
     statements beneath them, indented by depth and cut off at the depth that
     fits the row and chunk budgets (max_rows=0 shows all of them).
 
     Parents are offered alongside their children, so "give me all of chapter 3"
-    is one keystroke rather than four - selection.entries_in treats a parent key
-    as everything nested under it. Nodes with nothing in them are left out; a
-    bibliography or a foreword is not something to hand to the model.
+    is one keystroke rather than four. Nodes with nothing in them are left out;
+    a bibliography or a foreword is not something to hand to the model.
 
-    `partly` holds the sections single statements were picked from; those rows
-    show "◐" instead of an empty box."""
+    The box says how much of a node's statements are among `chosen` (ids):
+    "✓" all, "◐" some - Jev's picks, or a chapter with one statement unticked."""
     from .core import selection, toc
+    from .core.prompts import entry_id
 
     grouped = selection.group_by_section(entries, include_algorithms)
     titles = {n["key"]: n["title"] for n in nodes if n.get("title")}
@@ -1027,9 +1028,8 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
         if depth is not None and node["level"] > depth:
             continue
         key = node["key"]
-        mark = "✓" if any(selection.covers(s, key) for s in selected) else " "
-        if mark == " " and any(selection.covers(key, k) for k in partly or ()):
-            mark = "◐"
+        ticked = sum(1 for e in inside if entry_id(e) in chosen)
+        mark = "✓" if ticked == len(inside) else "◐" if ticked else " "
         indent = "   " * (node["level"] - 1)
         # Without an outline there are no titles, only numbers - and then the
         # row has to say what the number counts.
@@ -1043,112 +1043,151 @@ def _section_tree(entries: list[dict], nodes: list[dict], selected: set[str],
     return rows
 
 
-def _pick_sections(entries: list[dict], nodes: list[dict], preselected: list[str],
-                   include_proofs: bool = False,
-                   include_algorithms: bool = False,
-                   proof_of: list[str] | None = None,
-                   statements: list[str] | None = None,
-                   ) -> tuple[list[str], bool, bool, list[str], list[str]] | None:
-    """The selection loop. Returns (sections, include_proofs, include_algorithms,
-    proof_of, single statements), or None if the user aborted. A loop rather than a multi-select
-    widget because the picker chain (Walker, wofi, fzf, stdin) only ever returns
-    ONE choice - see integrations/menu.py."""
-    from .core import selection, toc
+def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
+                  include_proofs: bool = False,
+                  include_algorithms: bool = False,
+                  proof_of: list[str] | None = None,
+                  statements: list[str] | None = None,
+                  ) -> tuple[list[str], bool, bool, list[str], list[str]] | None:
+    """The context picker. Returns (sections, include_proofs, include_algorithms,
+    proof_of, single statements), or None if the user aborted. A loop rather
+    than a multi-select widget because the picker chain (Walker, wofi, fzf,
+    stdin) only ever returns ONE choice - see integrations/menu.py.
 
+    Inside, the selection is a set of statement ids and nothing else; a chapter
+    row ticks or unticks all of its statements. That is what lets one statement
+    be unticked out of a whole chapter, and what makes a chapter Jev partly
+    picked show as such. selection.compress turns it back into sections plus
+    single statements on the way out."""
+    from .core import selection
     from .core.prompts import entry_id
 
-    selected = set(preselected)
+    ids = {entry_id(e) for e in selection.chosen(entries, sections, statements,
+                                                 include_algorithms)}
     proof_of = list(proof_of or [])
-    singles = list(statements or [])
-    by_id = {entry_id(e): e for e in selection.statements(entries, True)}
 
     while True:
-        # A single statement inside a chosen section is part of it already.
-        singles = [i for i in singles if i in by_id and not any(
-            selection.covers(s, selection.section_of(by_id[i]) or "") for s in selected)]
-        partly = {selection.section_of(by_id[i]) for i in singles} - {None}
-        rows = _section_tree(entries, nodes, selected, include_algorithms,
-                             include_proofs=include_proofs, proof_of=proof_of,
-                             partly=partly)
-        chosen_entries = selection.chosen(entries, sorted(selected), singles,
-                                          include_algorithms)
+        chosen_entries = selection.chosen(entries, [], sorted(ids), include_algorithms)
+        with_proof = [e for e in chosen_entries if e.get("proof")]
+        proofs_on = [e for e in with_proof
+                     if include_proofs or entry_id(e) in proof_of]
         size = _prompt_size(chosen_entries, include_proofs, proof_of)
-        proof_label = PROOF_LABEL.format(state=_proofs_summary(
-            {"proofs": include_proofs, "proof_of": proof_of}, chosen_entries))
-        algo_label = ALGO_LABEL.format(state="on" if include_algorithms else "off")
-        done_label = f"── DONE: {len(chosen_entries)} statements, {size} characters ──"
+        done_label = (f"── ✓ Done · {_count(chosen_entries, 'statement')}, "
+                      f"{_count(proofs_on, 'proof')} · {size / 1000:.1f}k characters ──"
+                      if ids else "── ✓ Done · nothing chosen ──")
+        statements_label = STATEMENTS_ROW.format(
+            state=f"{len(ids)} chosen" if ids else "none - tick a chapter below")
+        proofs_label = PROOFS_ROW.format(
+            state=_proofs_state(include_proofs, proof_of, with_proof))
+        algorithms_label = ALGORITHMS_ROW.format(state="on" if include_algorithms else "off")
+        rows = _section_tree(entries, nodes, ids, include_algorithms,
+                             include_proofs=include_proofs, proof_of=proof_of)
 
-        single_label = SINGLES_LABEL.format(n=len(singles))
-        labels = ([done_label, proof_label, PROOF_PICK_LABEL, algo_label]
-                  + ([single_label] if singles else [])
-                  + [label for label, _ in rows])
-        choice = menu.pick("Lecture notes context", labels)
+        top = [done_label, statements_label, proofs_label, algorithms_label]
+        if ids or proof_of or include_proofs:
+            top.append(CLEAR_ROW)
+        choice = menu.pick("Context", top + [SEPARATOR] + [label for label, _ in rows])
 
         if choice is None:
             return None
         if choice == done_label:
-            return (sorted(selected, key=toc.sort_key), include_proofs,
-                    include_algorithms, proof_of, singles)
-        if choice == proof_label:
-            # Off -> all. Anything on - all, or single picks - -> off, and the
-            # single picks go with it: clearing them is the usual reason to
-            # reach for this row once some are ticked.
-            if include_proofs or proof_of:
-                include_proofs, proof_of = False, []
-            else:
-                include_proofs = True
-            continue
-        if choice == PROOF_PICK_LABEL:
-            candidates = [e for e in chosen_entries if e.get("proof")]
-            if not candidates:
-                notify.send("No proofs", "Pick a chapter first - none of the chosen "
-                            "statements has a proof.", glyph="⚠")
+            sections, singles = selection.compress(entries, ids, include_algorithms)
+            return sections, include_proofs, include_algorithms, proof_of, singles
+        if choice == statements_label:
+            if not ids:
+                notify.send("Nothing chosen yet",
+                            "Tick a chapter below, or let Jev pick from the main menu.",
+                            glyph="⚠")
                 continue
-            picked = _pick_proofs(candidates, include_proofs, proof_of)
+            # Every statement of the sections something was picked from - so
+            # what Jev left out next to its picks can be ticked right here.
+            touched = {selection.section_of(e) for e in chosen_entries}
+            candidates = [e for e in selection.statements(entries, include_algorithms)
+                          if selection.section_of(e) in touched]
+            candidates += [e for e in chosen_entries if e not in candidates]
+            candidates.sort(key=selection.script_order)
+            picked = _pick_statements(candidates, ids)
+            if picked is not None:
+                ids = (ids - {entry_id(e) for e in candidates}) | picked
+            continue
+        if choice == proofs_label:
+            if not with_proof:
+                notify.send("No proofs", "None of the chosen statements has a proof.",
+                            glyph="⚠")
+                continue
+            picked = _pick_proofs(with_proof, include_proofs, proof_of)
             if picked is not None:
                 include_proofs, proof_of = picked
             continue
-        if choice == algo_label:
+        if choice == algorithms_label:
+            # Through sections, so a whole chapter gains or loses its
+            # algorithms, while one picked by name stays.
+            sections, singles = selection.compress(entries, ids, include_algorithms)
             include_algorithms = not include_algorithms
+            ids = {entry_id(e) for e in selection.chosen(entries, sections, singles,
+                                                         include_algorithms)}
             continue
-        if singles and choice == single_label:
-            kept = _pick_singles([by_id[i] for i in singles])
-            if kept is not None:
-                singles = kept
+        if choice == CLEAR_ROW:
+            ids, proof_of, include_proofs = set(), [], False
             continue
 
         key, found = _chosen(choice, rows)
         if not found or key is None:
             continue
-        # Toggling a parent clears its children too, so the two cannot disagree
-        # about what is selected.
-        if key in selected:
-            selected.discard(key)
-        else:
-            selected.add(key)
-            selected -= {s for s in list(selected)
-                         if s != key and selection.covers(key, s)}
+        inside = {entry_id(e) for e in selection.entries_in(entries, [key],
+                                                            include_algorithms)}
+        ids = ids - inside if inside <= ids else ids | inside
 
 
-def _pick_singles(picked: list[dict]) -> list[str] | None:
-    """The single statements (Jev's pick, usually), to untick the ones that do
-    not belong. Only removes: adding goes through the chapters, or through Jev.
-    Returns the ids kept, or None if the user aborted."""
+def _proofs_state(include_all: bool, proof_of: list[str],
+                  with_proof: list[dict]) -> str:
+    """What the Proofs row says: "all 7", "none of 7", or the ones picked."""
     from .core.prompts import entry_id
 
-    ids = [entry_id(e) for e in picked]
-    on = set(ids)
+    total = len(with_proof)
+    if not total:
+        return "none"
+    if include_all:
+        return f"all {total}"
+    on = [entry_id(e) for e in with_proof if entry_id(e) in proof_of]
+    if not on:
+        return f"none of {total}"
+    names = ", ".join(on)
+    if len(names) > 40:
+        names = names[:39] + "…"
+    return f"{names}  ({len(on)} of {total})"
+
+
+def _pick_list(header: str, candidates: list[dict], on: set[str],
+               row, noun: str) -> set[str] | None:
+    """A tick list with Select all / Deselect all on top. Returns the ticked ids
+    among `candidates`, or None if the user aborted."""
+    from .core.prompts import entry_id
+
+    ids = [entry_id(e) for e in candidates]
+    on = {i for i in ids if i in on}
     while True:
-        rows = [(_statement_row(e, entry_id(e) in on), entry_id(e)) for e in picked]
-        done_label = f"── DONE: {len(on)} of {len(ids)} statements ──"
-        choice = menu.pick("Single statements", [done_label] + [label for label, _ in rows])
+        rows = [(row(e, entry_id(e) in on), entry_id(e)) for e in candidates]
+        done_label = f"── ✓ Done · {len(on)} of {len(ids)} {noun} ──"
+        choice = menu.pick(header, [done_label, SELECT_ALL_ROW, DESELECT_ALL_ROW]
+                           + [label for label, _ in rows])
         if choice is None:
             return None
         if choice == done_label:
-            return [i for i in ids if i in on]
+            return on
+        if choice == SELECT_ALL_ROW:
+            on = set(ids)
+            continue
+        if choice == DESELECT_ALL_ROW:
+            on = set()
+            continue
         key, found = _chosen(choice, rows)
         if found:
             on ^= {key}
+
+
+def _pick_statements(candidates: list[dict], chosen: set[str]) -> set[str] | None:
+    return _pick_list("Statements", candidates, chosen, _statement_row, "statements")
 
 
 def _statement_label(e: dict) -> str:
@@ -1175,39 +1214,23 @@ def _proof_row(e: dict, on: bool) -> str:
 
 def _pick_proofs(candidates: list[dict], include_all: bool,
                  chosen: list[str]) -> tuple[bool, list[str]] | None:
-    """Which single proofs go into the prompt, out of the statements the chosen
-    chapters carry. "All" is the toggle row in the chapter picker; here it only
-    shows as every row ticked. Returns (include_all, chosen ids), or None if the
-    user aborted.
+    """Which proofs of the chosen statements go into the prompt. Returns
+    (include_all, chosen ids), or None if the user aborted.
 
-    Unticking one proof while "all" is on keeps the rest - that is what the tick
-    marks show, and the one exception is the likelier wish than "none but that".
-    Picks outside the current chapters are kept, so switching a chapter off and
-    on again does not lose them."""
+    All ticked means all, also for statements chosen later - the state the
+    CLI's --proofs sets. Picks outside the current selection are kept, so
+    unticking a chapter and ticking it again does not lose them."""
     from .core.prompts import entry_id
 
-    chosen_set = set(chosen)
     ids = [entry_id(e) for e in candidates]
-    while True:
-        on = {i for i in ids if include_all or i in chosen_set}
-        rows = [(_proof_row(e, entry_id(e) in on), entry_id(e)) for e in candidates]
-        size = sum(len(e["proof"]) for e in candidates if entry_id(e) in on)
-        done_label = f"── DONE: {len(on)} of {len(ids)} proofs, {size} characters ──"
-
-        choice = menu.pick("Proofs", [done_label] + [label for label, _ in rows])
-        if choice is None:
-            return None
-        if choice == done_label:
-            return include_all, [c for c in chosen if c in chosen_set] + sorted(
-                chosen_set - set(chosen), key=ids.index)
-
-        key, found = _chosen(choice, rows)
-        if not found:
-            continue
-        if include_all:
-            include_all = False
-            chosen_set |= set(ids)
-        chosen_set ^= {key}
+    on = set(ids) if include_all else set(chosen) & set(ids)
+    picked = _pick_list("Proofs", candidates, on, _proof_row, "proofs")
+    if picked is None:
+        return None
+    kept = [c for c in chosen if c not in ids]
+    if picked == set(ids):
+        return True, kept
+    return False, kept + [i for i in ids if i in picked]
 
 
 def cmd_sections(args):

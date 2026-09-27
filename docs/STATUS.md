@@ -40,10 +40,10 @@ rather than wrong ones.
 |---|---|---|---|
 | Hub: copy / follow-up / open chat, task/sheet/course/chapters rows | ✅ | ✅ scripted | ✅ |
 | State remembered per course (`context.py`) | ✅ | ✅ | ✅ |
-| Chapter picker with proof/algorithm toggles and live sizes | ✅ | ✅ scripted (the size bug is fixed) | ⚠️ size bug reported, fix not yet tried |
-| **"✨ Let Jev pick the notes" row** in the hub, below Chapters, with the running totals | ✅ new | ✅ scripted, faked Jev | ❌ |
-| **Single statements** in the chapter picker ("◐" on their chapter, a list to untick them) | ✅ new | ✅ scripted | ❌ |
-| **Proofs: one-click all on/off, plus a list for single ones** (chapter picker) | ✅ new | ✅ scripted | ❌ |
+| **Context picker** (was "Chapters"): chapters tick all their statements (✓/◐), live sizes, "Clear all" | ✅ reworked | ✅ scripted | ❌ |
+| **Statements list** in the context picker: every statement of the touched sections, Select all / Deselect all | ✅ new | ✅ scripted | ❌ |
+| **Proofs list** (one row instead of toggle + list), Select all / Deselect all | ✅ reworked | ✅ scripted | ❌ |
+| **"✨ Let Jev pick the context" row** in the hub, below Context, with last and total cost | ✅ new | ✅ scripted, faked Jev | ❌ |
 | **Tasks that point into the script show the exercise's title** | ✅ new | ✅ | ❌ |
 | Warning when a referenced exercise is not found | ✅ new | ✅ | ❌ |
 | Follow-ups on right click (`followup`) | ✅ | ✅ | ✅ (wording not yet reviewed) |

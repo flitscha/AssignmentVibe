@@ -86,7 +86,7 @@ def entries_in(entries: list[dict], selected: list[str],
     return sorted(chosen, key=lambda e: (sort_key(section_of(e) or "0"), e.get("page", 0)))
 
 
-def _script_order(e: dict) -> tuple:
+def script_order(e: dict) -> tuple:
     return (sort_key(section_of(e) or "0"), e.get("page", 0))
 
 
@@ -102,7 +102,35 @@ def chosen(entries: list[dict], sections: list[str] | None,
     seen = {id(e) for e in picked}
     picked += [e for e in statements(entries, include_algorithms=True)
                if entry_id(e) in ids and id(e) not in seen]
-    return sorted(picked, key=_script_order)
+    return sorted(picked, key=script_order)
+
+
+def compress(entries: list[dict], ids: set[str],
+             include_algorithms: bool = False) -> tuple[list[str], list[str]]:
+    """(sections, single ids) that select exactly `ids`: every outline node
+    whose statements are all in `ids` becomes a section, the outermost one
+    wins, and the rest stay single. The picker works on statements alone and
+    stores this; it keeps the prompt's header naming "section 3.1" rather than
+    eleven numbers when all of 3.1 was ticked one by one or picked by Jev."""
+    by_key: dict[str, set[str]] = {}
+    for e in statements(entries, include_algorithms):
+        key = section_of(e)
+        if not key:
+            continue
+        parts = key.split(".")
+        for depth in range(1, len(parts) + 1):
+            by_key.setdefault(".".join(parts[:depth]), set()).add(entry_id(e))
+
+    sections: list[str] = []
+    for key in sorted(by_key, key=lambda k: (k.count("."), sort_key(k))):
+        if any(covers(s, key) for s in sections):
+            continue
+        if by_key[key] <= ids:
+            sections.append(key)
+    covered = set().union(*(by_key[s] for s in sections)) if sections else set()
+    singles = [entry_id(e) for e in sorted(statements(entries, True), key=script_order)
+               if entry_id(e) in ids and entry_id(e) not in covered]
+    return sorted(sections, key=sort_key), singles
 
 
 # The longest proofs run to ~5k characters; the first part says which technique
@@ -117,7 +145,7 @@ def judgement_items(entries: list[dict],
     often says what a statement is about in words its text never uses ("2.
     Isomorphiesatz")."""
     items = {}
-    for e in sorted(statements(entries, include_algorithms), key=_script_order):
+    for e in sorted(statements(entries, include_algorithms), key=script_order):
         name = f"({e['name']}) " if e.get("name") else ""
         item = {"statement": f"{name}{e.get('text', '')}"}
         if e.get("proof"):

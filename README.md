@@ -168,30 +168,43 @@ Optimierung · task 1
    Task      ▸  1  (1.11) Polytop der doppelt stochastischen Matrizen
    Sheet     ▸  3
    Course    ▸  Optimierung
-   Chapters  ▸  1 Geometrie linearer Ungleichungen  (20, 7k) · proofs: Satz 1.1.13  (1)
+   Context   ▸  1 Geometrie linearer Ungleichungen  (20, 7k) · 1 of 9 proofs
+   ✨ Let Jev pick the context  ·  last $0.0010 · total $0.0042 · 20 requests
 ───────────────────────────────
 ⟳  Read in new sheets
 ```
 
 - **Aufgaben aus dem Skript:** Sagt ein Blatt nur „Lösen Sie Aufgabe (1.11)
   vom Skriptum“, landet der Text dieser Aufgabe aus dem Skript im Prompt.
-- **Kein Kontext ohne Auswahl:** Ist kein Kapitel und kein Satz gewählt,
-  enthält der Prompt kein Skript – es wird nichts mehr geraten.
+- **Kein Kontext ohne Auswahl:** Ist nichts gewählt, enthält der Prompt kein
+  Skript – es wird nichts geraten.
+- **Context** öffnet die Auswahl:
+
+  ```
+  ── ✓ Done · 16 statements, 1 proof · 3.9k characters ──
+     Statements  ▸  16 chosen …
+     Proofs      ▸  Satz 3.1.5  (1 of 10) …
+     Algorithms  ▸  off
+     ✕ Clear all
+  ───────────────────────────────
+  [ ] 2 Der Simplexalgorithmus  (7, 2k)
+  [◐] 3 Konvexe Funktionen und deren Minima  (17, 3k)
+  ```
+
+  Ein Kapitel anklicken wählt alle seine Sätze an oder ab (✓ alle, ◐ einige).
+  **Statements** listet die Sätze der berührten Abschnitte zum einzelnen An-
+  und Abhaken, **Proofs** die Beweise der gewählten Sätze – beide mit
+  „Select all“ / „Deselect all“ oben. Beweise sind standardmäßig aus (sie
+  verraten oft die Lösung).
 - **Jev** (optional): Liegt ein OpenRouter-Key in
-  `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint im Hub
-  unter „Chapters“ die Zeile „✨ Let Jev pick the notes“. Jev fragt pro Satz
-  „braucht die Aufgabe das?“ und pro Beweis „hilft der Beweis?“ und ersetzt
-  damit die Auswahl; in der Kapitelauswahl lassen sich die einzelnen Sätze
-  unter „Single statements“ wieder abwählen. Dieselbe Zeile zeigt die Kosten
-  der letzten Auswahl, die Gesamtkosten und die Zahl der Anfragen (Kosten so,
-  wie OpenRouter sie meldet). Die genaue Liste der gewählten Sätze steht in
+  `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint unter
+  „Context“ die Zeile „✨ Let Jev pick the context“. Jev fragt pro Satz
+  „braucht die Lösung das?“ und pro Beweis „hilft der Beweis?“ und ersetzt
+  damit die Auswahl, die sich danach unter „Context“ weiter anpassen lässt.
+  Die Zeile zeigt die Kosten der letzten Auswahl, die Gesamtkosten und die
+  Zahl der Anfragen (so, wie OpenRouter sie meldet). Die genaue Liste steht in
   der Benachrichtigung nach dem Wählen und im Tooltip des Widgets. Im
   Terminal: `assignmentvibe jev`, `jev --usage`.
-- **Beweise:** standardmäßig aus (sie verraten oft die Lösung). In der
-  Kapitelauswahl schaltet „Proofs: off/all“ alle mit einem Klick an und aus,
-  die Zeile darunter öffnet die Liste, um einzelne Beweise der gewählten
-  Kapitel auszuwählen. Sind einzelne gewählt, schaltet ein Klick auf die
-  obere Zeile alle wieder ab.
 - **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
   rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
 

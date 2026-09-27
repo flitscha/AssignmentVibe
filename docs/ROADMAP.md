@@ -19,10 +19,9 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
   "Lösen Sie Aufgabe (1.11) vom Skriptum" now carries the exercise's text in
   the prompt. Every PS Optimierung task is such a reference; all 34
   resolve.
-- 🟢 **Single proofs.** In the chapter picker, "Proofs: off/all" toggles all
-  proofs in one click and the row below opens a list to pick single ones;
-  with single ones picked, the toggle clears them all. The hub shows the
-  state in its Chapters row. `build --proof-of "Satz 3.1.5"` on the command line.
+- 🟢 **Single proofs.** In the context picker, "Proofs" opens the list of the
+  chosen statements' proofs, with Select all / Deselect all on top. The hub
+  shows the count in its Context row. `build --proof-of "Satz 3.1.5"` on the command line.
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 
