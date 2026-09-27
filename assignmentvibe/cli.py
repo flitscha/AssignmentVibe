@@ -1083,17 +1083,26 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
         rows = _section_tree(entries, nodes, ids, include_algorithms,
                              include_proofs=include_proofs, proof_of=proof_of)
 
-        top = [done_label, statements_label, proofs_label, algorithms_label]
+        # Every answer goes through _chosen: the Omarchy menu hands a row back
+        # without its leading spaces, so comparing with == silently misses the
+        # indented rows.
+        top = [(done_label, "done"), (statements_label, "statements"),
+               (proofs_label, "proofs"), (algorithms_label, "algorithms")]
         if ids or proof_of or include_proofs:
-            top.append(CLEAR_ROW)
-        choice = menu.pick("Context", top + [SEPARATOR] + [label for label, _ in rows])
-
+            top.append((CLEAR_ROW, "clear"))
+        options = top + [(SEPARATOR, None)] + [(label, ("section", key))
+                                               for label, key in rows]
+        choice = menu.pick("Context", [label for label, _ in options])
         if choice is None:
             return None
-        if choice == done_label:
+        action, found = _chosen(choice, options)
+        if not found or action is None:
+            continue
+
+        if action == "done":
             sections, singles = selection.compress(entries, ids, include_algorithms)
             return sections, include_proofs, include_algorithms, proof_of, singles
-        if choice == statements_label:
+        if action == "statements":
             if not ids:
                 notify.send("Nothing chosen yet",
                             "Tick a chapter below, or let Jev pick from the main menu.",
@@ -1110,7 +1119,7 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
             if picked is not None:
                 ids = (ids - {entry_id(e) for e in candidates}) | picked
             continue
-        if choice == proofs_label:
+        if action == "proofs":
             if not with_proof:
                 notify.send("No proofs", "None of the chosen statements has a proof.",
                             glyph="⚠")
@@ -1119,7 +1128,7 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
             if picked is not None:
                 include_proofs, proof_of = picked
             continue
-        if choice == algorithms_label:
+        if action == "algorithms":
             # Through sections, so a whole chapter gains or loses its
             # algorithms, while one picked by name stays.
             sections, singles = selection.compress(entries, ids, include_algorithms)
@@ -1127,13 +1136,11 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
             ids = {entry_id(e) for e in selection.chosen(entries, sections, singles,
                                                          include_algorithms)}
             continue
-        if choice == CLEAR_ROW:
+        if action == "clear":
             ids, proof_of, include_proofs = set(), [], False
             continue
 
-        key, found = _chosen(choice, rows)
-        if not found or key is None:
-            continue
+        _, key = action
         inside = {entry_id(e) for e in selection.entries_in(entries, [key],
                                                             include_algorithms)}
         ids = ids - inside if inside <= ids else ids | inside
@@ -1167,23 +1174,26 @@ def _pick_list(header: str, candidates: list[dict], on: set[str],
     ids = [entry_id(e) for e in candidates]
     on = {i for i in ids if i in on}
     while True:
-        rows = [(row(e, entry_id(e) in on), entry_id(e)) for e in candidates]
         done_label = f"── ✓ Done · {len(on)} of {len(ids)} {noun} ──"
-        choice = menu.pick(header, [done_label, SELECT_ALL_ROW, DESELECT_ALL_ROW]
-                           + [label for label, _ in rows])
+        # Actions and ids share one list for _chosen (see _pick_context); a
+        # tuple cannot collide with an id string.
+        options = ([(done_label, ("done",)), (SELECT_ALL_ROW, ("all",)),
+                    (DESELECT_ALL_ROW, ("none",))]
+                   + [(row(e, entry_id(e) in on), entry_id(e)) for e in candidates])
+        choice = menu.pick(header, [label for label, _ in options])
         if choice is None:
             return None
-        if choice == done_label:
+        action, found = _chosen(choice, options)
+        if not found:
+            continue
+        if action == ("done",):
             return on
-        if choice == SELECT_ALL_ROW:
+        if action == ("all",):
             on = set(ids)
-            continue
-        if choice == DESELECT_ALL_ROW:
+        elif action == ("none",):
             on = set()
-            continue
-        key, found = _chosen(choice, rows)
-        if found:
-            on ^= {key}
+        else:
+            on ^= {action}
 
 
 def _pick_statements(candidates: list[dict], chosen: set[str]) -> set[str] | None:
