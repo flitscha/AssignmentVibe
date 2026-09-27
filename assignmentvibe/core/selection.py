@@ -148,6 +148,59 @@ def suggest_sections(task_text: str, entries: list[dict]) -> list[str]:
     return [s for s, score in ranked[:MAX_SUGGESTED] if score >= cutoff]
 
 
+def section_digests(entries: list[dict], titles: dict[str, str] | None = None,
+                    within: list[str] | None = None,
+                    budget: int | None = None) -> dict[str, str]:
+    """Each section's statements as one text, keyed by section - what a model
+    (integrations.jev) reads to judge relevance. The title leads, since it often
+    names the topic in words the statements never use.
+
+    `within` narrows to those sections, as in select(); a `within` that matches
+    nothing is ignored rather than leaving nothing to rank. Over `budget`
+    characters, every section is cut to an equal share: a long section then
+    loses its tail, not a short one its only definition."""
+    from .toc import label
+
+    grouped = group_by_section(entries)
+    if within:
+        narrowed = {k: v for k, v in grouped.items()
+                    if any(covers(w, k) for w in within)}
+        grouped = narrowed or grouped
+    digests = {}
+    for key in sorted(grouped, key=sort_key):
+        parts = [label(titles or {}, key)]
+        for e in grouped[key]:
+            name = f" ({e['name']})" if e.get("name") else ""
+            parts.append(f"{e['type']} {e.get('number', '')}{name}: {e.get('text', '')}")
+        digests[key] = "\n".join(parts)
+
+    total = sum(len(d) for d in digests.values())
+    if budget and total > budget:
+        share = budget // max(len(digests), 1)
+        digests = {k: d if len(d) <= share else d[:share - 1] + "…"
+                   for k, d in digests.items()}
+    return digests
+
+
+# A model's relevance (0..1, from Jev's four-level rubric) is on an absolute
+# scale, unlike the keyword scores above, so a fixed bar works: 2/3 is "contains
+# some definitions or theorems a solution would use".
+RELEVANCE_THRESHOLD = 2 / 3
+
+
+def suggest_from_relevance(relevance: dict[str, float]) -> list[str]:
+    """Sections a model rated as needed, best first, capped like the keyword
+    suggestion. When none clears the bar the best one is still taken - an empty
+    selection would fall back to the keyword guess, which is worse."""
+    ranked = sorted(relevance.items(), key=lambda kv: -kv[1])
+    if not ranked:
+        return []
+    top = ranked[0][1]
+    picked = [k for k, v in ranked[:MAX_SUGGESTED]
+              if v >= RELEVANCE_THRESHOLD and v >= top * RUNNER_UP_RATIO]
+    return picked or [ranked[0][0]]
+
+
 def select(task_text: str, entries: list[dict],
            sections: list[str] | None = None,
            include_algorithms: bool = False,

@@ -45,6 +45,9 @@ assignmentvibe/
     menu.py               omarchy-menu-select/rofi/wofi/fzf -> stdin prompt
     ocr.py                 pytesseract wrapper (placeholder, see docs/LINUX_PROTOTYPE.md)
     launcher.py             .desktop entries for Super+Space
+    jev.py                   rates each script section's relevance to a task
+                              (Jev via OpenRouter); no key or no network ->
+                              JevUnavailable, and cli.py keeps the keyword pick
 
   paths.py         XDG directory locations. Depended on by store/context/
                     clipboard; depends on nothing itself.
@@ -74,6 +77,7 @@ integrations.clipboard   (standalone)
 integrations.notify      (standalone)
 integrations.menu        (standalone)
 integrations.ocr         (standalone)
+paths  <---  integrations.jev   (key file location)
 
 paths  <---  context
 paths  <---  store  <---  core.*

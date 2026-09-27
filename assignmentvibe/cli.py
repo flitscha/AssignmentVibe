@@ -145,6 +145,30 @@ def _resolve_solution(args) -> str | None:
     return None
 
 
+def _jev_sections(task: dict, knowledge: list[dict], exercises: list[dict],
+                  titles: dict[str, str]) -> list[str] | None:
+    """Jev's pick of sections for a task, or None to leave the choice to the
+    keyword ranking inside build_prompt - without a key that is silent, a
+    failing call says so, since then the pick got worse without asking."""
+    from .integrations import jev
+
+    if not knowledge or not jev.configured():
+        return None
+    from .core import selection
+    from .core.prompts import task_query
+
+    text, chapters, _ = task_query(task, exercises)
+    digests = selection.section_digests(knowledge, titles, within=chapters or None,
+                                        budget=jev.MAX_STATE_CHARS)
+    try:
+        relevance, _cost = jev.rank(text, digests)
+    except jev.JevUnavailable as e:
+        notify.send("Jev unavailable", f"Chapters picked by keyword instead. {e}",
+                    glyph="⚠")
+        return None
+    return selection.suggest_from_relevance(relevance) or None
+
+
 def _build_from_args(args) -> str:
     """The command-line path to the same prompt the hub builds. Arguments win
     over what is remembered for the course, so a one-off `build --sections 3.1`
@@ -189,11 +213,14 @@ def _build_from_args(args) -> str:
     if algorithms is None:
         algorithms = bool(saved.get("algorithms"))
 
+    titles = store.load_section_titles(course_slug) if course_slug else {}
+    if not sections and not getattr(args, "no_jev", False):
+        sections = _jev_sections(task, knowledge, exercises, titles)
+
     return build_prompt(task, sheet, knowledge, solution, course_name,
                         sections=sections, include_proofs=proofs,
                         include_algorithms=algorithms,
-                        section_titles=store.load_section_titles(course_slug)
-                        if course_slug else {},
+                        section_titles=titles,
                         exercises=exercises, proof_of=proof_of)
 
 
@@ -438,7 +465,11 @@ def _sections_summary(course: str, state: dict) -> str:
     from .core import selection, toc
 
     if not state["sections"]:
-        return "picked automatically by keyword" + (" · all proofs" if state["proofs"] else "")
+        from .integrations import jev
+        # Only whether a key is there - asking Jev would put a network call
+        # between the click and the menu. The pick itself happens on copy.
+        by = "by Jev" if jev.configured() else "by keyword"
+        return f"picked automatically {by}" + (" · all proofs" if state["proofs"] else "")
 
     titles = store.load_section_titles(course)
     entries = selection.entries_in(store.load_knowledge(course), state["sections"],
@@ -567,12 +598,16 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
     from .core.prompts import resolve_exercises
 
     task = _task_of(state)
+    knowledge = store.load_knowledge(course)
+    titles = store.load_section_titles(course)
+    sections = state["sections"] or _jev_sections(task, knowledge,
+                                                  state["exercises"], titles)
     prompt = build_prompt(
-        task, state["sheet"], store.load_knowledge(course), solution, course_name,
-        sections=state["sections"] or None,
+        task, state["sheet"], knowledge, solution, course_name,
+        sections=sections,
         include_proofs=state["proofs"],
         include_algorithms=state["algorithms"],
-        section_titles=store.load_section_titles(course),
+        section_titles=titles,
         exercises=state["exercises"],
         proof_of=state["proof_of"],
     )
@@ -1139,6 +1174,8 @@ def build_arg_parser():
                         help='include single proofs, e.g. --proof-of "Satz 3.1.5"')
         pb.add_argument("--algorithms", action="store_true", default=None,
                         help="include algorithms (default: off)")
+        pb.add_argument("--no-jev", action="store_true",
+                        help="pick sections by keyword even with an OpenRouter key")
         pb.set_defaults(func=fn)
 
     p_fu = sub.add_parser("followup", help="copy a canned follow-up to the clipboard")

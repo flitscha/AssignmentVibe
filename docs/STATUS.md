@@ -24,6 +24,7 @@ picker would give back.
 | **The script's own exercises (`exercises.py`)** | ✅ new | ✅ Optimierung: 64 exercises, all 34 sheet references resolve; Algebra 103, LinAlg 106 | ❌ |
 | Assignment-sheet parsing (`assignments.py`) | ✅ | ✅ all 26 example sheets | ✅ Optimierung |
 | Section choice: manual, or keyword-suggested (`selection.py`) | ✅ | ✅ | ✅ |
+| **Section choice by Jev** when an OpenRouter key is set (`integrations/jev.py`), keyword ranking as fallback | ✅ new | ⚠️ only against a faked API - no key available to Claude; `scripts/compare_jev.py` measures it | ❌ |
 | Prompt building (`prompts.py`) | ✅ | ✅ see `docs/example_prompts/` | ⚠️ content not yet reviewed |
 
 Not covered by `exercises.py`: exercises scattered through running text

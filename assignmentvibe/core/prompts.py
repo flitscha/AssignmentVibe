@@ -203,6 +203,17 @@ def resolve_exercises(task: dict, exercises: list[dict] | None) -> tuple[list[di
     return found, missing
 
 
+def task_query(task: dict, exercises: list[dict] | None
+               ) -> tuple[str, list[str], list[dict]]:
+    """(text to rank sections by, chapters to rank within, exercises the task
+    refers to) - shared by the keyword ranking below and by Jev in cli.py, so
+    both judge the same text."""
+    found, _ = resolve_exercises(task, exercises)
+    text = "\n".join([task["text"]] + [e["text"] for e in found])
+    chapters = sorted({e["section"].split(".")[0] for e in found if e.get("section")})
+    return text, chapters, found
+
+
 def task_context(task: dict, knowledge_entries: list[dict],
                  exercises: list[dict] | None = None,
                  sections: list[str] | None = None,
@@ -217,9 +228,7 @@ def task_context(task: dict, knowledge_entries: list[dict],
     that chapter, where a stray keyword from chapter 6 cannot win."""
     from . import selection
 
-    found, _ = resolve_exercises(task, exercises)
-    text = "\n".join([task["text"]] + [e["text"] for e in found])
-    chapters = sorted({e["section"].split(".")[0] for e in found if e.get("section")})
+    text, chapters, found = task_query(task, exercises)
     context, used = selection.select(text, knowledge_entries, sections,
                                      include_algorithms, within=chapters or None)
     return context, used, found

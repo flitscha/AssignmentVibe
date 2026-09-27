@@ -27,6 +27,21 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 
+## 0. 🟡 Jev picks the chapters
+
+With an OpenRouter key in `~/.config/assignmentvibe/openrouter.key`, the
+automatic chapter choice asks Jev (TypeSafe's decision model) to rate every
+section of the script on a four-level rubric, instead of matching keywords.
+Built, but not yet measured against the real API.
+
+- [ ] `python scripts/compare_jev.py` (and `algebra`): does Jev land in the
+      right chapter more often than the keyword ranking?
+- [ ] Tune `RELEVANCE_THRESHOLD` in `core/selection.py` from those numbers
+- [ ] If it wins: single statements too (one yes/no question per Satz
+      inside the chosen sections)
+
+**Touches:** `integrations/jev.py`, `core/selection.py`, `cli.py`.
+
 ## 1. ⚪ Review what the prompts say
 
 The prompt is the product, and its wording has not been checked against real
