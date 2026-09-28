@@ -59,19 +59,20 @@ selection. Over `max_context_chars` the least certain proofs are dropped.
 **Touches:** `integrations/jev.py`, `core/selection.py`, `cli.py`.
 
 - [x] A sheet's plan (2026-09-28): effort per task as a Jev "score" on four
-      levels, "does task b build on task a" per pair, an order from both
-      (core.plan). Asked with each task's own statements and earlier tasks as
-      context: without it "Beweise Teil a) des Satzes 1.26" came out a few
-      lines, with it a page. The question had to say that the result a task
-      asks to prove may not be cited - otherwise Satz 4.21 of the Analysis 4
-      notes, which the task asks to prove, made it "routine" (0.23 -> 1.32).
-      ~$0.008 per sheet with a script.
+      levels and "does task b builds on task a" per pair (core.plan). Asked
+      with each task's own statements and earlier tasks as context: without
+      it "Beweise Teil a) des Satzes 1.26" came out a few lines, with it a
+      page. The question had to say that the result a task asks to prove may
+      not be cited - otherwise Satz 4.21 of the Analysis 4 notes, which the
+      task asks to prove, made it "routine" (0.23 -> 1.32). Only detected
+      dependencies are shown, no suggested order.
+- [x] The plan is the context pick for every task at once: going to a task
+      sets its selection without asking Jev again, and a selection changed by
+      hand is kept per task. ~$0.01 per sheet with a script.
 - [ ] Task titles: the first sentence is taken as a title when it is short,
       which gives "Sei (f, f ∗)" and "Beweisen Sie folgende Aussage" - now
       visible in the task list next to the plan. Only take a title that ends
       in a colon or reads like a heading.
-- [ ] The plan asks per task what the Jev row asks for the current one;
-      picking the context for a planned task could reuse that answer.
 
 ## 1. ⚪ Review what the prompts say
 

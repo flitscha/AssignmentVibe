@@ -205,25 +205,45 @@ def _jev_pick(task: dict, knowledge: list[dict], exercises: list[dict],
     """(statement ids, proof ids, proofs dropped for length, earlier task refs)
     Jev judges the task to need, or None when it could not be asked - said in
     a notification, since the user pressed for it. Earlier tasks are those of
-    the course's sheets before `sheet`.
+    the course's sheets before `sheet`."""
+    from .integrations import jev
 
-    Over settings' max_context_chars, the least certain proofs go first; the
-    statements stay, since those are what the solution has to cite."""
+    candidates = _earlier_candidates(sheets or [], sheet, exercises)
+    try:
+        judged = _judge_task(task, knowledge, exercises, include_algorithms, candidates)
+    except jev.JevUnavailable as e:
+        notify.send("Jev unavailable", f"The selection is unchanged. {e}", glyph="⚠")
+        return None
+    return _from_judgement(judged, knowledge, include_algorithms, candidates)
+
+
+def _judge_task(task: dict, knowledge: list[dict], exercises: list[dict],
+                include_algorithms: bool, candidates: dict[str, tuple[str, str]],
+                usage_sink: list | None = None) -> tuple[dict, dict, dict]:
+    """Jev's raw answers for one task: (statement_p, proof_p, earlier_p).
+    Raises jev.JevUnavailable."""
     from .core import selection
     from .core.prompts import task_query
     from .integrations import jev
 
+    return jev.judge(task_query(task, exercises),
+                     selection.judgement_items(knowledge, include_algorithms),
+                     selection.proof_candidates(knowledge, include_algorithms),
+                     {label: text for label, (_, text) in candidates.items()},
+                     usage_sink=usage_sink)
+
+
+def _from_judgement(judged: tuple[dict, dict, dict], knowledge: list[dict],
+                    include_algorithms: bool, candidates: dict[str, tuple[str, str]]
+                    ) -> tuple[list[str], list[str], list[str], list[str]]:
+    """Jev's answers made a selection: (statement ids, proof ids, proofs
+    dropped for length, earlier task refs). Over settings' max_context_chars,
+    the least certain proofs go first; the statements stay, since those are
+    what the solution has to cite."""
+    from .core import selection
+
+    statement_p, proof_p, earlier_p = judged
     config = _settings()
-    items = selection.judgement_items(knowledge, include_algorithms)
-    candidates = _earlier_candidates(sheets or [], sheet, exercises)
-    try:
-        statement_p, proof_p, earlier_p = jev.judge(
-            task_query(task, exercises), items,
-            selection.proof_candidates(knowledge, include_algorithms),
-            {label: text for label, (_, text) in candidates.items()})
-    except jev.JevUnavailable as e:
-        notify.send("Jev unavailable", f"The selection is unchanged. {e}", glyph="⚠")
-        return None
     statements, proofs = selection.pick_from_judgement(
         statement_p, proof_p, config["jev_statement_threshold"],
         config["jev_proof_threshold"])
@@ -463,8 +483,9 @@ FOLLOWUP_ROW = "💬 Copy a follow-up …"
 BROWSER_ROW = "🌐 Open chat"
 INGEST_ROW = "⟳  Read in new sheets"
 JEV_ROW = "   ✨ Let Jev pick the context"
-PLAN_ROW = "✨ Let Jev plan this sheet"
+PLAN_ROW = "✨ Let Jev plan this sheet  ·  effort, and the context of every task"
 REPLAN_ROW = "✨ Plan again"
+OPEN_SHEET_ROW = "📄 Open the sheet"
 CONFIG_ROW = "⚙  Config files …"
 SOLUTION_ROW = "📋 Partial solution from clipboard"
 SEPARATOR = "───────────────────────────────"
@@ -646,18 +667,18 @@ def _pick_sheet(state: dict, current_id: str | None) -> dict | None:
 
 def _pick_task(sheet: dict, current: int | None, exercises: list[dict]):
     """The task list, with the sheet's plan where there is one: each task's
-    effort and what it builds on, and on top the row that makes or remakes
-    the plan. Returns a task number, "plan", or None."""
+    effort and what it builds on. On top the rows that open the sheet and
+    make or remake the plan. Returns a task number, "plan", "open", or None."""
     from . import store
     from .core import plan as plan_core
     from .integrations import jev
 
     plan = store.load_plan(sheet["sheet_id"])
-    rows = []
+    edges = [tuple(e) for e in plan["edges"]] if plan else []
+    rows = [(OPEN_SHEET_ROW, "open")]
     if jev.configured():
         if plan:
-            order = " → ".join(str(t) for t in plan["order"])
-            rows.append((f"{REPLAN_ROW}  ·  order {order}", "plan"))
+            rows.append((f"{REPLAN_ROW}  ·  {plan_core.dependency_text(edges)}", "plan"))
         else:
             rows.append((PLAN_ROW, "plan"))
     for t in sheet["tasks"]:
@@ -666,7 +687,7 @@ def _pick_task(sheet: dict, current: int | None, exercises: list[dict]):
         planned = (plan or {}).get("tasks", {}).get(str(t["number"]))
         if planned:
             effort = f"  {plan_core.effort_bars(planned['effort'])}"
-            needs = plan_core.after(t["number"], [tuple(e) for e in plan["edges"]])
+            needs = plan_core.after(t["number"], edges)
             after = f"  · after {', '.join(map(str, needs))}" if needs else ""
         # The bars stand where the colon would, so the titles stay aligned.
         title = f"{'  ' if effort else ': '}{title}" if title else ""
@@ -679,14 +700,97 @@ def _pick_task(sheet: dict, current: int | None, exercises: list[dict]):
     return action if found else None
 
 
+def _select_task(course: str, sheet_id: str, task: int | None) -> None:
+    """Stand on a task - and, where the sheet has a plan, on the context
+    selection kept for that task: what Jev picked for it, or what was made of
+    that by hand since (see _remember_selection)."""
+    from . import store
+
+    context.set_course(course, sheet=sheet_id, task=task)
+    plan = store.load_plan(sheet_id)
+    planned = (plan or {}).get("tasks", {}).get(str(task))
+    if planned and planned.get("selection"):
+        context.set_course(course, **planned["selection"])
+
+
+# What a task's selection is made of, as context.set_course stores it.
+SELECTION_KEYS = ("sections", "statements", "proof_of", "proofs", "earlier_tasks")
+
+
+def _remember_selection(course: str) -> None:
+    """Keep the course's current selection as the one of its current task, if
+    the sheet has a plan - so a selection changed by hand is still there after
+    going to another task and back."""
+    from . import store
+
+    saved = context.course_state(course)
+    sheet_id, task = saved.get("sheet"), saved.get("task")
+    plan = store.load_plan(sheet_id) if sheet_id else None
+    planned = (plan or {}).get("tasks", {}).get(str(task))
+    if not planned:
+        return
+    planned["selection"] = {k: saved.get(k, [] if k != "proofs" else False)
+                            for k in SELECTION_KEYS}
+    store.save_plan(plan)
+
+
+def _sheet_pdf(sheet: dict) -> Path | None:
+    """Where a sheet's PDF lies: as read in, or - for a sheet read in before
+    the path was kept - found by name in its course's folder."""
+    from . import store, uniconfig
+
+    if sheet.get("path") and Path(sheet["path"]).exists():
+        return Path(sheet["path"])
+    try:
+        cfg = uniconfig.load()
+    except Exception:
+        return None
+    for course in cfg.courses:
+        if store.slug_for(course.name) != sheet.get("course_slug"):
+            continue
+        folder = cfg.category_dir(course, "blaetter")
+        found = [folder / sheet["source"]] + sorted(folder.rglob(sheet["source"]))
+        for path in found:
+            if path.exists():
+                return path
+    return None
+
+
+def _open_sheet(sheet: dict) -> bool:
+    """Open the sheet's PDF in the configured viewer (Firefox by default)."""
+    import shlex
+    import subprocess
+
+    from . import uniconfig
+
+    path = _sheet_pdf(sheet)
+    if path is None:
+        notify.send("Sheet not found", f"{sheet.get('source')} is not in the course folder "
+                    "any more.", glyph="⚠")
+        return False
+    try:
+        viewer = uniconfig.load().pdf_viewer
+    except Exception:
+        viewer = "firefox"
+    try:
+        subprocess.Popen(shlex.split(viewer) + [str(path)], start_new_session=True,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except OSError as e:
+        notify.send("Could not open the sheet", f"{viewer}: {e}", glyph="⚠")
+        return False
+    return True
+
+
 def _plan_sheet(course: str, state: dict) -> dict | None:
-    """Ask Jev for the plan of the current sheet, save it, and say what it
-    is. Two steps: first, per task and side by side, the statements and
-    earlier tasks it needs - the same questions as the Jev row, without the
-    proofs - then one request with every task and that context, asking how
-    much work each is and which builds on which. Without the context Jev
-    rated "Beweise Teil a) des Satzes 1.26" a few lines; seeing what Satz
-    1.26 says, it rated it a page. None if Jev could not be asked."""
+    """Ask Jev once about the whole current sheet, save it, and say what it is.
+
+    Two steps. First, per task and side by side, the same pick as the Jev row
+    - statements, proofs, earlier tasks - which becomes that task's context
+    selection: going to a task later sets it without asking again. Then one
+    request with every task and its statements, asking how much work each is
+    and which builds on which. The context matters there: without it Jev
+    rated "Beweise Teil a) des Satzes 1.26" a few lines; seeing what Satz 1.26
+    says, it rated it a page. None if Jev could not be asked."""
     from concurrent.futures import ThreadPoolExecutor
 
     from . import store
@@ -699,38 +803,33 @@ def _plan_sheet(course: str, state: dict) -> dict | None:
     if not sheet or not sheet["tasks"]:
         notify.send("No sheet", "Read a sheet in first ('Read in new sheets').", glyph="⚠")
         return None
-    notify.send("Asking Jev", f"How much work is each task of sheet "
-                f"{sheet.get('sheet_number') or sheet['sheet_id']}, and in which order?",
-                glyph="⟳")
-    config = _settings()
+    name = sheet.get("sheet_number") or sheet["sheet_id"]
+    notify.send("Asking Jev", f"The context of every task of sheet {name}, how much "
+                "work each is, and what builds on what.", glyph="⟳")
     knowledge = store.load_knowledge(course)
-    items = selection.judgement_items(knowledge, state["algorithms"])
+    algorithms = state["algorithms"]
+    items = selection.judgement_items(knowledge, algorithms)
     candidates = _earlier_candidates(state["sheets"], sheet, exercises)
-    earlier_texts = {label: text for label, (_, text) in candidates.items()}
     usages: list = []
 
-    def context_for(task):
-        statement_p, _, earlier_p = jev.judge(task_query(task, exercises), items, (),
-                                              earlier_texts, usage_sink=usages)
-        threshold = config["jev_statement_threshold"]
-        statements = sorted((i for i, p in statement_p.items() if p >= threshold),
-                            key=lambda i: -statement_p[i])
-        earlier = sorted((l for l, p in earlier_p.items() if p >= threshold),
-                         key=lambda l: -earlier_p[l])
-        return statements, earlier
+    def pick(task):
+        judged = _judge_task(task, knowledge, exercises, algorithms, candidates, usages)
+        return judged, _from_judgement(judged, knowledge, algorithms, candidates)
 
     try:
         with ThreadPoolExecutor(max_workers=4) as pool:
-            contexts = list(pool.map(context_for, sheet["tasks"]))
+            picks = list(pool.map(pick, sheet["tasks"]))
         asked = {}
-        for task, (statements, earlier) in zip(sheet["tasks"], contexts):
+        for task, ((statement_p, _, earlier_p), (statements, _, _, earlier)) in zip(
+                sheet["tasks"], picks):
             entry = {"text": task_query(task, exercises)}
             if statements:
-                entry["lecture_notes_it_may_cite"] = {i: items[i]["statement"]
-                                                      for i in statements}
-            if earlier:
-                entry["earlier_exercises_it_builds_on"] = {l: earlier_texts[l]
-                                                           for l in earlier}
+                entry["lecture_notes_it_may_cite"] = {
+                    i: items[i]["statement"]
+                    for i in sorted(statements, key=lambda i: -statement_p.get(i, 0))}
+            labels = [l for l, (ref, _) in candidates.items() if ref in earlier]
+            if labels:
+                entry["earlier_exercises_it_builds_on"] = {l: candidates[l][1] for l in labels}
             asked[f"Task {task['number']}"] = entry
         effort, depends = jev.plan_sheet(
             asked, [text for _, text in plan_core.EFFORT_LEVELS], usage_sink=usages)
@@ -741,40 +840,49 @@ def _plan_sheet(course: str, state: dict) -> dict | None:
         return None
     total = jev.record(usages)
 
-    numbers = [t["number"] for t in sheet["tasks"]]
-    num = {f"Task {n}": n for n in numbers}
-    effort_by = {num[k]: v for k, v in effort.items()}
+    num = {f"Task {t['number']}": t["number"] for t in sheet["tasks"]}
     edges = plan_core.edges_from({(num[a], num[b]): p for (a, b), p in depends.items()})
-    plan = {
-        "format": 1,
-        "sheet_id": sheet["sheet_id"],
-        "tasks": {str(t["number"]): {
-            "effort": effort_by[t["number"]],
-            "statements": statements,
-            "earlier": [candidates[l][0] for l in earlier],
-        } for t, (statements, earlier) in zip(sheet["tasks"], contexts)},
-        "edges": [list(e) for e in edges],
-        "order": plan_core.order(numbers, effort_by, edges),
-        "cost_usd": total["last"]["cost_usd"],
-    }
+    tasks = {}
+    for task, (_, (statements, proofs, dropped, earlier)) in zip(sheet["tasks"], picks):
+        sections, singles = selection.compress(knowledge, set(statements), algorithms)
+        tasks[str(task["number"])] = {
+            "effort": effort[f"Task {task['number']}"],
+            "selection": {"sections": sections, "statements": singles, "proof_of": proofs,
+                          "proofs": False, "earlier_tasks": earlier},
+            "dropped": dropped,
+        }
+    plan = {"format": store.PLAN_FORMAT, "sheet_id": sheet["sheet_id"], "tasks": tasks,
+            "edges": [list(e) for e in edges], "cost_usd": total["last"]["cost_usd"]}
     store.save_plan(plan)
-    notify.send(f"Order: {' → '.join(map(str, plan['order']))}",
-                "\n".join(_plan_lines(plan) + ["", jev.usage_summary(total)]), glyph="✓")
+    _select_task(course, sheet["sheet_id"], state["task"])
+    notify.send(f"Sheet {name} planned",
+                "\n".join(_plan_lines(plan, course) + ["", jev.usage_summary(total)]), glyph="✓")
     return plan
 
 
-def _plan_lines(plan: dict) -> list[str]:
-    """One line per task, in the suggested order."""
+def _plan_lines(plan: dict, course: str) -> list[str]:
+    """One line per task in the sheet's order - its effort and what its
+    context holds - then the dependencies."""
+    from . import store
     from .core import plan as plan_core
+    from .core import selection
 
+    knowledge = store.load_knowledge(course)
     edges = [tuple(e) for e in plan["edges"]]
     lines = []
-    for n in plan["order"]:
-        score = plan["tasks"][str(n)]["effort"]
-        needs = plan_core.after(n, edges)
-        after = f", after {', '.join(map(str, needs))}" if needs else ""
-        lines.append(f"Task {n}  {plan_core.effort_bars(score)} "
-                     f"{plan_core.effort_word(score)}{after}")
+    for n, planned in sorted(plan["tasks"].items(), key=lambda kv: int(kv[0])):
+        chosen = planned.get("selection") or {}
+        statements = selection.chosen(knowledge, chosen.get("sections"),
+                                      chosen.get("statements"), True)
+        parts = [_count(statements, "statement")] if statements else []
+        if chosen.get("proof_of"):
+            parts.append(_count(chosen["proof_of"], "proof"))
+        if chosen.get("earlier_tasks"):
+            parts.append(_count(chosen["earlier_tasks"], "earlier task"))
+        what = f" · {', '.join(parts)}" if parts else ""
+        lines.append(f"Task {n}  {plan_core.effort_bars(planned['effort'])} "
+                     f"{plan_core.effort_word(planned['effort'])}{what}")
+    lines.append(f"Dependencies: {plan_core.dependency_text(edges)}")
     return lines
 
 
@@ -916,6 +1024,7 @@ def _jev_into_state(course: str, state: dict) -> bool:
                                            state["algorithms"])
     context.set_course(course, sections=sections, statements=singles,
                        proof_of=proofs, proofs=False, earlier_tasks=earlier)
+    _remember_selection(course)
     state = {"sections": sections, "statements": singles, "proof_of": proofs,
              "earlier": earlier}
     lines = _selection_lines(course, state, limit=12)
@@ -975,9 +1084,8 @@ def cmd_plan(args):
             else _plan_sheet(course, state))
     if not plan:
         sys.exit(1)
-    _print(f"Order: {' → '.join(map(str, plan['order']))}")
-    for line in _plan_lines(plan):
-        _print(f"  {line}")
+    for line in _plan_lines(plan, course):
+        _print(line)
 
 
 def _config_files() -> list[tuple[str, str, object]]:
@@ -1094,7 +1202,7 @@ def cmd_pick(args):
             if picked:
                 # A different sheet invalidates the task number, not the chapters.
                 first = picked["tasks"][0]["number"] if picked["tasks"] else None
-                context.set_course(course, sheet=picked["sheet_id"], task=first)
+                _select_task(course, picked["sheet_id"], first)
             continue
         if action == "task":
             if not state["sheet"]:
@@ -1105,8 +1213,11 @@ def cmd_pick(args):
             picked = _pick_task(state["sheet"], state["task"], state["exercises"])
             if picked == "plan":
                 _plan_sheet(course, state)
+            elif picked == "open":
+                if _open_sheet(state["sheet"]):
+                    return
             elif picked is not None:
-                context.set_course(course, sheet=state["sheet"]["sheet_id"], task=picked)
+                _select_task(course, state["sheet"]["sheet_id"], picked)
             continue
         if action == "context":
             entries = store.load_knowledge(course)
@@ -1125,6 +1236,7 @@ def cmd_pick(args):
                 context.set_course(course, sections=sections, proofs=proofs,
                                    algorithms=algorithms, proof_of=proof_of,
                                    statements=statements, earlier_tasks=chosen)
+                _remember_selection(course)
             continue
         if action == "jev":
             _jev_into_state(course, state)

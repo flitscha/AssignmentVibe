@@ -1,22 +1,23 @@
 """
-A sheet's plan: how much work each task is, which task builds on which, and
-an order to do them in. Jev supplies the numbers (integrations.jev.plan_sheet,
-asked by cli._plan_sheet); this module only turns them into something to show.
+A sheet's plan: how much work each task is, and which task builds on which.
+Jev supplies the numbers (integrations.jev.plan_sheet, asked by
+cli._plan_sheet); this module only turns them into something to show. The
+same plan keeps each task's context selection - see cli._plan_sheet.
 
 EFFORT is a score from 0 to 3 - the expected level on EFFORT_LEVELS, as Jev's
 "score" questions answer. DEPENDENCIES are "task b builds on task a" with a
 probability; at or above DEPENDS_THRESHOLD it is an edge.
 
-The order: a task comes after everything it builds on, and among the tasks
-free to go next the least work goes first - a quick one first is a foothold,
-and the order of the sheet says nothing either way. Jev's edges can form a
-cycle (1 needs 2, 2 needs 1); then the least certain edge of it is dropped.
+No order is suggested beyond the dependencies themselves: which task to start
+with is the reader's call, and "the easiest first" is a guess about them.
+Jev's edges can form a cycle (1 needs 2, 2 needs 1); then the least certain
+edge of it is dropped.
 
 Depends on nothing else in this project.
 """
 
 # What the four levels of an effort score mean, in the order Jev is given them.
-# Written for Jev (see integrations.jev.EFFORT_QUESTION), shown short in the UI.
+# Written for Jev (see integrations.jev.EFFORT_INSTRUCTIONS), shown short in the UI.
 EFFORT_LEVELS = [
     ("routine", "Routine: a direct application of a definition or theorem, a few lines."),
     ("short", "Short: a standard argument or computation, up to half a page."),
@@ -65,16 +66,11 @@ def _reaches(edges: list[tuple[int, int, float]], start: int, goal: int) -> bool
     return False
 
 
-def order(tasks: list[int], effort: dict[int, float],
-          edges: list[tuple[int, int, float]]) -> list[int]:
-    """The suggested order: dependencies first, then the least work first,
-    then the sheet's own order."""
-    needs = {t: {a for a, b, _ in edges if b == t} for t in tasks}
-    done: list[int] = []
-    while len(done) < len(tasks):
-        free = [t for t in tasks if t not in done and needs[t] <= set(done)]
-        done.append(min(free, key=lambda t: (effort.get(t, 0.0), t)))
-    return done
+def dependency_text(edges: list[tuple[int, int, float]]) -> str:
+    """"4 → 5, 1 → 3", or "no dependencies"."""
+    if not edges:
+        return "no dependencies"
+    return ", ".join(f"{a} → {b}" for a, b, _ in sorted(edges))
 
 
 def after(task: int, edges: list[tuple[int, int, float]]) -> list[int]:

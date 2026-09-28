@@ -117,6 +117,7 @@ def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
     result = assignments_core.parse_assignment_sheet(pdf_path)
     result["course_slug"] = slug
     result["sheet_id"] = sheet_id
+    result["path"] = str(pdf_path.resolve())
     _save_json(out_path, result)
 
     # The same sheet as filed before ids carried the course.
@@ -159,6 +160,10 @@ def load_sheet(sheet_id: str) -> dict:
     return _load_json(path, {})
 
 
+# 2: each task carries its context selection
+PLAN_FORMAT = 2
+
+
 def save_plan(plan: dict) -> None:
     """A sheet's plan (see core.plan), filed like the sheet itself."""
     _save_json(paths.PLANS_DIR / f"{plan['sheet_id']}.json", plan)
@@ -170,7 +175,8 @@ def load_plan(sheet_id: str) -> dict | None:
     plan = _load_json(paths.PLANS_DIR / f"{sheet_id}.json", None)
     sheet = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
     plan_file = paths.PLANS_DIR / f"{sheet_id}.json"
-    if plan is None or (sheet.exists() and sheet.stat().st_mtime > plan_file.stat().st_mtime):
+    if (plan is None or plan.get("format", 1) < PLAN_FORMAT
+            or (sheet.exists() and sheet.stat().st_mtime > plan_file.stat().st_mtime)):
         return None
     return plan
 
