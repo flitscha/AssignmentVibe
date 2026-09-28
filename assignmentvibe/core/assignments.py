@@ -78,7 +78,6 @@ SHEET_NUM_RE = re.compile(
     r"|(?P<pre>\d+)\.\s*Übungsblatt", re.IGNORECASE)
 HEADER_CHARS = 400
 FILE_NUM_RE = re.compile(r"(\d+)(?!.*\d)")
-TITLE_END_RE = re.compile(r"[.:]\s")
 
 
 def extract_pdf_text(pdf_path: Path) -> str:
@@ -88,12 +87,91 @@ def extract_pdf_text(pdf_path: Path) -> str:
     return "\n".join(normalize(p.get_text("text")) for p in doc)
 
 
-def guess_title(body: str) -> str | None:
-    """Short title = first sentence of the body, if short enough (else None)."""
-    m = TITLE_END_RE.search(body)
-    if not m or m.start() > 80:
+# --- Task titles ----------------------------------------------------------------
+# Some courses give every task a heading ("(2) Produkttopologie: Es sei ...",
+# "Aufgabe 3: Konvexe Funktionen.", "Erwartungstreue" on a line of its own);
+# most give none and start with the task itself ("Sei G eine Gruppe. ...").
+# Taking the first short sentence as the title made "Sei G eine Gruppe",
+# "Zeigen Sie" and "1" titles. A title is what reads like a heading: short, no
+# formula, and not opening the way a task sentence opens.
+
+# The end of a heading on the task's first line. Not a dot of an abbreviation
+# ("Maximum-Likelihood-Estimator (MLE) vs. Bayes").
+TITLE_END_RE = re.compile(r"(?<!\bvs)(?<!\bbzw)(?<!\bd\.h)(?<!\bz\.B)(?<!\bi\.e)(?<!\be\.g)"
+                          r"(?<!\bca)(?<!\bvgl)[.:](?=\s)")
+# Words a task sentence opens with. No heading starts with one.
+STARTER_WORDS = set("""
+    sei seien es zeigen zeige beweisen beweise bestimmen bestimme berechnen berechne
+    gegeben betrachte betrachten wir man für finden finde geben gib lösen löse
+    skizzieren skizziere verwenden verwende implementieren implementiere programmieren
+    programmiere nehmen überprüfen untersuchen untersuche diagonalisieren interpolieren
+    setzen variieren stellen lese lies lesen definieren definiere begründen ermitteln
+    vervollständigen versuchen importieren wie was welche ein eine einen der die das
+    den dem auf im in an ist sind
+    let show prove suppose consider determine find compute calculate we the a an for
+    given if write describe use using recall
+""".split())
+# Words only a sentence has. A heading before a colon may still have one
+# ("Kompakte Intervalle sind kompakt:"); one before a full stop or on a line
+# of its own may not - that is the task's first sentence.
+SENTENCE_WORDS = set("""
+    sei seien ist sind gilt gelte hat haben wird werden sie wir man kann können soll
+    sollen is are be let we
+""".split())
+MATH_CHARS = set("=∈∉⊂⊆⊃⊇→←↦≤≥<>|{}[]∀∃^_∗·∑∫∞⩾⩽≠≈×")
+MAX_TITLE_CHARS = 70
+MAX_TITLE_WORDS = 8
+# A subpart label opening the next line: "a)", "(a)", "(i)".
+NEXT_PART_RE = re.compile(r"^\(?(?:[a-h]|i{1,3}v?|vi{0,3})[).]")
+
+
+def _heading(text: str, before_colon: bool) -> str | None:
+    """`text` as a title, if it reads like one."""
+    title = " ".join(re.sub(r"-\n(?=[a-zäöüß])", "", text).split())
+    if title.startswith("(") and title.endswith(")"):
+        title = title[1:-1].strip()          # "(Hermite-Interpolation)."
+    words = [w.strip(",;()").lower() for w in title.split()]
+    if not words or len(title) > MAX_TITLE_CHARS or len(words) > MAX_TITLE_WORDS:
         return None
-    return body[:m.start()].strip() or None
+    if not title[0].isalpha() or SUBPART_RE.match(title + " ") or words[0] in STARTER_WORDS:
+        return None
+    # "Radiale Lösungen der Wellengleichung in d = 3:" - one sign before a
+    # colon is a heading's; anywhere else any is a formula's.
+    if sum(c in MATH_CHARS for c in title) > (1 if before_colon else 0):
+        return None
+    if not before_colon and any(w in SENTENCE_WORDS for w in words):
+        return None
+    return title
+
+
+def guess_title(body: str) -> str | None:
+    """The heading a task opens with, or None - see STARTER_WORDS above."""
+    body = body.strip()
+    m = TITLE_END_RE.search(body)
+    if m and m.start() <= 2 * MAX_TITLE_CHARS:
+        head = re.sub(r"-\n(?=[a-zäöüß])", "", body[:m.start()])
+        before_colon = body[m.start()] == ":"
+        last_line = head.rsplit("\n", 1)[-1].strip()
+        # A heading wraps onto a second line only before a colon, and the
+        # dot of "Erwartungstreue Schätzer\na. Seien ..." ends a subpart label.
+        if "\n" not in head or (before_colon and not NEXT_PART_RE.match(last_line)):
+            title = _heading(head, before_colon)
+            if title:
+                return title
+    # A heading on a line of its own, the task starting on the next.
+    first, _, rest = body.partition("\n")
+    rest = rest.lstrip()
+    if (rest and (rest[0].isupper() or NEXT_PART_RE.match(rest))
+            and not first.rstrip().endswith((",", "-"))):
+        return _heading(first, before_colon=False)
+    return None
+
+
+def title_of(task: dict) -> str | None:
+    """A task's title, read from its text each time - so a sheet read in
+    before the rule above changed gets the new title without reading it in
+    again."""
+    return guess_title(task.get("text") or "")
 
 
 def split_subparts(body: str) -> list[dict]:

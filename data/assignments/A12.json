@@ -7,14 +7,14 @@
  "tasks": [
   {
    "number": 1,
-   "title": "Sei p ∈k[x] und K ein Zerfällungskörper von püber k",
+   "title": null,
    "text": "Sei p ∈k[x] und K ein Zerfällungskörper von püber k. Zeigen Sie\n[K : k] ≤deg(p)!",
    "subparts": [],
    "script_references": null
   },
   {
    "number": 2,
-   "title": "Bestimmen Sie\n[C",
+   "title": null,
    "text": "Bestimmen Sie\n[C: R] , [R : Q] ,\nh\nQ(\n√\n2) : Q\ni\n,\nh\nQ(\n√\n2,\n√\n3) : Q\ni\n.",
    "subparts": [],
    "script_references": null
@@ -28,7 +28,7 @@
   },
   {
    "number": 4,
-   "title": "Sei k ⊆K eine Körpererweiterung",
+   "title": null,
    "text": "Sei k ⊆K eine Körpererweiterung. Wir definieren\nAut(K, k) :=\n\nφ: K →K | φ bijektiver Ringhomomorphismus, φ|k = idk\n\t\n.\nZeigen Sie:\n(i) Aut(K, k) ist eine Gruppe bezüglich Hintereinanderausführung.\n(ii) Für jede Untergruppe H < Aut(K, k) ist\nFix(H) := {a ∈K | ∀φ ∈H : φ(a) = a }\nein Körper zwischen k und K.\n(iii) Für jeden Zwischenkörper k ⊆L ⊆K ist Aut(K, L) eine Untergruppe\nvon Aut(K, k).\n(iv) Es gilt L ⊆Fix (Aut(K, L)) und H ⊆Aut (K, Fix(H)) .\n1",
    "subparts": [
     {

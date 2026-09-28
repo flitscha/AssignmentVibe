@@ -3,7 +3,7 @@ Solve the task below. Work through it one step at a time, and for each step name
 # Course: Algebra I
 Sheet 2, due: Do. 17. Oktober 2024
 
-# Task 4: Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen
+# Task 4
 Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.
 1
 

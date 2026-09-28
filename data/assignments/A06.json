@@ -23,7 +23,7 @@
   },
   {
    "number": 2,
-   "title": "Sei R ein Ring und I, J ◁R Ideale",
+   "title": null,
    "text": "Sei R ein Ring und I, J ◁R Ideale. Zeigen Sie:\n(i) I ∩J ist ein Ideal in R. Es ist das größte Ideal, das in I und J enthalten\nist.\n(ii) I + J := {a + b | a ∈I, b ∈J} ist ein Ideal in R. Es ist das kleinste Ideal,\ndas I und J enthält.\n(iii) I · J := {Pn\ni=1 aibi | n ∈N , ai ∈I, bi ∈J} ist ein Ideal in R. Es gilt\nI · J ⊆I ∩J,\naber im Allgemeinen keine Gleichheit.\n(iv) (I : J) := {a ∈R | ∀b ∈J : ab ∈I} ist ein Ideal in R. Es gilt I ⊆((I · J) : J).",
    "subparts": [
     {
@@ -47,7 +47,7 @@
   },
   {
    "number": 3,
-   "title": "(i) Sei R ein Ring und M ⊆R",
+   "title": null,
    "text": "(i) Sei R ein Ring und M ⊆R. Zeigen Sie dass\n\\\nM⊆I◁R\nI =\n( n\nX\ni=1\naimibi | n ∈N, ai, bi ∈R, mi ∈M\n)\ngilt und es sich dabei um das kleinste Ideal in R handelt, welches M enthält.\n(ii) Sei Λ eine beliebige Indexmenge und (Iλ)λ∈Λ eine Kette (bezüglich Inklusion)\nvon Idealen in R. Zeigen Sie, dass dann auch\n[\nλ∈Λ\nIλ\nein Ideal in R ist.",
    "subparts": [
     {

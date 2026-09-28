@@ -14,7 +14,7 @@
   },
   {
    "number": 2,
-   "title": "Sei I ein Ideal in einem kommutativen Ring R und π",
+   "title": null,
    "text": "Sei I ein Ideal in einem kommutativen Ring R und π: R →R/I die kanonische\nProjektion. Zeigen Sie:\n(i) Die Vorschrift J 7→π−1(J) liefert eine Bijektion zwischen der Menge der\nIdeale in R/I und der Menge der Ideale in R, die I enthalten.\n(ii) Unter der Bijektion aus (i) entsprechen sich Primideale.",
    "subparts": [
     {
@@ -30,7 +30,7 @@
   },
   {
    "number": 3,
-   "title": "Sei R = C([0, 1], R) der Ring der stetigen reellwertigen Funktionen auf [0, 1]",
+   "title": null,
    "text": "Sei R = C([0, 1], R) der Ring der stetigen reellwertigen Funktionen auf [0, 1]. Zeigen\nSie:\n(i) Für jedes echte Ideal I ⪇◁R gibt es ein a ∈[0, 1] mit f(a) = 0 für alle f ∈I.\n(ii) Für jedes a ∈[0, 1] ist die Menge ma := {f ∈R | f(a) = 0} ein maximales\nIdeal in R.\n(iii) Jedes maximale Ideal in R ist von der Gestalt ma für ein a ∈[0, 1].",
    "subparts": [
     {

@@ -22,10 +22,11 @@ picker would give back.
 | Knowledge extraction: definitions/theorems/proofs (`knowledge.py`) | ✅ | ✅ corpus spot checks | ✅ Optimierung |
 | Chunking by the PDF's own outline (`toc.py`) | ✅ | ✅ 100% of entries placed in all ten corpus scripts | ✅ Optimierung |
 | **The script's own exercises (`exercises.py`)** | ✅ new | ✅ Optimierung: 64 exercises, all 34 sheet references resolve; Algebra 103, LinAlg 106 | ❌ |
+| Task titles only where the sheet has a heading (`assignments.guess_title`) | ✅ new | ✅ all 850 tasks compared old vs new | ❌ |
 | Assignment-sheet parsing (`assignments.py`): "Aufgabe N", "(N)", "N.", "N)"; ids per course | ✅ | ✅ all 186 maths sheets under ~/Uni, 16 courses, 850 tasks (2026-09-28) | ✅ Optimierung |
 | Selection: chapters and/or single statements; nothing chosen, no context (`selection.py`) | ✅ changed | ✅ | ❌ (the keyword guess is gone) |
 | **Jev picks statements and proofs** (`integrations/jev.py`), one yes/no per Satz and per proof | ✅ | ✅ 33 real sheet tasks in 9 courses (2026-09-28): 0.4-1.3s and $0.001-0.008 per pick; statements mostly on target, statements only since then, proofs judged from those; earlier sheets' tasks too (see ROADMAP 0) | ✅ (before the rework) |
-| **Sheet plan**: effort per task, dependencies, and every task's context picked at once (`core/plan.py`, `jev.plan_sheet`, `cli._plan_sheet`); a task's selection set on switching to it, hand edits kept per task | ✅ new | ✅ real Jev on 12 sheets; switching, hand edits and the task list with scripted answers | ❌ |
+| **Sheet plan**: effort per task, dependencies, and every task's context picked at once (`core/plan.py`, `jev.plan_sheet`, `cli._plan_sheet`); a task's selection set on switching to it, hand edits kept per task; the Jev row says when the context is Jev's | ✅ new | ✅ real Jev on 12 sheets; switching, hand edits and the task list with scripted answers | ❌ |
 | "Open the sheet" in the task list (`pdf_viewer`, Firefox) | ✅ new | ⚠️ command checked, not launched | ❌ |
 | Jev cost counter: last pick and total, with request counts; cost as OpenRouter reports it (else estimated, shown as "~$") | ✅ new | ✅ with faked responses | ❌ |
 | The exact selection (each section and statement, "+ proof") in the bar tooltip and in the notification after a Jev pick | ✅ new | ✅ | ❌ |

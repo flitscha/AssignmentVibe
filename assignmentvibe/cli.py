@@ -118,8 +118,9 @@ def cmd_tasks(args):
     from . import store
     sheet = store.load_sheet(args.sheet_id)
     for t in sheet["tasks"]:
-        title = f": {t['title']}" if t.get("title") else ""
-        _print(f"{t['number']}{title}")
+        from .core.assignments import title_of
+        title = title_of(t)
+        _print(f"{t['number']}{f': {title}' if title else ''}")
 
 
 def cmd_context(args):
@@ -286,7 +287,11 @@ def _build_from_args(args) -> str:
     course_name = store.list_courses().get(course_slug, course_slug or "")
     solution = _resolve_solution(args)
 
-    context.set_course(course_slug, sheet=sheet_id, task=int(task_num))
+    # Another task than the remembered one brings its planned selection along,
+    # as in the hub.
+    if (sheet["sheet_id"], int(task_num)) != (saved.get("sheet"), saved.get("task")):
+        _select_task(course_slug, sheet["sheet_id"], int(task_num))
+        saved = context.course_state(course_slug)
 
     sections = getattr(args, "sections", None) or saved.get("sections")
     proofs = getattr(args, "proofs", None)
@@ -319,7 +324,7 @@ def _build_from_args(args) -> str:
                         if course_slug else {},
                         exercises=exercises, proof_of=proof_of,
                         statements=statements,
-                        earlier_tasks=selection.earlier_tasks(sheets, earlier))
+                        earlier_tasks=selection.earlier_tasks(sheets, earlier, sheet))
 
 
 def cmd_build(args):
@@ -483,6 +488,8 @@ FOLLOWUP_ROW = "💬 Copy a follow-up …"
 BROWSER_ROW = "🌐 Open chat"
 INGEST_ROW = "⟳  Read in new sheets"
 JEV_ROW = "   ✨ Let Jev pick the context"
+JEV_DONE_ROW = "   ✨ Context picked by Jev · ask again"
+JEV_EDITED_ROW = "   ✨ Context picked by Jev, changed by hand · ask again"
 PLAN_ROW = "✨ Let Jev plan this sheet  ·  effort, and the context of every task"
 REPLAN_ROW = "✨ Plan again"
 OPEN_SHEET_ROW = "📄 Open the sheet"
@@ -534,6 +541,7 @@ def _resolve_state(course: str) -> dict:
         "proofs": bool(saved.get("proofs")),
         "proof_of": list(saved.get("proof_of") or []),
         "earlier": list(saved.get("earlier_tasks") or []),
+        "jev_pick": saved.get("jev_pick"),
         "algorithms": bool(saved.get("algorithms", _settings()["algorithms_by_default"])),
         "sheets": sheets,
         "exercises": store.load_exercises(course),
@@ -557,7 +565,8 @@ def _task_title(task: dict, exercises: list[dict]) -> str | None:
     if len(found) == 1:
         title = f" {found[0]['title']}" if found[0].get("title") else ""
         return f"({found[0]['number']}){title}"
-    return task.get("title")
+    from .core.assignments import title_of
+    return title_of(task)
 
 
 def _context_summary(course: str, state: dict) -> str:
@@ -627,7 +636,11 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
     # Under the row it changes, so the result shows right above the next click.
     # Only with a key and a task - without either it could only fail.
     if task and jev.configured():
-        rows.append((f"{JEV_ROW}  ·  {jev.usage_summary(compact=True)}", "jev"))
+        jev_pick = state.get("jev_pick") or {}
+        label = JEV_ROW
+        if jev_pick.get("task") == _task_ref(sheet["sheet_id"], task["number"]):
+            label = JEV_EDITED_ROW if jev_pick.get("edited") else JEV_DONE_ROW
+        rows.append((f"{label}  ·  {jev.usage_summary(compact=True)}", "jev"))
     # No separator before these two, though they are a group of their own: the
     # Omarchy menu caps its height at 70% of the screen, which on a 900px-high
     # (logical) screen is 630px - and a row is 50px plus 3px spacing, a
@@ -713,8 +726,27 @@ def _select_task(course: str, sheet_id: str, task: int | None) -> None:
         context.set_course(course, **planned["selection"])
 
 
-# What a task's selection is made of, as context.set_course stores it.
-SELECTION_KEYS = ("sections", "statements", "proof_of", "proofs", "earlier_tasks")
+# What a task's selection is made of, as context.set_course stores it, with
+# what goes in when a key was never set. "jev_pick" says which task Jev picked
+# the selection for, and whether it was changed by hand since.
+SELECTION_KEYS = {"sections": [], "statements": [], "proof_of": [], "proofs": False,
+                  "earlier_tasks": [], "jev_pick": None}
+
+
+def _selection_key(entries: list[dict], state: dict) -> tuple:
+    """What a selection amounts to, to tell whether the picker changed it -
+    the same statements count as the same, however they were grouped."""
+    from .core import selection
+    from .core.prompts import entry_id
+
+    ids = {entry_id(e) for e in selection.chosen(entries, state["sections"],
+                                                 state["statements"], True)}
+    return (frozenset(ids), frozenset(state["proof_of"]), state["proofs"],
+            frozenset(state["earlier"]))
+
+
+def _task_ref(sheet_id: str | None, task: int | None) -> str | None:
+    return f"{sheet_id}#{task}" if sheet_id and task is not None else None
 
 
 def _remember_selection(course: str) -> None:
@@ -729,8 +761,7 @@ def _remember_selection(course: str) -> None:
     planned = (plan or {}).get("tasks", {}).get(str(task))
     if not planned:
         return
-    planned["selection"] = {k: saved.get(k, [] if k != "proofs" else False)
-                            for k in SELECTION_KEYS}
+    planned["selection"] = {k: saved.get(k, default) for k, default in SELECTION_KEYS.items()}
     store.save_plan(plan)
 
 
@@ -848,10 +879,13 @@ def _plan_sheet(course: str, state: dict) -> dict | None:
         tasks[str(task["number"])] = {
             "effort": effort[f"Task {task['number']}"],
             "selection": {"sections": sections, "statements": singles, "proof_of": proofs,
-                          "proofs": False, "earlier_tasks": earlier},
+                          "proofs": False, "earlier_tasks": earlier,
+                          "jev_pick": {"task": _task_ref(sheet["sheet_id"], task["number"]),
+                                       "edited": False}},
             "dropped": dropped,
         }
-    plan = {"format": store.PLAN_FORMAT, "sheet_id": sheet["sheet_id"], "tasks": tasks,
+    plan = {"format": store.PLAN_FORMAT, "sheet_id": sheet["sheet_id"],
+            "tasks_key": store.tasks_key(sheet), "tasks": tasks,
             "edges": [list(e) for e in edges], "cost_usd": total["last"]["cost_usd"]}
     store.save_plan(plan)
     _select_task(course, sheet["sheet_id"], state["task"])
@@ -940,7 +974,8 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
         section_titles=store.load_section_titles(course),
         exercises=state["exercises"],
         proof_of=state["proof_of"],
-        earlier_tasks=selection.earlier_tasks(state["sheets"], state["earlier"]),
+        earlier_tasks=selection.earlier_tasks(state["sheets"], state["earlier"],
+                                              state["sheet"]),
     )
     ok, method = clipboard.copy(prompt)
     _, missing = resolve_exercises(task, state["exercises"])
@@ -1022,8 +1057,11 @@ def _jev_into_state(course: str, state: dict) -> bool:
     statements, proofs, dropped, earlier = picked
     sections, singles = selection.compress(knowledge, set(statements),
                                            state["algorithms"])
+    sheet_id = state["sheet"]["sheet_id"] if state.get("sheet") else None
     context.set_course(course, sections=sections, statements=singles,
-                       proof_of=proofs, proofs=False, earlier_tasks=earlier)
+                       proof_of=proofs, proofs=False, earlier_tasks=earlier,
+                       jev_pick={"task": _task_ref(sheet_id, state.get("task")),
+                                 "edited": False})
     _remember_selection(course)
     state = {"sections": sections, "statements": singles, "proof_of": proofs,
              "earlier": earlier}
@@ -1210,10 +1248,15 @@ def cmd_pick(args):
                             "Read a sheet in first ('Read in new sheets').",
                             glyph="⚠")
                 continue
-            picked = _pick_task(state["sheet"], state["task"], state["exercises"])
-            if picked == "plan":
+            # The list stays open after planning, so the plan is seen where
+            # it shows.
+            while True:
+                picked = _pick_task(state["sheet"], state["task"], state["exercises"])
+                if picked != "plan":
+                    break
                 _plan_sheet(course, state)
-            elif picked == "open":
+                state = _resolve_state(course)
+            if picked == "open":
                 if _open_sheet(state["sheet"]):
                     return
             elif picked is not None:
@@ -1233,9 +1276,13 @@ def cmd_pick(args):
                                     state["statements"], state["earlier"], earlier)
             if picked is not None:
                 sections, proofs, algorithms, proof_of, statements, chosen = picked
+                before = _selection_key(entries, state)
                 context.set_course(course, sections=sections, proofs=proofs,
                                    algorithms=algorithms, proof_of=proof_of,
                                    statements=statements, earlier_tasks=chosen)
+                jev_pick = state.get("jev_pick")
+                if jev_pick and before != _selection_key(entries, _resolve_state(course)):
+                    context.set_course(course, jev_pick={**jev_pick, "edited": True})
                 _remember_selection(course)
             continue
         if action == "jev":

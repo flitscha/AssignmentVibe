@@ -7,7 +7,7 @@
  "tasks": [
   {
    "number": 1,
-   "title": "Finden Sie alle komplexen Lösungen der folgenden Gleichungen",
+   "title": null,
    "text": "Finden Sie alle komplexen Lösungen der folgenden Gleichungen:\nz6 = −1, z4 = −5i, 2z2 −5z + 2 = 0.",
    "subparts": [],
    "script_references": null
@@ -34,14 +34,14 @@
   },
   {
    "number": 3,
-   "title": "Beweisen Sie Satz 1.1.2",
+   "title": null,
    "text": "Beweisen Sie Satz 1.1.2.\nHinweis zum Ziehen von Wurzeln:\nbei welchen Konstruktionsschritten entstehen die Koordinaten der neuen\nPunkte durch Lösen von quadratischen Gleichungen?",
    "subparts": [],
    "script_references": null
   },
   {
    "number": 4,
-   "title": "Auf dem offenen Intervall I = (−1, 1) ⊆R definieren wir folgende Verknüpfung",
+   "title": null,
    "text": "Auf dem offenen Intervall I = (−1, 1) ⊆R definieren wir folgende Verknüpfung:\na ∗b := a + b\n1 + ab.\nZeigen Sie, dass es sich bei ∗wirklich um eine Verknüpfung auf I handelt, und dass\nI damit zu einer abelschen Gruppe wird.\n1",
    "subparts": [],
    "script_references": null

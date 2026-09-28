@@ -169,14 +169,24 @@ def save_plan(plan: dict) -> None:
     _save_json(paths.PLANS_DIR / f"{plan['sheet_id']}.json", plan)
 
 
+def tasks_key(sheet: dict) -> str:
+    """What a plan was made for: the sheet's tasks, number and text."""
+    import hashlib
+
+    text = json.dumps([(t["number"], t["text"]) for t in sheet.get("tasks", [])],
+                      ensure_ascii=False)
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()
+
+
 def load_plan(sheet_id: str) -> dict | None:
-    """The plan made for a sheet, or None. A sheet read in again after its plan
-    was made gets none: its tasks may have changed."""
+    """The plan made for a sheet, or None. It holds while the sheet's tasks are
+    the ones it was made for - a sheet read in again with the same tasks (a
+    new version of the extraction) keeps its plan and the selections in it."""
     plan = _load_json(paths.PLANS_DIR / f"{sheet_id}.json", None)
-    sheet = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
-    plan_file = paths.PLANS_DIR / f"{sheet_id}.json"
-    if (plan is None or plan.get("format", 1) < PLAN_FORMAT
-            or (sheet.exists() and sheet.stat().st_mtime > plan_file.stat().st_mtime)):
+    if plan is None or plan.get("format", 1) < PLAN_FORMAT:
+        return None
+    sheet = _load_json(paths.ASSIGNMENTS_DIR / f"{sheet_id}.json", None)
+    if sheet is not None and plan.get("tasks_key") not in (None, tasks_key(sheet)):
         return None
     return plan
 

@@ -21,14 +21,14 @@
   },
   {
    "number": 3,
-   "title": "Sei G eine Gruppe",
+   "title": null,
    "text": "Sei G eine Gruppe. Mit Aut(G) bezeichnen wir die Menge aller bijektiven Grup-\npenhomomorphismen von G in sich selbst. Zeigen Sie, dass Aut(G) bezüglich Hin-\ntereinanderausführung eine Gruppe ist.",
    "subparts": [],
    "script_references": null
   },
   {
    "number": 4,
-   "title": "Seien G, H Gruppen",
+   "title": null,
    "text": "Seien G, H Gruppen. Zeigen Sie:\n(i) Sei θ: H →Aut(G) ein Gruppenhomomorphismus. Dann macht die fol-\ngende Verknüpfung die Menge G × H zu einer Gruppe:\n(g, h) · (g′, h′) := (g · θ(h)(g′), h · h′).\nUm Verwechslung mit der komponentenweise definierten Verknüpfung zu\nvermeiden, bezeichnet man diese Gruppe dann mit G ⋊θ H.\n(ii) Die Abbildung\nι: G →G ⋊θ H\ng 7→(g, e)\nist ein injektiver Gruppenhomomorphismus und Bild(ι) ist eine normale\nUntergruppe in G ⋊θ H.\n1",
    "subparts": [
     {

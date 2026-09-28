@@ -14,7 +14,7 @@
   },
   {
    "number": 2,
-   "title": "Sei k ein Körper und q ∈k[x] ein Polynom",
+   "title": null,
    "text": "Sei k ein Körper und q ∈k[x] ein Polynom. Zeigen Sie:\n(i) Es gibt eine Körpererweiterung k ⊆K, so dass q in K[x] in Linearfaktoren\nzerfällt.\n(ii) Falls ggT(q, ∂(q)) = 1 in k[x] gilt, so hat q in K (wie in (i)) keine doppelte\nNullstelle (d.h. alle Linearfaktoren sind verschieden).",
    "subparts": [
     {
@@ -30,7 +30,7 @@
   },
   {
    "number": 3,
-   "title": "(i) Sei p eine Primzahl, Fp := Z/pZ, n = pr für ein r ∈N, und q = xn −x ∈Fp[x]",
+   "title": null,
    "text": "(i) Sei p eine Primzahl, Fp := Z/pZ, n = pr für ein r ∈N, und q = xn −x ∈Fp[x].\nZeigen Sie, dass ggT(q, ∂(q)) = 1 in Fp[x] gilt.\n(ii) Zeigen Sie, dass für jede Primzahl p und jedes r ∈N ein Körper mit genau pr\nElementen existiert.",
    "subparts": [
     {

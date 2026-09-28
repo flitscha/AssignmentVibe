@@ -200,11 +200,15 @@ def earlier_sheets(sheets: list[dict], current: dict | None) -> list[dict]:
     return sorted(earlier, key=lambda s: (s["sheet_number"], s["sheet_id"]))
 
 
-def earlier_tasks(sheets: list[dict], refs: list[str]) -> list[tuple[str, dict]]:
-    """(label, task) for the remembered refs that still exist, in sheet order."""
+def earlier_tasks(sheets: list[dict], refs: list[str],
+                  current: dict | None = None) -> list[tuple[str, dict]]:
+    """(label, task) for the remembered refs that still exist, in sheet order -
+    with `current`, only those of sheets before it: a selection kept from
+    another sheet can name one that is not earlier."""
     wanted = set(refs)
     found = []
-    for sheet in sorted(sheets, key=lambda s: (s.get("sheet_number") or 0, s["sheet_id"])):
+    pool = earlier_sheets(sheets, current) if current is not None else sheets
+    for sheet in sorted(pool, key=lambda s: (s.get("sheet_number") or 0, s["sheet_id"])):
         for task in sheet.get("tasks", []):
             if earlier_task_ref(sheet, task) in wanted:
                 found.append((earlier_task_label(sheet, task), task))

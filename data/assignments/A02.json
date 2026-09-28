@@ -7,7 +7,7 @@
  "tasks": [
   {
    "number": 1,
-   "title": "Wir betrachten im Folgenden jeweils eine Menge G mit einer Vernüpfung\n∗",
+   "title": null,
    "text": "Wir betrachten im Folgenden jeweils eine Menge G mit einer Vernüpfung\n∗: G × G →G.\nEntscheiden und begründen Sie, welche davon Gruppen sind:\n(i) G = N und a ∗b := |a −b|\n(ii) G = Z und a ∗b := max{a, b}\n(iii) G = {a, b, c, d}\n*\na\nb\nc\nd\na\na\nb\nc\nd\nb\nb\na\nd\nc\nc\nc\nd\na\nb\nd\nd\nc\nb\na",
    "subparts": [
     {
@@ -43,7 +43,7 @@
   },
   {
    "number": 3,
-   "title": "Seien G, H Gruppen und φ",
+   "title": null,
    "text": "Seien G, H Gruppen und φ: G →H ein Gruppenhomomorphismus.\n(i) Zeigen Sie: Ist φ bijektiv, so ist die Umkehrabbildung φ−1 selbst ein Gruppen-\nhomomorphismus.\n(ii) Bestimmen Sie alle Gruppenhomomorphismen φ: ( Z , +) →( Z , +).",
    "subparts": [
     {
@@ -59,7 +59,7 @@
   },
   {
    "number": 4,
-   "title": "Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen",
+   "title": null,
    "text": "Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.\n1",
    "subparts": [],
    "script_references": null

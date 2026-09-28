@@ -152,6 +152,7 @@ def build_prompt(
     (label, task) of earlier sheets the task builds on - their statement only,
     see core.selection.earlier_tasks."""
     from . import selection
+    from .assignments import title_of
     from .toc import label as section_label
 
     section_titles = section_titles or {}
@@ -171,8 +172,8 @@ def build_prompt(
         lines.append(f"Sheet {sheet_meta.get('sheet_number', '?')}, "
                       f"due: {sheet_meta['discussion_date']}")
     lines.append("")
-    lines.append(f"# Task {task['number']}"
-                  + (f": {task['title']}" if task.get("title") else ""))
+    title = title_of(task)
+    lines.append(f"# Task {task['number']}" + (f": {title}" if title else ""))
     lines.append(task["text"])
     lines.append("")
     # The sheet only points at the script; this is the task the model can

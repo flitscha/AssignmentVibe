@@ -7,7 +7,7 @@
  "tasks": [
   {
    "number": 1,
-   "title": "Sei G eine Gruppe",
+   "title": null,
    "text": "Sei G eine Gruppe. Ein Automorphismus φ ∈Aut(G) heißt innerer Automorphis-\nmus, falls ein h ∈G existiert mit\nφ(g) = h−1gh\nfür alle g ∈G. Zeige Sie, dass die Menge Inn(G) aller inneren Automorphismen eine\nnormale Untergruppe von Aut(G) ist. Finden Sie weiter einen Automorphismus\neiner Gruppe, der kein innerer Automorphismus ist.",
    "subparts": [],
    "script_references": null
@@ -30,7 +30,7 @@
   },
   {
    "number": 3,
-   "title": "(i) Eine Gruppe G mit 35 Elementen operiere auf einer Menge X mit 18 Elementen",
+   "title": null,
    "text": "(i) Eine Gruppe G mit 35 Elementen operiere auf einer Menge X mit 18 Elementen.\nZeigen Sie, dass es mindestens ein Element x ∈X geben muss mit g · x = x für alle\ng ∈G (ein solches Element heißt Fixpunkt der Operation).\n(ii) Finden Sie ein Beispiel für eine Gruppenoperation wie in (i), die genau einen\nFixpunkt hat.",
    "subparts": [
     {

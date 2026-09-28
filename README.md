@@ -222,7 +222,9 @@ Optimierung · task 1
   Aufgabe ist, hängt davon ab, was das Skript liefert) und erkennt, welche
   Aufgabe auf welcher aufbaut. Danach ist beim Wechsel auf eine Aufgabe ihr
   Kontext **automatisch gewählt**, ohne neue Jev-Anfrage; was man unter
-  „Context“ von Hand ändert, bleibt pro Aufgabe gemerkt. Die Liste zeigt
+  „Context“ von Hand ändert, bleibt pro Aufgabe gemerkt. Die Jev-Zeile im
+  Hub sagt dann „Context picked by Jev · ask again“ (bzw. „…, changed by
+  hand“), und die Liste bleibt nach dem Planen offen. Die Liste zeigt
   Aufwand und „· after 4“, die Plan-Zeile nur die erkannten Abhängigkeiten
   („4 → 5“ oder „no dependencies“) – eine Reihenfolge wird nicht
   vorgeschlagen. Im Terminal: `assignmentvibe plan [--show]`.

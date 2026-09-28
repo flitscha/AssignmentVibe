@@ -7,7 +7,7 @@
  "tasks": [
   {
    "number": 1,
-   "title": "Unbeschränkte konvexe Mengen und Minima konvexer Funktio-\nnen",
+   "title": "Unbeschränkte konvexe Mengen und Minima konvexer Funktionen",
    "text": "Unbeschränkte konvexe Mengen und Minima konvexer Funktio-\nnen. Es sei f : Rn →R eine konvexe Funktion.\na) Zeigen Sie, dass eine abgeschlossene konvexe Menge C ⊂Rn genau dann unbe-\nschränkt ist, wenn sie einen Halbstrahl enthält.\nb) Zeigen Sie, dass Subniveaumengen konvexer Funktionen konvex sind.\nc) Zeigen Sie, dass die Menge Mf := {x ∈Rn | f(x) = m} mit m := min{f(x) | x ∈\nRn} genau dann beschränkt ist, wenn jede Subniveaumenge von f beschränkt ist.",
    "subparts": [
     {

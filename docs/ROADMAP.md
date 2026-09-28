@@ -69,10 +69,12 @@ selection. Over `max_context_chars` the least certain proofs are dropped.
 - [x] The plan is the context pick for every task at once: going to a task
       sets its selection without asking Jev again, and a selection changed by
       hand is kept per task. ~$0.01 per sheet with a script.
-- [ ] Task titles: the first sentence is taken as a title when it is short,
-      which gives "Sei (f, f ∗)" and "Beweisen Sie folgende Aussage" - now
-      visible in the task list next to the plan. Only take a title that ends
-      in a colon or reads like a heading.
+- [x] Task titles (2026-09-28): only what reads like a heading - short, no
+      formula, not opening like a task sentence ("Sei", "Zeigen Sie", "Let").
+      Before, the first short sentence was taken: 500 of 850 tasks had a
+      "title", most of them "Sei G eine Gruppe" or "1". Now 200, all real;
+      headings on a line of their own ("Erwartungstreue") are found too. Read
+      from the task text when shown, so no sheet has to be read in again.
 
 ## 1. ⚪ Review what the prompts say
 

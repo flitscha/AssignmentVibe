@@ -7,7 +7,7 @@
  "tasks": [
   {
    "number": 1,
-   "title": "Überprüfen Sie die folgenden Polynome auf Irreduzibilität im Polynomring Q[x]",
+   "title": null,
    "text": "Überprüfen Sie die folgenden Polynome auf Irreduzibilität im Polynomring Q[x]:\np1 = x2 −2x + 2\np2 = x10 + 2x8 + 4x6 + 6x4 + 8x2 + 10\np3 = 3x2 −9x −27\np4 = x4 + x3 + 2x2 + x + 1.\nWelche der Polynome sind auch irreduzibel in Z [x]?",
    "subparts": [],
    "script_references": null
@@ -58,7 +58,7 @@
   },
   {
    "number": 4,
-   "title": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1,",
+   "title": null,
    "text": "Zeigen Sie, dass für eine Primzahl p ∈Z und i = 1, . . . , p −1 in Z stets\np |\np\ni\n\ngilt. Stimmt die Aussage auch, wenn p keine Primzahl ist?\n1",
    "subparts": [],
    "script_references": null
