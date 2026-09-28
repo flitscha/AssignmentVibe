@@ -14,7 +14,7 @@ x ≡3 mod 4.
 (the definitions and theorems chosen for this task, proofs omitted)
 
 Satz 3.1.11 (Chinesischer Restsatz):
-. Sei R ein Ring und I1, . . . , In ◁R Ideale mit
+Sei R ein Ring und I1, . . . , In ◁R Ideale mit
 Ii + Ij = R
 für i̸ = j.
 Dann induzieren die kanonischen Projektionen einen Isomorphismus

@@ -63,7 +63,9 @@ NUMBERED_TYPES = [
 NUMBERED_RE = re.compile(
     r"(?m)^(?P<type>" + "|".join(re.escape(t) for t in NUMBERED_TYPES) + r")"
     r"\s*(?P<num>\d+\.\d+(?:\.\d+)?)\.?"
-    r"(?:\s*\((?P<name>[^)]{1,80})\))?"
+    # The dot after a name belongs to the heading ("Satz 3.1.11 (Chinesischer
+    # Restsatz)."); left in, a named statement's text began with ". Sei R".
+    r"(?:\s*\((?P<name>[^)]{1,80})\)[ \t]*[.:]?)?"
 )
 
 # How the corpus actually writes a proof header, all of which have to match:

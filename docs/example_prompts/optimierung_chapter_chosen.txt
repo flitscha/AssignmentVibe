@@ -123,7 +123,7 @@ i gi(x∗) = 0
 erfüllt sind.
 
 Satz 3.2.5 (Karush-Kuhn-Tucker):
-. Es seien f : Rn →R und gi : Rn →R stetig
+Es seien f : Rn →R und gi : Rn →R stetig
 differenzierbare konvexe Funktionen. Ein Punkt x∗∈Rn ist genau dann eine Lösung
 des Optimierungsproblems (3.3), wenn es (μ∗, λ∗) ∈Rp+m so gibt, dass (x∗, μ∗, λ∗)
 ein KKT-Punkt für (3.3) ist.
