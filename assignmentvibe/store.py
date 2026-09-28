@@ -159,6 +159,22 @@ def load_sheet(sheet_id: str) -> dict:
     return _load_json(path, {})
 
 
+def save_plan(plan: dict) -> None:
+    """A sheet's plan (see core.plan), filed like the sheet itself."""
+    _save_json(paths.PLANS_DIR / f"{plan['sheet_id']}.json", plan)
+
+
+def load_plan(sheet_id: str) -> dict | None:
+    """The plan made for a sheet, or None. A sheet read in again after its plan
+    was made gets none: its tasks may have changed."""
+    plan = _load_json(paths.PLANS_DIR / f"{sheet_id}.json", None)
+    sheet = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
+    plan_file = paths.PLANS_DIR / f"{sheet_id}.json"
+    if plan is None or (sheet.exists() and sheet.stat().st_mtime > plan_file.stat().st_mtime):
+        return None
+    return plan
+
+
 def load_knowledge(course_slug: str) -> list[dict]:
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
     if not path.exists():

@@ -17,6 +17,7 @@ Subcommands:
   build   ...                                build a prompt, print to stdout
   copy    ...                                 build a prompt + copy to clipboard
   jev [--usage]                                 let Jev pick statements + proofs for the task
+  plan [--sheet ID] [--show]                    let Jev estimate each task's work and an order
   followup                                     copy a canned reply for the chat
   pick                                           the hub menu (top-bar click)
   waybar-status                                   JSON status for the Waybar module
@@ -462,6 +463,8 @@ FOLLOWUP_ROW = "💬 Copy a follow-up …"
 BROWSER_ROW = "🌐 Open chat"
 INGEST_ROW = "⟳  Read in new sheets"
 JEV_ROW = "   ✨ Let Jev pick the context"
+PLAN_ROW = "✨ Let Jev plan this sheet"
+REPLAN_ROW = "✨ Plan again"
 CONFIG_ROW = "⚙  Config files …"
 SOLUTION_ROW = "📋 Partial solution from clipboard"
 SEPARATOR = "───────────────────────────────"
@@ -573,8 +576,14 @@ def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str
 
     task_text = "none"
     if task:
+        from . import store
+        from .core import plan as plan_core
+
         title = _task_title(task, state["exercises"])
-        task_text = f"{task['number']}{f'  {title}' if title else ''}"
+        plan = store.load_plan(sheet["sheet_id"])
+        planned = (plan or {}).get("tasks", {}).get(str(task["number"]))
+        effort = f"  {plan_core.effort_bars(planned['effort'])}" if planned else ""
+        task_text = f"{task['number']}{effort}{f'  {title}' if title else ''}"
     sheet_text = "none read in yet"
     if sheet:
         newest = _latest_sheet(state["sheets"])
@@ -635,14 +644,138 @@ def _pick_sheet(state: dict, current_id: str | None) -> dict | None:
     return labels.get(choice) if choice else None
 
 
-def _pick_task(sheet: dict, current: int | None, exercises: list[dict]) -> int | None:
-    labels = {}
+def _pick_task(sheet: dict, current: int | None, exercises: list[dict]):
+    """The task list, with the sheet's plan where there is one: each task's
+    effort and what it builds on, and on top the row that makes or remakes
+    the plan. Returns a task number, "plan", or None."""
+    from . import store
+    from .core import plan as plan_core
+    from .integrations import jev
+
+    plan = store.load_plan(sheet["sheet_id"])
+    rows = []
+    if jev.configured():
+        if plan:
+            order = " → ".join(str(t) for t in plan["order"])
+            rows.append((f"{REPLAN_ROW}  ·  order {order}", "plan"))
+        else:
+            rows.append((PLAN_ROW, "plan"))
     for t in sheet["tasks"]:
         title = _task_title(t, exercises)
-        title = f": {title}" if title else ""
-        labels[f"{'●' if t['number'] == current else '○'} Task {t['number']}{title}"] = t["number"]
-    choice = menu.pick("Task", list(labels))
-    return labels.get(choice) if choice else None
+        effort = after = ""
+        planned = (plan or {}).get("tasks", {}).get(str(t["number"]))
+        if planned:
+            effort = f"  {plan_core.effort_bars(planned['effort'])}"
+            needs = plan_core.after(t["number"], [tuple(e) for e in plan["edges"]])
+            after = f"  · after {', '.join(map(str, needs))}" if needs else ""
+        # The bars stand where the colon would, so the titles stay aligned.
+        title = f"{'  ' if effort else ': '}{title}" if title else ""
+        mark = "●" if t["number"] == current else "○"
+        rows.append((f"{mark} Task {t['number']}{effort}{title}{after}", t["number"]))
+    choice = menu.pick("Task", [label for label, _ in rows])
+    if choice is None:
+        return None
+    action, found = _chosen(choice, rows)
+    return action if found else None
+
+
+def _plan_sheet(course: str, state: dict) -> dict | None:
+    """Ask Jev for the plan of the current sheet, save it, and say what it
+    is. Two steps: first, per task and side by side, the statements and
+    earlier tasks it needs - the same questions as the Jev row, without the
+    proofs - then one request with every task and that context, asking how
+    much work each is and which builds on which. Without the context Jev
+    rated "Beweise Teil a) des Satzes 1.26" a few lines; seeing what Satz
+    1.26 says, it rated it a page. None if Jev could not be asked."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from . import store
+    from .core import plan as plan_core
+    from .core import selection
+    from .core.prompts import task_query
+    from .integrations import jev
+
+    sheet, exercises = state["sheet"], state["exercises"]
+    if not sheet or not sheet["tasks"]:
+        notify.send("No sheet", "Read a sheet in first ('Read in new sheets').", glyph="⚠")
+        return None
+    notify.send("Asking Jev", f"How much work is each task of sheet "
+                f"{sheet.get('sheet_number') or sheet['sheet_id']}, and in which order?",
+                glyph="⟳")
+    config = _settings()
+    knowledge = store.load_knowledge(course)
+    items = selection.judgement_items(knowledge, state["algorithms"])
+    candidates = _earlier_candidates(state["sheets"], sheet, exercises)
+    earlier_texts = {label: text for label, (_, text) in candidates.items()}
+    usages: list = []
+
+    def context_for(task):
+        statement_p, _, earlier_p = jev.judge(task_query(task, exercises), items, (),
+                                              earlier_texts, usage_sink=usages)
+        threshold = config["jev_statement_threshold"]
+        statements = sorted((i for i, p in statement_p.items() if p >= threshold),
+                            key=lambda i: -statement_p[i])
+        earlier = sorted((l for l, p in earlier_p.items() if p >= threshold),
+                         key=lambda l: -earlier_p[l])
+        return statements, earlier
+
+    try:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            contexts = list(pool.map(context_for, sheet["tasks"]))
+        asked = {}
+        for task, (statements, earlier) in zip(sheet["tasks"], contexts):
+            entry = {"text": task_query(task, exercises)}
+            if statements:
+                entry["lecture_notes_it_may_cite"] = {i: items[i]["statement"]
+                                                      for i in statements}
+            if earlier:
+                entry["earlier_exercises_it_builds_on"] = {l: earlier_texts[l]
+                                                           for l in earlier}
+            asked[f"Task {task['number']}"] = entry
+        effort, depends = jev.plan_sheet(
+            asked, [text for _, text in plan_core.EFFORT_LEVELS], usage_sink=usages)
+    except jev.JevUnavailable as e:
+        if usages:
+            jev.record(usages)
+        notify.send("Jev unavailable", f"No plan made. {e}", glyph="⚠")
+        return None
+    total = jev.record(usages)
+
+    numbers = [t["number"] for t in sheet["tasks"]]
+    num = {f"Task {n}": n for n in numbers}
+    effort_by = {num[k]: v for k, v in effort.items()}
+    edges = plan_core.edges_from({(num[a], num[b]): p for (a, b), p in depends.items()})
+    plan = {
+        "format": 1,
+        "sheet_id": sheet["sheet_id"],
+        "tasks": {str(t["number"]): {
+            "effort": effort_by[t["number"]],
+            "statements": statements,
+            "earlier": [candidates[l][0] for l in earlier],
+        } for t, (statements, earlier) in zip(sheet["tasks"], contexts)},
+        "edges": [list(e) for e in edges],
+        "order": plan_core.order(numbers, effort_by, edges),
+        "cost_usd": total["last"]["cost_usd"],
+    }
+    store.save_plan(plan)
+    notify.send(f"Order: {' → '.join(map(str, plan['order']))}",
+                "\n".join(_plan_lines(plan) + ["", jev.usage_summary(total)]), glyph="✓")
+    return plan
+
+
+def _plan_lines(plan: dict) -> list[str]:
+    """One line per task, in the suggested order."""
+    from .core import plan as plan_core
+
+    edges = [tuple(e) for e in plan["edges"]]
+    lines = []
+    for n in plan["order"]:
+        score = plan["tasks"][str(n)]["effort"]
+        needs = plan_core.after(n, edges)
+        after = f", after {', '.join(map(str, needs))}" if needs else ""
+        lines.append(f"Task {n}  {plan_core.effort_bars(score)} "
+                     f"{plan_core.effort_word(score)}{after}")
+    return lines
 
 
 def cmd_followup(args):
@@ -825,6 +958,28 @@ def cmd_jev(args):
     _print(f"Jev: {jev.usage_summary()}")
 
 
+def cmd_plan(args):
+    """The task picker's plan row from the terminal: plan the current sheet
+    (or --sheet), or with --show print the plan made earlier."""
+    from . import store
+
+    course = context.current_course()
+    if args.sheet:
+        course = store.load_sheet(args.sheet).get("course_slug")
+        context.set_course(course, sheet=args.sheet)
+    if not course:
+        print("No current course - open the hub once first.", file=sys.stderr)
+        sys.exit(1)
+    state = _resolve_state(course)
+    plan = (store.load_plan(state["sheet"]["sheet_id"]) if args.show and state["sheet"]
+            else _plan_sheet(course, state))
+    if not plan:
+        sys.exit(1)
+    _print(f"Order: {' → '.join(map(str, plan['order']))}")
+    for line in _plan_lines(plan):
+        _print(f"  {line}")
+
+
 def _config_files() -> list[tuple[str, str, object]]:
     """(name, what it is for, path) for the config page, in the order they
     matter. Files that are made on demand say so."""
@@ -948,7 +1103,9 @@ def cmd_pick(args):
                             glyph="⚠")
                 continue
             picked = _pick_task(state["sheet"], state["task"], state["exercises"])
-            if picked is not None:
+            if picked == "plan":
+                _plan_sheet(course, state)
+            elif picked is not None:
                 context.set_course(course, sheet=state["sheet"]["sheet_id"], task=picked)
             continue
         if action == "context":
@@ -1546,6 +1703,11 @@ def build_arg_parser():
     p_jev.add_argument("--usage", action="store_true",
                        help="only print how many requests, tokens and dollars so far")
     p_jev.set_defaults(func=cmd_jev)
+
+    p_plan = sub.add_parser("plan", help="let Jev estimate the work per task and an order")
+    p_plan.add_argument("--sheet", default=None, help="a sheet id, e.g. analysis-4/Blatt3")
+    p_plan.add_argument("--show", action="store_true", help="print the plan made earlier")
+    p_plan.set_defaults(func=cmd_plan)
 
     p_fu = sub.add_parser("followup", help="copy a canned follow-up to the clipboard")
     p_fu.set_defaults(func=cmd_followup)

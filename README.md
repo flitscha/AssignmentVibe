@@ -214,6 +214,15 @@ Optimierung · task 1
   Zahl der Anfragen (so, wie OpenRouter sie meldet). Die genaue Liste steht in
   der Benachrichtigung nach dem Wählen und im Tooltip des Widgets. Im
   Terminal: `assignmentvibe jev`, `jev --usage`.
+- **Plan für ein Blatt** (optional, mit Jev): Ganz oben unter „Task“ steht
+  „✨ Let Jev plan this sheet“. Jev schätzt den Aufwand jeder Aufgabe
+  (▮▯▯▯ Routine bis ▮▮▮▮ schwer), erkennt, welche auf welcher aufbaut, und
+  schlägt eine Reihenfolge vor: Abhängigkeiten zuerst, dann die leichteste.
+  Dafür sucht er pro Aufgabe zuerst die Sätze und früheren Aufgaben, die sie
+  verwenden darf – ob eine Aufgabe leicht ist, hängt davon ab, was das
+  Skript schon liefert. Der Plan wird pro Blatt gespeichert; die Task-Liste
+  zeigt ihn („▮▮▯▯ … · after 4“), die Task-Zeile im Hub den Aufwand der
+  aktuellen Aufgabe. Im Terminal: `assignmentvibe plan [--show]`.
 - **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
   rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
 - **Config files …** (unten im Hub) listet alle Dateien, die man bearbeiten

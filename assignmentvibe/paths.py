@@ -22,6 +22,8 @@ CACHE_DIR = _xdg("XDG_CACHE_HOME", "~/.cache") / "assignmentvibe"
 
 KNOWLEDGE_DIR = DATA_DIR / "knowledge"
 ASSIGNMENTS_DIR = DATA_DIR / "assignments"
+# What Jev made of a sheet: effort per task, dependencies, an order.
+PLANS_DIR = DATA_DIR / "plans"
 RAW_TEXT_CACHE_DIR = CACHE_DIR / "raw_text"
 COURSES_FILE = DATA_DIR / "courses.json"
 

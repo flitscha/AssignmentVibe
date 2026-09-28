@@ -28,6 +28,7 @@ totals from here every few seconds and needs none of them.
 
 import json
 import os
+import threading
 
 from .. import paths
 
@@ -171,14 +172,17 @@ def _ask_earlier(task: str, earlier: dict[str, str], ids: list[str], model: str)
 
 
 def judge(task: str, items: dict[str, dict], proof_ids=(),
-          earlier: dict[str, str] | None = None, model: str = MODEL
+          earlier: dict[str, str] | None = None, model: str = MODEL,
+          usage_sink: list | None = None
           ) -> tuple[dict[str, float], dict[str, float], dict[str, float]]:
     """(P(statement needed), P(its proof helps), P(earlier task built on)).
 
     `items` is {id: {"statement": text}} - see core.selection.judgement_items;
     `proof_ids` are the ids whose proof to ask about (core.selection.
     proof_candidates); `earlier` is {label: task text} for the tasks of earlier
-    sheets. All requests run side by side and count as one pick."""
+    sheets. All requests run side by side and count as one pick - or, with
+    `usage_sink`, are appended to it for the caller to count as part of a
+    bigger one (see plan_sheet)."""
     from concurrent.futures import ThreadPoolExecutor
 
     proof_ids = set(proof_ids)
@@ -193,7 +197,11 @@ def judge(task: str, items: dict[str, dict], proof_ids=(),
                 for ids in earlier_batches])
     with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as pool:
         responses = list(pool.map(lambda call: call(), calls))
-    record([response.get("usage") or {} for response in responses])
+    usages = [response.get("usage") or {} for response in responses]
+    if usage_sink is None:
+        record(usages)
+    else:
+        usage_sink.extend(usages)
 
     statement_p, proof_p, earlier_p = {}, {}, {}
     for ids, response in zip(note_batches, responses):
@@ -207,6 +215,81 @@ def judge(task: str, items: dict[str, dict], proof_ids=(),
         for n, item_id in enumerate(ids):
             earlier_p[item_id] = _probability(answers, f"e{n}", item_id)
     return statement_p, proof_p, earlier_p
+
+
+# --- A sheet's plan -------------------------------------------------------------
+
+EFFORT_INSTRUCTIONS = (
+    "How much work is a complete written solution of {id}? Results from the "
+    "lecture notes may be cited - except a result the task itself asks to "
+    "prove: proving that one is the work.")
+# Without the last sentence, a task that asks to prove a theorem of the notes
+# ("Beweisen Sie: ... erfüllt das erste Abzählbarkeitsaxiom", Satz 4.21 of the
+# Analysis 4 notes) was scored routine - Jev saw it in the notes and took
+# citing it for the solution.
+
+
+def _depends_question(a: str, b: str) -> dict:
+    return {"type": "noul",
+            "instructions": f"Does solving {b} use the result of {a}, or become "
+                            f"much shorter once {a} is solved?",
+            "criteria": {"true": f"{b} refers to {a}, uses what {a} shows, or reuses "
+                                 f"its construction.",
+                         "false": f"{b} can be solved without {a}."}}
+
+
+def plan_sheet(tasks: dict[str, dict], levels: list[str], model: str = MODEL,
+               usage_sink: list | None = None
+               ) -> tuple[dict[str, float], dict[tuple[str, str], float]]:
+    """(effort score per task, P(b builds on a) per (a, b)) for one sheet, in
+    one request. `tasks` is {"Task 1": {"text": ..., "lecture_notes_it_may_cite":
+    {id: statement}, "earlier_exercises_it_builds_on": {label: text}}}, the
+    context optional; `levels` are the effort scale, easiest first. What does
+    not fit into one request is cut from the context, never from a task."""
+    names = list(tasks)
+    questions = {}
+    for i, name in enumerate(names):
+        questions[f"e{i}"] = {"type": "score",
+                              "instructions": EFFORT_INSTRUCTIONS.format(id=name),
+                              "criteria": list(levels)}
+        for j, other in enumerate(names):
+            if i != j:
+                questions[f"d{i}_{j}"] = _depends_question(name, other)
+    state = {"tasks": _fit(tasks, MAX_REQUEST_CHARS - len(json.dumps(questions)) - 200)}
+    response = decide(state, questions, model)
+    usage = [response.get("usage") or {}]
+    if usage_sink is None:
+        record(usage)
+    else:
+        usage_sink.extend(usage)
+
+    answers = response.get("answers") or {}
+    effort, depends = {}, {}
+    for i, name in enumerate(names):
+        value = (answers.get(f"e{i}") or {}).get("score")
+        if not isinstance(value, (int, float)):
+            raise JevUnavailable(f"no effort for {name}")
+        effort[name] = float(value)
+        for j, other in enumerate(names):
+            if i != j:
+                depends[(name, other)] = _probability(answers, f"d{i}_{j}", other)
+    return effort, depends
+
+
+def _fit(tasks: dict[str, dict], room: int) -> dict[str, dict]:
+    """The tasks with their context shortened until they fit into `room`
+    characters: the last statement of the longest context goes first."""
+    tasks = {name: {k: (dict(v) if isinstance(v, dict) else v) for k, v in t.items()}
+             for name, t in tasks.items()}
+    while len(json.dumps(tasks, ensure_ascii=False)) > room:
+        longest = max(tasks.values(), key=lambda t: sum(
+            len(json.dumps(v, ensure_ascii=False)) for v in t.values() if isinstance(v, dict)))
+        contexts = [k for k, v in longest.items() if isinstance(v, dict) and v]
+        if not contexts:
+            break
+        key = max(contexts, key=lambda k: len(json.dumps(longest[k], ensure_ascii=False)))
+        longest[key].pop(list(longest[key])[-1])
+    return tasks
 
 
 def _probability(answers: dict, qid: str, item_id: str) -> float:
@@ -231,8 +314,18 @@ def usage() -> dict:
     return {**blank, **stored}
 
 
+# Several picks can run side by side (a sheet's plan asks about every task at
+# once); without the lock they read the same totals and the last write wins.
+_RECORD_LOCK = threading.Lock()
+
+
 def record(responses: list[dict]) -> dict:
     """Count one pick: the `usage` of each of its responses."""
+    with _RECORD_LOCK:
+        return _record(responses)
+
+
+def _record(responses: list[dict]) -> dict:
     total = usage()
     last = {"requests": len(responses), "cost_usd": 0.0, "estimated": False}
     for response_usage in responses:
