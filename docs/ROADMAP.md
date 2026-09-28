@@ -34,11 +34,19 @@ yes/no question per statement and one per proof, and makes the answer the
 selection. Over `max_context_chars` the least certain proofs are dropped.
 
 - [x] First real call works (2026-09-27)
-- [ ] Jev picks proofs often - measure with `python scripts/compare_jev.py`
-      and set `jev_proof_threshold` in settings.json from that
-- [ ] How many statements per pick, how many from the exercise's own
-      chapter, how many empty picks?
-- [ ] Does `usage.cost` arrive? If not the counter shows "~$" (estimated)
+- [x] Measured on 33 real sheet tasks, 9 courses (2026-09-28). At 0.5: median
+      4 statements Jev itself wants, no empty pick, the right one on top where
+      the task names it (Satz 1.26 at 0.89, 2. Isomorphiesatz at 0.82, the
+      Chinese remainder theorem for Z/n x Z/m). But 62% of the proofs picked
+      belong to statements Jev judged NOT needed, and each drags its statement
+      in: median 7 statements and 3 proofs per pick, up to 15 and 12.
+- [ ] Decide the proof rule. Replayed offline on the same answers:
+      proof >= 0.6 -> 5 statements / 2 proofs; proof only where the statement
+      was picked too -> 4 / 1 (116 proofs down to 44). The second loses cases
+      like "the p=1 case was done in the lecture" (statement 0.32, proof 0.76).
+- [ ] "Beweisen Sie Satz X": Jev picks the proof of X itself (0.95 in
+      maingeo2023) - the prompt then carries the answer. Wanted or not?
+- [x] `usage.cost` arrives - the counter shows real dollars
 
 **Touches:** `integrations/jev.py`, `core/selection.py`, `cli.py`.
 

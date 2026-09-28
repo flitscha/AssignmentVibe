@@ -22,9 +22,9 @@ picker would give back.
 | Knowledge extraction: definitions/theorems/proofs (`knowledge.py`) | ✅ | ✅ corpus spot checks | ✅ Optimierung |
 | Chunking by the PDF's own outline (`toc.py`) | ✅ | ✅ 100% of entries placed in all ten corpus scripts | ✅ Optimierung |
 | **The script's own exercises (`exercises.py`)** | ✅ new | ✅ Optimierung: 64 exercises, all 34 sheet references resolve; Algebra 103, LinAlg 106 | ❌ |
-| Assignment-sheet parsing (`assignments.py`) | ✅ | ✅ all 26 example sheets | ✅ Optimierung |
+| Assignment-sheet parsing (`assignments.py`): "Aufgabe N", "(N)", "N.", "N)"; ids per course | ✅ | ✅ all 186 maths sheets under ~/Uni, 16 courses, 850 tasks (2026-09-28) | ✅ Optimierung |
 | Selection: chapters and/or single statements; nothing chosen, no context (`selection.py`) | ✅ changed | ✅ | ❌ (the keyword guess is gone) |
-| **Jev picks statements and proofs** (`integrations/jev.py`), one yes/no per Satz and per proof | ✅ new | ⚠️ only against a faked API - no key available to Claude; `scripts/compare_jev.py` measures it | ❌ |
+| **Jev picks statements and proofs** (`integrations/jev.py`), one yes/no per Satz and per proof | ✅ | ✅ 33 real sheet tasks in 9 courses (2026-09-28): 0.4-1.3s and $0.001-0.008 per pick; statements mostly on target, proofs too generous (see ROADMAP 0) | ✅ |
 | Jev cost counter: last pick and total, with request counts; cost as OpenRouter reports it (else estimated, shown as "~$") | ✅ new | ✅ with faked responses | ❌ |
 | The exact selection (each section and statement, "+ proof") in the bar tooltip and in the notification after a Jev pick | ✅ new | ✅ | ❌ |
 | Prompt building (`prompts.py`) | ✅ | ✅ see `docs/example_prompts/` | ⚠️ content not yet reviewed |
