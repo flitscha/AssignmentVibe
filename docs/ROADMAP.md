@@ -13,6 +13,10 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 - 🟢 **Hub in the Omarchy shell bar.** One menu that shows where you are and
   changes one thing at a time, state remembered per course; follow-ups on
   right click.
+- 🟢 **A real panel instead of the Walker menu** (`plugin/`, 2026-09-28).
+  Course, sheet and task side by side, the context as a tree with a box per
+  chapter, statement and proof, search, a preview of the prompt, follow-ups
+  as cards. Backed by `assignmentvibe serve` (`api.py` over `hub.py`).
 - 🟢 **Chunking by the PDF's own outline** (`core/toc.py`), with a picker that
   offers chapters or sections depending on how big they are.
 - 🟢 **Exercises from the script itself** (`core/exercises.py`). A sheet task
@@ -28,8 +32,8 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 ## 0. 🟡 Jev picks statements and proofs
 
 Nothing is chosen automatically any more - no selection, no context. With an
-OpenRouter key in `~/.config/assignmentvibe/openrouter.key`, the hub's
-"✨ Let Jev pick the context" row asks Jev (TypeSafe's decision model) one
+OpenRouter key in `~/.config/assignmentvibe/openrouter.key`, the panel's
+"Let Jev pick" button asks Jev (TypeSafe's decision model) one
 yes/no question per statement and one per proof, and makes the answer the
 selection. Over `max_context_chars` the least certain proofs are dropped.
 
@@ -125,7 +129,7 @@ The partial solution is the missing third piece of the prompt (task + notes +
 - [ ] Either OCR it (item 5) or attach the image - most chat UIs read
       handwriting from an image better than any local OCR would
 
-**Touches:** a new `integrations/xournal.py`; `cli.py` for the hub row.
+**Touches:** a new `integrations/xournal.py`; `hub.py` and a button in the panel.
 
 ## 5. ⚪ Handwriting OCR
 

@@ -36,14 +36,13 @@ assignmentvibe/
 
   integrations/    OS-level side-effecting utilities. Each one is
                     independent of the OTHERS (no imports between
-                    clipboard/notify/menu/ocr) and of core/organizer.
+                    clipboard/notify/ocr/editor) and of core/organizer.
                     Every one has a fallback chain ending in something that
                     always works (stderr print, a saved file, a stdin
                     prompt), so a missing external tool degrades instead of
                     crashing.
     clipboard.py      wl-copy/xclip/xsel -> file fallback
     notify.py           omarchy-notification-send/notify-send -> stderr
-    menu.py               omarchy-menu-select/rofi/wofi/fzf -> stdin prompt
     ocr.py                 pytesseract wrapper (placeholder, see docs/LINUX_PROTOTYPE.md)
     launcher.py             .desktop entries for Super+Space
     jev.py                   asks Jev (via OpenRouter) per statement and per proof
@@ -63,11 +62,21 @@ assignmentvibe/
                     context length, Jev thresholds, algorithms default.
   context.py       "What am I working on right now", and per course what was
                     last chosen there (sheet, task, chapters, proofs). Read by
-                    the hub and the bar widget. Depends on paths only.
-  cli.py           Orchestration layer - the only module allowed to depend
-                    on everything else. This is intentional: cli.py is where
-                    independent pieces get wired together, so no OTHER
-                    module should need to import it.
+                    the hub. Depends on paths only.
+  hub.py           Orchestration: where you stand (course/sheet/task/context)
+                    and everything that changes or acts on it - Jev picks,
+                    sheet plans, copying the prompt, opening files. Talks to
+                    the user only through hub.say (a notification, or a
+                    message the panel shows). Shared by api.py and cli.py.
+  api.py           The panel's backend: `assignmentvibe serve` answers JSON
+                    lines on stdin/stdout, every answer with the whole state
+                    the panel draws. Slow jobs (Jev, reading in) on a thread.
+  cli.py           The terminal commands.
+
+plugin/            The panel in the Omarchy bar - a Quickshell plugin (QML).
+                    Draws what api.py answers; only the context editor's
+                    ticking is local (plugin/Model.js, tested under node).
+                    See plugin/README.md.
 ```
 
 ## Dependency graph
@@ -81,14 +90,15 @@ core.pdf_text  <---  organizer.classify  <---  organizer.organize
 
 integrations.clipboard   (standalone)
 integrations.notify      (standalone)
-integrations.menu        (standalone)
 integrations.ocr         (standalone)
 paths  <---  integrations.jev   (key file location)
 
 paths  <---  context
 paths  <---  store  <---  core.*
 
-cli  --->  store, context, organizer.organize, core.prompts, integrations.*
+hub  --->  store, context, core.*, integrations.*
+api  --->  hub          cli  --->  hub, store, organizer, integrations.launcher
+plugin/ (QML)  --->  `assignmentvibe serve` (api.py), over a pipe
 ```
 
 Rule of thumb for where new code goes: if it's "PDF/text in, data out" with
@@ -106,8 +116,6 @@ unit-tested **in isolation**, without spinning up the rest of the app:
 - `core.prompts.build_prompt(...)` - pure function over plain dicts, no I/O.
 - `organizer.classify.classify(some_pdf_path)` - only needs a PDF path, no
   ingested state, no store.
-- `integrations.menu.pick(...)` - runs standalone from a terminal, no other
-  integration module involved.
 
 None of `core/*` know that `organizer/` or `integrations/` exist. `organizer/`
 doesn't know `store.py` exists. This means: a change to how OCR works
@@ -124,7 +132,7 @@ on one of these, you genuinely don't need to read the others first.
   or the "Aufgabe"/"Besprechung" regexes in `core/assignments.py`) **stay
   German** - they're domain data, not code, and translating them would
   break the actual matching.
-- **User-facing strings are English** (since 789e858): menu rows,
+- **User-facing strings are English** (since 789e858): the panel,
   notifications, and the prompt's own instruction and headers in
   `core/prompts.py`. The material a prompt carries - task text, definitions,
   exercises - stays in whatever language the course is in; the instruction

@@ -7,8 +7,8 @@ etwas zu fragen. AssignmentVibe soll verstehen, welche Aufgabe man gerade
 bearbeitet, welchen Lösungsstand man hat (später per OCR aus der Handschrift),
 und daraus automatisch einen präzisen, mit dem richtigen Skript-Kontext
 angereicherten Prompt bauen – statt jedes Mal alles selbst abzutippen.
-Gedacht für den Einsatz vom Linux-Desktop aus (Omarchy: Hyprland + Shell-Leiste +
-Walker), per Klick in der Top-Bar.
+Gedacht für den Einsatz vom Linux-Desktop aus (Omarchy: Hyprland + Shell-Leiste),
+per Klick in der Top-Bar.
 
 ## Dokumentation
 
@@ -137,106 +137,79 @@ aufgeräumt – handgeschriebene Einträge bleiben unangetastet.
 
 ## Schnellstart (Linux/Omarchy)
 
-Sortierer und Launcher brauchen nur Python – die Wissensbasis (`ingest-*`,
-`pick`) zusätzlich pymupdf:
+Sortierer und Launcher brauchen nur Python – die Wissensbasis (`ingest-*`) und
+das Panel zusätzlich pymupdf:
 
 ```bash
 ln -s "$PWD/bin/assignmentvibe" ~/.local/bin/assignmentvibe   # ohne Installation
-sudo pacman -S python-pymupdf                                  # nur für ingest/pick
+sudo pacman -S python-pymupdf                                  # für die Wissensbasis
 
 assignmentvibe config init     # Vorlage anlegen
 assignmentvibe sort            # Vorschau
 
-# Wissensbasis füllen:
-assignmentvibe ingest-script Algebra.pdf --course "Algebra I"
-assignmentvibe ingest-sheet  A03.pdf     --course "Algebra I"
-
-assignmentvibe pick
+plugin/install.sh              # das Panel in die Omarchy-Leiste
 ```
 
-`pick` ist das Menü hinter dem Klick auf das Widget in der Omarchy-Leiste
-(Einrichtung: [linux/omarchy-shell-widget.md](linux/omarchy-shell-widget.md)).
-Es zeigt, wo man gerade steht, und ändert eine Sache nach der anderen –
-alles unter dem Strich wird pro Kurs gemerkt:
+## Das Panel
 
-```
-Optimierung · task 1
-▶  Copy prompt
-💬 Copy a follow-up …
-🌐 Open chat
-───────────────────────────────
-   Task      ▸  1  (1.11) Polytop der doppelt stochastischen Matrizen
-   Sheet     ▸  3
-   Course    ▸  Optimierung
-   Context   ▸  1 Geometrie linearer Ungleichungen  (20, 7k) · 1 of 9 proofs
-   ✨ Let Jev pick the context  ·  last $0.0010 · total $0.0042 · 20 requests
-───────────────────────────────
-⟳  Read in new sheets
-```
+Ein Klick auf `󰷉 Optimierung A3` in der Leiste öffnet ein Panel mit vier Tabs
+(Details und Einrichtung: [plugin/README.md](plugin/README.md)):
+
+- **Task** – Kurs, Blatt und Aufgabe nebeneinander als Knöpfe, darunter der
+  Text der gewählten Aufgabe und eine Karte „In the prompt“: was an Skript im
+  Prompt landet, mit *Edit context*, *Let Jev pick* und *Clear*. Alles wird
+  pro Kurs gemerkt – der übliche Fall ist ein einziger Klick auf **Copy
+  prompt** (oder Enter). *Preview* zeigt den Prompt genau so, wie er kopiert
+  wird.
+- **Context** – die Gliederung des Skripts als Baum: ein Kästchen pro Kapitel
+  und Abschnitt (✓ alle Sätze, – einige), aufklappbar bis zum einzelnen Satz,
+  jeder mit eigenem Kästchen und daneben einem für seinen Beweis. Darunter die
+  Aufgaben früherer Blätter. Suche über alle Sätze, „Chosen“ zeigt nur das
+  Gewählte, der Balken unten die Länge gegen das Limit aus `settings.json`.
+- **Follow-ups** – die Nachfragen („Just a hint“, „Only the next step“, …),
+  ein Klick kopiert eine. Rechtsklick auf die Leiste öffnet direkt diesen Tab.
+- **Setup** – neue PDFs einlesen, die Config-Dateien im Editor öffnen,
+  Jev-Kosten, Tastenkürzel.
+
+Mittelklick auf die Leiste kopiert den Prompt sofort, ohne Panel.
 
 - **Aufgaben aus dem Skript:** Sagt ein Blatt nur „Lösen Sie Aufgabe (1.11)
   vom Skriptum“, landet der Text dieser Aufgabe aus dem Skript im Prompt.
 - **Kein Kontext ohne Auswahl:** Ist nichts gewählt, enthält der Prompt kein
-  Skript – es wird nichts geraten.
-- **Context** öffnet die Auswahl:
-
-  ```
-  ── ✓ Done · 16 statements, 1 proof · 3.9k characters ──
-     Statements  ▸  16 chosen …
-     Proofs      ▸  Satz 3.1.5  (1 of 10) …
-     Algorithms  ▸  off
-     ✕ Clear all
-  ───────────────────────────────
-  [ ] 2 Der Simplexalgorithmus  (7, 2k)
-  [◐] 3 Konvexe Funktionen und deren Minima  (17, 3k)
-  ```
-
-  Ein Kapitel anklicken wählt alle seine Sätze an oder ab (✓ alle, ◐ einige).
-  **Statements** listet die Sätze der berührten Abschnitte zum einzelnen An-
-  und Abhaken, **Proofs** die Beweise der gewählten Sätze – beide mit
-  „Select all“ / „Deselect all“ oben. Beweise sind standardmäßig aus (sie
-  verraten oft die Lösung), Algorithmen an; die Zeile „Algorithms“ gibt es
-  nur in Kursen, deren Skript welche hat. Die Done-Zeile zeigt die Länge
-  gegen das Limit aus `settings.json`.
+  Skript – es wird nichts geraten. Beweise sind standardmäßig aus (sie verraten
+  oft die Lösung), Algorithmen an; den Schalter „Algorithms“ gibt es nur in
+  Kursen, deren Skript welche hat.
 - **Jev** (optional): Liegt ein OpenRouter-Key in
-  `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint unter
-  „Context“ die Zeile „✨ Let Jev pick the context“. Jev fragt pro Satz
-  „braucht die Lösung das?“, pro Beweis „hilft genau dieser Beweis (gleiche
-  Idee, gleiche Technik, oder die Aufgabe verweist darauf)?“ und pro Aufgabe
-  früherer Blätter „baut die Aufgabe darauf auf?“, und ersetzt damit die
-  Auswahl, die sich danach unter „Context“ weiter anpassen lässt. Jev sieht
-  dabei nur die Sätze, nicht die Beweise (genauer und billiger, siehe
-  ROADMAP). Frühere Aufgaben kommen nur als Aufgabenstellung in den Prompt;
-  „Earlier“ im Context-Picker wählt sie von Hand.
-  Wird die Auswahl länger als `max_context_chars`, fallen Beweise heraus, die
-  unsichersten zuerst – Sätze bleiben immer drin.
-  Die Zeile zeigt die Kosten der letzten Auswahl, die Gesamtkosten und die
-  Zahl der Anfragen (so, wie OpenRouter sie meldet). Die genaue Liste steht in
-  der Benachrichtigung nach dem Wählen und im Tooltip des Widgets. Im
-  Terminal: `assignmentvibe jev`, `jev --usage`.
-- **Aufgaben-Liste** (hinter „Task“): Ganz oben „📄 Open the sheet“ – öffnet
-  das Blatt mit `pdf_viewer` (Firefox). Darunter, mit Jev, „✨ Let Jev plan
-  this sheet“: Jev fragt **einmal für das ganze Blatt**, was jede Aufgabe an
-  Sätzen, Beweisen und früheren Aufgaben braucht, schätzt den Aufwand
-  (▮▯▯▯ Routine bis ▮▮▮▮ schwer – mit diesem Kontext, denn wie schwer eine
-  Aufgabe ist, hängt davon ab, was das Skript liefert) und erkennt, welche
-  Aufgabe auf welcher aufbaut. Danach ist beim Wechsel auf eine Aufgabe ihr
-  Kontext **automatisch gewählt**, ohne neue Jev-Anfrage; was man unter
-  „Context“ von Hand ändert, bleibt pro Aufgabe gemerkt. Die Jev-Zeile im
-  Hub sagt dann „Context picked by Jev · ask again“ (bzw. „…, changed by
-  hand“), und die Liste bleibt nach dem Planen offen. Die Liste zeigt
-  Aufwand und „· after 4“, die Plan-Zeile nur die erkannten Abhängigkeiten
-  („4 → 5“ oder „no dependencies“) – eine Reihenfolge wird nicht
-  vorgeschlagen. Im Terminal: `assignmentvibe plan [--show]`.
-- **Nachfragen** („Just a hint“, „Only the next step“, …) liegen auf der
-  rechten Maustaste des Widgets, zum Einfügen mitten im Chat.
-- **Config files …** (unten im Hub) listet alle Dateien, die man bearbeiten
-  soll – `uni.json`, `settings.json`, `openrouter.key`, `jev_usage.json` – und
-  öffnet die gewählte im Standard-Editor (nvim). Fehlt eine, wird sie mit
-  erklärender Vorlage angelegt, der Key gleich mit `chmod 600`.
-  `settings.json` kennt `max_context_chars` (15000), `jev_statement_threshold`
-  und `jev_proof_threshold` (0.5; höher = Jev nimmt weniger) und
-  `algorithms_by_default` (true).
+  `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint „Let Jev
+  pick“. Jev fragt pro Satz „braucht die Lösung das?“, pro Beweis „hilft genau
+  dieser Beweis (gleiche Idee, gleiche Technik, oder die Aufgabe verweist
+  darauf)?“ und pro Aufgabe früherer Blätter „baut die Aufgabe darauf auf?“,
+  und ersetzt damit die Auswahl, die sich danach im Context-Tab weiter
+  anpassen lässt. Jev sieht dabei nur die Sätze, nicht die Beweise (genauer
+  und billiger, siehe ROADMAP). Frühere Aufgaben kommen nur als
+  Aufgabenstellung in den Prompt. Wird die Auswahl länger als
+  `max_context_chars`, fallen Beweise heraus, die unsichersten zuerst – Sätze
+  bleiben immer drin. Kosten der letzten Auswahl und insgesamt stehen über der
+  Karte und im Setup-Tab. Im Terminal: `assignmentvibe jev`, `jev --usage`.
+- **Blatt planen:** „Plan with Jev“ neben den Blättern fragt Jev **einmal für
+  das ganze Blatt**, was jede Aufgabe an Sätzen, Beweisen und früheren
+  Aufgaben braucht, schätzt den Aufwand (▮▯▯▯ Routine bis ▮▮▮▮ schwer – mit
+  diesem Kontext, denn wie schwer eine Aufgabe ist, hängt davon ab, was das
+  Skript liefert) und erkennt, welche Aufgabe auf welcher aufbaut („after 2“
+  in der Liste). Danach ist beim Wechsel auf eine Aufgabe ihr Kontext
+  **automatisch gewählt**, ohne neue Jev-Anfrage; was man von Hand ändert,
+  bleibt pro Aufgabe gemerkt, und die Karte sagt „Picked by Jev, changed by
+  hand“. Eine Reihenfolge wird nicht vorgeschlagen. Im Terminal:
+  `assignmentvibe plan [--show]`.
+- **Config files** (Setup-Tab): `uni.json`, `settings.json`,
+  `openrouter.key`, `jev_usage.json` – öffnet die Datei im Standard-Editor.
+  Fehlt eine, wird sie mit erklärender Vorlage angelegt, der Key gleich mit
+  `chmod 600`. `settings.json` kennt `max_context_chars` (15000),
+  `jev_statement_threshold` und `jev_proof_threshold` (0.5; höher = Jev nimmt
+  weniger) und `algorithms_by_default` (true).
+
+Im Terminal gibt es dasselbe ohne Panel: `assignmentvibe build|copy
+[--task N] [--sections 3.1] [--jev]`, `followup [N]`, `context show`.
 
 ## Nur die Verarbeitungs-Pipeline (plattformunabhängig)
 
@@ -254,12 +227,15 @@ ab (Dev-Skript zum Regressionstesten der `core/`-Module).
 assignmentvibe/
   core/            PDF -> Text/Wissen/Aufgaben/Prompt (reine Engine, keine Seiteneffekte)
   organizer/        sort.py = Config-gesteuertes Einsortieren; organize.py = alte Heuristik
-  integrations/      Clipboard/Notify/Menu/OCR/Editor/Jev (je unabhaengig, mit Fallback-Ketten)
+  integrations/      Clipboard/Notify/OCR/Editor/Jev/Launcher (je unabhaengig, mit Fallback-Ketten)
   uniconfig.py      Semester-Config (~/.config/assignmentvibe/uni.json)
   settings.py       Verhalten (~/.config/assignmentvibe/settings.json)
-  paths.py, store.py, context.py, cli.py    App-Schicht / Orchestrierung
+  paths.py, store.py, context.py    App-Schicht
+  hub.py            wo man steht und was es ändert - geteilt von Panel und CLI
+  api.py            das Backend des Panels (`assignmentvibe serve`, JSON-Zeilen)
+  cli.py            die Terminal-Befehle
+plugin/           das Panel in der Omarchy-Leiste (QML, Quickshell)
 bin/              assignmentvibe (Einstiegspunkt), uni-sort (Super+Shift+U)
-linux/            Widget für die Omarchy-Leiste (+ alte Waybar-Konfiguration)
 scripts/          Dev-Hilfsskripte (nicht Teil des installierten Pakets)
 data/             eingelesene Beispiel-Skripte/-Blaetter (aus example_files/)
 docs/             siehe oben

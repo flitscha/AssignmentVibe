@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "felix.assignmentvibe",
+  "name": "AssignmentVibe",
+  "version": "0.2.0",
+  "author": "Felix Campidell",
+  "description": "Pick the task and the lecture notes it needs, and copy a prompt for the chat",
+  "kinds": ["service", "bar-widget"],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "AssignmentVibe",
+    "description": "The current task in the bar; a panel to pick task and context and copy the prompt",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

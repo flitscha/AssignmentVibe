@@ -1,6 +1,6 @@
 # Status
 
-What exists right now, as of 2026-09-25. Three separate questions per row,
+What exists right now, as of 2026-09-28. Three separate questions per row,
 because they're genuinely different things:
 
 - **Implemented** - does the code exist and do what it's supposed to.
@@ -9,9 +9,9 @@ because they're genuinely different things:
   set in `example_files/`.
 - **Tested by you** - have you used it on your Omarchy machine.
 
-"Tested by Claude" never includes clicking through the real Walker menu or
-looking at the bar - menu flows are tested by scripting the answers the
-picker would give back.
+"Tested by Claude" for the panel means: on the real Omarchy desktop, opened
+over IPC, driven with the keyboard (`wtype`) and checked by screenshot. Mouse
+clicks could not be simulated there.
 
 ## Core pipeline (`assignmentvibe/core/`)
 
@@ -37,37 +37,32 @@ Not covered by `exercises.py`: exercises scattered through running text
 Stochastik) and scripts without PDF bookmarks. Those yield no exercises
 rather than wrong ones.
 
-## The hub (`cli.py pick`, behind the bar click)
+## The panel (`plugin/`, behind the bar click)
+
+Replaced the Walker menu (`assignmentvibe pick`) on 2026-09-28. The logic
+behind it moved from cli.py to `hub.py` unchanged; `api.py` serves it.
 
 | Component | Implemented | Tested by Claude | Tested by you |
 |---|---|---|---|
-| Hub: copy / follow-up / open chat, task/sheet/course/chapters rows | ✅ | ✅ scripted | ✅ |
+| Bar pill: course and task, tooltip with the selection; right click follow-ups, middle click copy | ✅ new | ⚠️ pill and tooltip text seen; clicks not simulated | ❌ |
+| Backend `assignmentvibe serve` (JSON lines), slow jobs on a thread, one at a time | ✅ new | ✅ scripted: every request, a second slow one turned down, stray prints kept off stdout | ❌ |
+| Task tab: course, sheet and task side by side, task text, "In the prompt" card | ✅ new | ✅ keys ↑↓, real data in two courses | ❌ |
+| Context tab: outline tree with tri-state boxes, statements with a proof box each, earlier sheets, search, "Chosen" view | ✅ new | ✅ keys, search, Esc; logic in `plugin/tests/model.test.js` | ❌ |
+| Jev pick and busy banner from the panel | ✅ new | ✅ real Jev, task 2 of Optimierung sheet 1 | ❌ |
+| "Plan with Jev" button | ✅ new | ⚠️ button seen, not pressed (costs a plan) | ❌ |
+| Copy prompt (Enter / button / middle click), panel closes, notification | ✅ new | ✅ Enter; clipboard checked | ❌ |
+| Preview of the prompt | ✅ new | ✅ | ❌ |
+| Follow-ups tab | ✅ new | ⚠️ seen, copying not pressed | ❌ |
+| Setup tab: read in new PDFs, config files, Jev costs, keys | ✅ new | ⚠️ seen; reading in scripted through the backend | ❌ |
+| Changes from elsewhere (terminal) show up by themselves | ✅ new | ✅ course switched with `assignmentvibe api` | ❌ |
+| IPC target `assignmentvibe` (toggle / open TAB / copy) for keybindings | ✅ new | ✅ | ❌ |
 | State remembered per course (`context.py`) | ✅ | ✅ | ✅ |
-| **Context picker** (was "Chapters"): chapters tick all their statements (✓/◐), live sizes, "Clear all" | ✅ reworked | ✅ scripted | ❌ |
-| **Statements list** in the context picker: every statement of the touched sections, Select all / Deselect all | ✅ new | ✅ scripted | ❌ |
-| **Proofs list** (one row instead of toggle + list), Select all / Deselect all | ✅ reworked | ✅ scripted | ❌ |
-| **"✨ Let Jev pick the context" row** in the hub, below Context, with last and total cost | ✅ | ✅ scripted, faked Jev | ✅ |
-| Least certain proofs dropped when Jev's pick is over `max_context_chars` | ✅ new | ✅ faked Jev on real sizes (44 statements: 27 proofs -> 6 kept, 14.9k) | ❌ |
-| `settings.json` (context length, Jev thresholds, algorithms default), validated | ✅ new | ✅ | ❌ |
-| **"⚙ Config files …"** page in the hub, opens a file in the editor | ✅ new | ⚠️ menu scripted; the editor launch itself not run | ❌ |
-| Algorithms on by default; the row hidden where a script has none | ✅ new | ✅ | ❌ |
-| **Tasks that point into the script show the exercise's title** | ✅ new | ✅ | ❌ |
-| Warning when a referenced exercise is not found | ✅ new | ✅ | ❌ |
-| Follow-ups on right click (`followup`) | ✅ | ✅ | ✅ (wording not yet reviewed) |
-| "Read in new sheets" (`store.ingest_missing`) | ✅ | ✅ | ✅ |
-| Re-read of data made by an older extraction version (`FORMAT`) | ✅ new | ✅ re-reads once, then never | ❌ |
-
-## Desktop integration (`integrations/`, `linux/`)
-
-| Component | Implemented | Tested by Claude | Tested by you |
-|---|---|---|---|
-| Omarchy shell bar widget (`linux/bar-script`, Quickshell) | ✅ | ⚠️ JSON only | ✅ |
-| Menu via `omarchy-menu-select` (Walker) | ✅ | ⚠️ fallback path only | ✅ |
-| Clipboard (`wl-copy`) + notifications | ✅ | ⚠️ fallback path only | ✅ |
-| Semester config, sorter, Super+Space launcher entries | ✅ | ✅ | ✅ |
-| OCR for typed/printed text (Tesseract) | ✅ placeholder | ⚠️ error path only | ❌ |
-| OCR for **handwriting** | ❌ | - | - |
-| Xournal++ integration | ❌ | - | - |
+| Least certain proofs dropped when Jev's pick is over `max_context_chars` | ✅ | ✅ faked Jev on real sizes (44 statements: 27 proofs -> 6 kept, 14.9k) | ❌ |
+| `settings.json` (context length, Jev thresholds, algorithms default), validated | ✅ | ✅ | ❌ |
+| Tasks that point into the script show the exercise's title and text | ✅ | ✅ | ❌ |
+| Warning when a referenced exercise is not found | ✅ | ✅ | ❌ |
+| "Read in new PDFs" (`store.ingest_missing`) | ✅ | ✅ | ✅ |
+| Re-read of data made by an older extraction version (`FORMAT`) | ✅ | ✅ re-reads once, then never | ❌ |
 
 ## Known weak spots
 
@@ -90,4 +85,4 @@ rather than wrong ones.
 | [example_prompts/](example_prompts/) | Generated prompts, regenerated by `scripts/rebuild_example_prompts.py` |
 | [POC_REPORT.md](POC_REPORT.md) | The original text-pipeline proof of concept (historical) |
 | [LINUX_PROTOTYPE.md](LINUX_PROTOTYPE.md) | The first installable prototype (historical - predates the hub and the shell bar) |
-| [../linux/omarchy-shell-widget.md](../linux/omarchy-shell-widget.md) | Setting up the bar widget |
+| [../plugin/README.md](../plugin/README.md) | The panel: install, how it is built, keys |
