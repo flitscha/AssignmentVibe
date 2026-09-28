@@ -1,5 +1,5 @@
 {
- "format": 2,
+ "format": 3,
  "source": "Algebra.pdf",
  "sections": [
   {
@@ -477,7 +477,7 @@
    "text": "Jede Gruppe G mit #G = n ist isomorph zu einer Untergruppe von Sn.",
    "number": "2.1.19",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.1",
    "name": null,
    "proof": "Für g ∈G ist die Abbildung\nmg : G →G\nh 7→gh\nbijektiv und es gilt\nmfg = mf ◦mg,\nm−1\ng\n= mg−1.\nWeiter ist\nmg = id ⇔g = e.\nAlso ist die Abbildung\nG →S(G)\ng 7→mg\nein injektiver Gruppenhomomorphismus und damit G isomorph zu seinem Bild,\neiner Untergruppe von S(G) ∼= Sn.\n2.2\nHomomorphie- und Isomorphiesätze\nFür das Studium von Gruppen und Homomorphismen ist der Homomorphie-\nsatz ein wichtiges Werkzeug. Er drückt die universelle Eigenschaft der Faktor-\nkonstruktion aus und wird im Folgenden oft verwendet."
   },
@@ -543,7 +543,7 @@
    "text": ". SeienH, N ◁GundH < N.DannistN/H ◁G/H\nund\nG/N ∼= (G/H) / (N/H) .",
    "number": "2.2.6",
    "chapter": 2,
-   "section": "2.3",
+   "section": "2.2",
    "name": "2. Isomorphiesatz",
    "proof": "Aufgabe 11.\n2.3\nGruppenoperationen"
   },
@@ -620,7 +620,7 @@
    "text": "Es gilt Z(G) ◁G und CG(h) < G für alle h ∈G.",
    "number": "2.3.8",
    "chapter": 2,
-   "section": "2.4",
+   "section": "2.3",
    "name": null,
    "proof": "Aufgabe 13."
   },
@@ -631,7 +631,7 @@
    "text": ". Sei G eine endliche Gruppe und V ein Vertretersy-\nstem aller Konjugationsklassen in G mit mindestens 2 Elementen. Dann gilt\n#G = #Z(G) +\nX\nv∈V\n|G : CG(v)|.",
    "number": "2.3.9",
    "chapter": 2,
-   "section": "2.4",
+   "section": "2.3",
    "name": "Klassengleichung",
    "proof": "Die Aussage ist eine direkte Anwendung der Bahnengleichung auf die\nOperation von G auf sich selbst durch Konjugation (siehe Beispiel 2.3.2 (iii)). Man\nbeachte dabei nur, dass Stab(v) = CG(v) gilt, die Bahn Gv gerade die Konjugati-\nonsklasse von v ist und die Konjugationsklasse eines Elementes genau dann nur\nein Element hat, wenn das Element im Zentrum liegt."
   },
@@ -642,7 +642,7 @@
    "text": "Sei p eine Primzahl und G eine Gruppe mit #G = pr > 1. Dann gilt\nZ(G)̸ = {e}.",
    "number": "2.3.10",
    "chapter": 2,
-   "section": "2.4",
+   "section": "2.3",
    "name": null,
    "proof": "In der Klassengleichung ist p ein Teiler der linken Seite und ebenfalls ein\nTeiler von |G : CG(v)| für v ∈V , da dann CG(v)̸ = G. Also ist p ein Teiler von\n#Z(G) und insbesondere #Z(G) > 1.\n2.4\nExistenz von Untergruppen und Sylow-Sätze\nWir wollen uns nun mit der Frage beschäftigen, was für Untergruppen man in ei-\nner gegebenen Gruppe wirklich finden kann. Das ermöglicht uns später in Kom-\nbination mit der Galoistheorie starke Ergebnisse."
   },
@@ -1126,7 +1126,7 @@
    "text": "Sei φ: R ↠S ein surjektiver Ringhomomorphismus und R noethersch.\nDannistauchS noethersch.InsbesondereistfüreinennoetherschenRingRundI ◁Rder\nFaktorringR/I wiedernoethersch.DasselbestimmtfürdieEigenschaft\"Hauptidealring\".",
    "number": "3.2.9",
    "chapter": 3,
-   "section": "3.3",
+   "section": "3.2",
    "name": null,
    "proof": "Aufgabe 35.\n3.3\nPrimideale und maximale Ideale\nSei wieder R stets ein kommutativer Ring."
   },
@@ -1170,7 +1170,7 @@
    "text": "Sei I ⪇◁R ein echtes Ideal. Dann gibt es ein maximales Ideal m mit\nI ⊆m ◁R.",
    "number": "3.3.5",
    "chapter": 3,
-   "section": "3.4",
+   "section": "3.3",
    "name": null,
    "proof": "Wir verwenden das Zorn’sche Lemma. Sei dazu\nM := {J ⪇◁R | I ⊆J} .\nDann ist I ∈M, also M̸ = ∅. M ist partiell geordnet durch ⊆und jede Kette\n(Iλ)λ∈Λ in M besitzt nach Lemma 3.1.10 (iv) in M eine obere Schranke, nämlich\n ̃I =\n[\nλ∈Λ\nIλ.\nDabei folgt  ̃I̸ = R aus der Tatsache, dass 1 ∈ ̃I schon 1 ∈Iλ für ein λ bedeuten\nwürde und damit Iλ = R, ein Widerspruch.\nMit dem Zorn’schen Lemma besitzt M nun bezüglich ⊆ein maximales Element\nund das ist offensichtlich ein gewünschtes maximales Ideal.\n3.4\nDer Quotientenkörper"
   },
@@ -1456,7 +1456,7 @@
    "text": "Das Polynom p = x3 + 4x2 + 2x −2 ∈Z[x] ist irreduzibel.\n(ii) Für eine Primzahl d ≥2 betrachte p = xd −1 ∈Z[x]. Offensichtlich hat p die\nNullstelle 1 und ist nach Satz 3.1.15 deshalb nicht irreduzibel. In der Tat gilt\np = (x −1)(1 + x + x2 + · · · + xd−1),\nwie man mit einem Teleskop-Argument sofort sieht. Wir nennen\nΦd := 1 + x + x2 + · · · + xd−1 ∈Z[x]\ndas d-te Kreisteilungspolynom. Es gilt\nx · Φd(x + 1) = p(x + 1)\n= (x + 1)d −1\n= xd +\nd\n1\n\nxd−1 +\nd\n2\n\nxd−2 + · · · +\n\nd\nd −1\n\nx,\nalso\nΦd(x + 1) = xd−1 +\nd\n1\n\nxd−2 + · · · +\n\nd\nd −2\n\nx +\n\nd\nd −1\n\n.\nWir können nun das Eisenstein-Kriterium mit a = d auf Φd(x + 1) anwenden.\nFür eine Primzahl d gilt\nd |\nd\ni\n\nfür all i = 1, . . . , d −1 und offensichtlich gilt\nd2 ∤\n\nd\nd −1\n\n= d.\nAlso ist Φd(x + 1) irreduzibel und, da die Transformation q 7→q(x −1) ein Rin-\ngisomorphismus von Z[x] ist, damit auch Φd selbst.\n△\n3.6\nEuklidische Ringe\nDer Euklidische Algorithmus war ursprünglich eine geometrische Methode der\nGriechen,umdasLängenverhältniszweierStreckenzubestimmen.Dabeigingen\nsie wie folgt vor. Gegeben seien zwei Strecken a und b:\n\n3.6. EUKLIDISCHE RINGE\n63\na\nb\nIm ersten Schritt wird die Strecke b so oft wie möglich voll in a abgetragen. Der\nRest wird mit r bezeichnet. Es handelt sich dabei also genau um Teilung mit Rest:\na\nb\nr\nDa r kürzer als b ist, kann die Prozedur nun mit b anstelle von a und r anstelle von\nb wiederholt werden:\nb\nr\nWenn die Prozedur nach endlich vielen Schritten aufgeht, haben wir eine Einheit\ngefunden, in der wir sowohl a als auch b ausdrücken können. Es wird also ein\ngemeinsamer Teiler beider Strecken produziert. Hier zum Beispiel nehmen wir\nan dass r genau 2 mal in b passt:\nb\nr\nEs ist also b = 2r, und weil ursprünglich a = 2b + r galt, finden wir a = 5r.\nIn der Einheit r lässt sich also sowohl a als auch b ganzahlig ausdrücken, und das\nVerhältnis von a zu b war also genau 5 zu 2. Im Allgemeinen wird die Prozedur\nmehr als zwei Schritte erfordern. Trotzdem kann man durch Rückeinsetzung die\nursprünglichen Strecken in der letzten erhaltenen Strecke ausdrücken.\nDieser Prozess ist nun auch deutlich abstrakter algebraisch möglich. Dazu benö-\ntigt man einen Ring, in dem Teilung mit Rest sinnvoll möglich ist.",
    "number": "3.5.23",
    "chapter": 3,
-   "section": "3.6",
+   "section": "3.5",
    "name": "i",
    "proof": null
   },
@@ -1995,7 +1995,7 @@
    "text": "Sei k ⊆L eine algebraische Körpererweiterung und k ⊆K mit K\nalgebraisch abgeschlossen. Dann gibt es einen k-Homomorphismus φ: L →K.",
    "number": "4.4.14",
    "chapter": 4,
-   "section": "4.5",
+   "section": "4.4",
    "name": null,
    "proof": "Man kann beispielsweise die Argumente aus dem Eindeutigkeitsteil des\nBeweises von Satz 4.4.12 wiederholen. Andererseits kann man auch folgender-\nmaßen argumentieren. Sei L der algebraische Abschluss von L und\nk = {a ∈K | a algebraisch über k} .\nDann sind L und k beides algebraische Abschlüsse von k und damit isomorph\nüber k. Ein Isomorphismus liefert durch Einschränkung auf L den gewünschten\nHomomorphismus.\n4.5\nNormale und separable Erweiterungen\nDer Begriff einer normalen und separablen Körpererweiterung ist nötig, um spä-\nter den Hauptsatz der Galoistheorie beweisen zu können."
   },
@@ -2446,7 +2446,7 @@
    "text": "Der Rang eines freien R-Moduls M ist definiert als die (ein-\ndeutig bestimmte) Mächtigkeit einer R-Basis von M.\n△\n5.2\nLineareGleichungenundModulnüberHauptideal-\nringen\nIn diesem Abschnitt sei stets R̸ = 0 ein nullteilerfreier Hauptidealring, also bei-\nspielsweise ein Körper k, Z, k[x] oder Z[i]. Den Quotientenkörper von R bezeich-\nnen wir mit K. Gegeben sei nun eine Matrix A ∈Matm,n(R) und ein b ∈Rm.\nWir wollen das lineare Gleichungssystem Ax = b über R lösen, also die folgende\nMenge möglichst gut beschreiben:\nL(A, b) := {a ∈Rn | Aa = b} .\nFür z ∈L(A, b) gilt offensichtlich genau wie in der linearen Algebra\nL(A, b) = z + L(A, 0)\nund L(A, 0) besitzt laut Proposition 5.1.8 als Untermodul von Rn ein endliches\nErzeugendensystem. Wir können also die Lösungsmenge mit endlich vielen Da-\nten vollständig angeben. In Wirklichkeit gibt es hier sogar immer eine Basis, wie\nwir später sehen werden. Wir fragen uns aber zuerst, wie wir Lösungen des Glei-\nchungssystems algorithmisch finden können.\nSei dazu\nGLn(R) := Matn(R)×\ndie Menge der n × n-Matrizen, die im Matrixring über R eine inverse Matrix be-\nsitzen.ManbeachtedassGLn(R)imAllgemeinenkleineralsGLn(K)∩Matn(R)\n\n112\nKAPITEL 5. MODULN\nist, da die inverse Matrix einer Matrix über R nicht unbedingt Einträge aus R be-\nsitzen muss. An der Formel\nA · Aadj = det(A) · In\nsieht man aber, dass eine Matrix genau dann über R invertierbar ist, wenn\ndet(A) ∈R× gilt.",
    "number": "5.1.11",
    "chapter": 5,
-   "section": "5.2",
+   "section": "5.1",
    "name": null,
    "proof": null
   },
@@ -2534,7 +2534,7 @@
    "text": ". Sei G eine\nendlich erzeugte abelsche Gruppe. Dann gibt es Primzahlen p1, . . . , pd ∈Z und Zahlen\nm, e1, . . . , ed ∈N mit\nG ∼= Zm × Z/pe1\n1 Z × · · · × Z/ped\nd Z.",
    "number": "5.2.8",
    "chapter": 5,
-   "section": "5.3",
+   "section": "5.2",
    "name": "Struktursatz für endlich erzeugte abelsche Gruppen",
    "proof": "Jede abelsche Gruppe ist ein Z-Modul, wie in Beispiel 5.1.2 (v) beschrie-\nben. Also folgt die Aussage direkt aus Korollar 5.2.7, da Gruppenhomomorphis-\nmen hier dasselbe wie Modulhomomorphismen sind.\n5.3\nDas Tensorprodukt\nTensorprodukte tauchen in vielen Gebieten der Algebra auf. Es sind Konstruk-\ntionen, mit denen man Bilinearität in Linearität verwandeln kann. Ihre explizite\nKonstruktion ist relativ mühsam, deshalb führt man sie oft erst über ihre wich-\ntigste Eigenschaft ein (ihre sogenannte universelle Eigenschaft). Beweise mit Ten-\nsorprodukten sollte man dann am besten auch nur mit Hilfe dieser Eigenschaft\nführen, alles andere ist meistens viel zu mühsam."
   },
@@ -3249,7 +3249,7 @@
    "text": "Oft möchte man die Isomorphie von zwei Objekten einer Ka-\ntegorie entscheiden (sind zwei Vektorräume isomorph, sind zwei topologische\nRäume homöomorph,....?) Wenn sie isomorph sind, kann man oft einen Isomor-\nphismus angeben und hat die Frage damit entschieden. Wenn sie nicht isomorph\nsind,istdieFrageoftschwieriger.ManmussdannEigenschaftenderObjektefin-\nden, die sie voneinander unterscheiden und die Isomorphie ausschließen. Etwas\nkonzeptioneller formuliert wendet man zunächst einen Funktor an. Sind die Ob-\njekte dann nicht isomorph, waren sie es vorher auch nicht.\nHaben beispielsweise zwei topologische Räume eine unterschiedliche Anzahl von\nZusammenhangskomponenten, können sie nicht homöoorph sein. Diese Argu-\nmentation entspricht der Anwendung des Funktors aus Beispiel 7.3.4 (iii). Sind\ndie Dualräume von zwei Vektorräumen nicht isomorph, so sind es die Räume\nselbst auch nicht. Das entspricht dem Funktor aus Beispiel 7.3.4 (i). Noch ba-\nnaler ist folgende Beobachtung: haben zwei Vektorräume nicht dieselbe Mäch-\ntigkeit (als Mengen), so sind sie nicht isomorph. Extrem abgehoben kann man\nsagen, dass man diese Beobachtung aus dem Vergissfunktor und Lemma 7.3.5\nerhält.\n△\n7.4\nGarbentheorie\nIn diesem Abschnitt befassen wir uns kurz mit dem sehr allgemeinen Begriff ei-\nner Garbe, der in vielen Bereichen der Mathematik auftritt.",
    "number": "7.3.6",
    "chapter": 7,
-   "section": "7.4",
+   "section": "7.3",
    "name": null,
    "proof": null
   },

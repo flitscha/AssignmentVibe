@@ -74,8 +74,9 @@ INCLUDE_PROOFS_BY_DEFAULT = False
 def entry_id(e: dict) -> str:
     """How a single statement is named when its proof is chosen on its own -
     "Satz 3.1.5". Type and number together: a script that counts its types
-    separately has a "Satz 1.2" and a "Definition 1.2"."""
-    return f"{e['type']} {e['number']}"
+    separately has a "Satz 1.2" and a "Definition 1.2". A number the script
+    uses twice carries its page as well - see core.knowledge.set_ids."""
+    return e.get("id") or f"{e['type']} {e['number']}"
 
 
 def proof_wanted(e: dict, include_proofs: bool,

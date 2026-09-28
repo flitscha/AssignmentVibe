@@ -454,7 +454,9 @@ def _resolve_state(course: str) -> dict:
     sheets = store.list_sheets(course)
     by_id = {s["sheet_id"]: s for s in sheets}
 
-    sheet = by_id.get(saved.get("sheet")) or _latest_sheet(sheets)
+    # "A07" is what was remembered before sheet ids carried the course.
+    sheet = (by_id.get(saved.get("sheet")) or by_id.get(f"{course}/{saved.get('sheet')}")
+             or _latest_sheet(sheets))
     task_num = saved.get("task")
     if sheet and not any(t["number"] == task_num for t in sheet["tasks"]):
         task_num = sheet["tasks"][0]["number"] if sheet["tasks"] else None

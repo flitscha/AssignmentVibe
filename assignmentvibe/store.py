@@ -111,13 +111,18 @@ def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
     slug = _slugify(course_name)
     _register_course(slug, course_name)
 
-    sheet_id = pdf_path.stem
+    sheet_id = sheet_id_for(slug, pdf_path)
     out_path = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
 
     result = assignments_core.parse_assignment_sheet(pdf_path)
     result["course_slug"] = slug
     result["sheet_id"] = sheet_id
     _save_json(out_path, result)
+
+    # The same sheet as filed before ids carried the course.
+    legacy = paths.ASSIGNMENTS_DIR / f"{pdf_path.stem}.json"
+    if _load_json(legacy, {}).get("course_slug") == slug:
+        legacy.unlink()
 
     return {
         "sheet_id": sheet_id,
@@ -127,19 +132,27 @@ def ingest_sheet(pdf_path: Path, course_name: str) -> dict:
     }
 
 
+def sheet_id_for(course_slug: str, pdf_path: Path) -> str:
+    """"analysis/Blatt1" - the course is part of the id, because file names
+    are not unique across courses: in one semester Analysis and Numerik both
+    hand out "Blatt1.pdf", and "A01.pdf" is a sheet in four courses. The id is
+    also the path of the sheet's file under the assignments directory."""
+    return f"{course_slug}/{pdf_path.stem}"
+
+
 def list_sheets(course_slug: str | None = None) -> list[dict]:
     paths.ensure_dirs()
-    sheets = []
-    for f in sorted(paths.ASSIGNMENTS_DIR.glob("*.json")):
-        data = _load_json(f, {})
-        if course_slug and data.get("course_slug") != course_slug:
-            continue
-        sheets.append(data)
-    return sheets
+    pattern = f"{course_slug}/*.json" if course_slug else "*/*.json"
+    return [_load_json(f, {}) for f in sorted(paths.ASSIGNMENTS_DIR.glob(pattern))]
 
 
 def load_sheet(sheet_id: str) -> dict:
     path = paths.ASSIGNMENTS_DIR / f"{sheet_id}.json"
+    if not path.exists() and "/" not in sheet_id:
+        # An id remembered from before ids carried the course: "A07".
+        found = list(paths.ASSIGNMENTS_DIR.glob(f"*/{sheet_id}.json"))
+        if len(found) == 1:
+            path = found[0]
     if not path.exists():
         raise FileNotFoundError(f"No assignment sheet with id '{sheet_id}'. "
                                  f"Read it in with 'ingest-sheet' first.")
@@ -211,7 +224,7 @@ def ingest_missing(cfg, progress=None) -> dict:
                     result["errors"].append(f"{script.name}: {e}")
 
         for pdf in _matching_pdfs(cfg, course, "blaetter"):
-            if pdf.stem in known_sheets:
+            if sheet_id_for(slug, pdf) in known_sheets:
                 continue
             if progress:
                 progress(f"Sheet: {pdf.stem}")

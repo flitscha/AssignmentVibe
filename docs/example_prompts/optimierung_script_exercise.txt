@@ -184,5 +184,15 @@ damit C = KK {x1, . . . , xk}
 
 1 Geometrie linearer Ungleichungen
 
+Korollar 1.1.15:
+Ein Polyeder P ist genau dann unbeschränkt, wenn es einen
+Halbstrahl v + R+u enthält.
+1.2 Ecken, Kanten und Seitenflächen
+Analog zur konvexen Hülle betrachten wir auch die affine Hülle einer Teilmenge
+des euklidischen Raums. In der linearen Algebra wurde die Dimension eines affinen
+Unterraums als die Dimension des dazu parallelen Untervektorraums definiert. Wir
+verwenden und diese beiden Konzepte, um von der Dimension von konvexen Mengen
+sprechen zu können.
+
 # What I have so far
 (nothing yet)

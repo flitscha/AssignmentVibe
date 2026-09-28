@@ -96,7 +96,9 @@ PROOF_RE = re.compile(
 # store.ingest_missing re-reads a script whose knowledge base is older than
 # this, so an update reaches existing courses without anyone knowing to ask.
 #   2: the script's own exercises ("exercises", see core.exercises)
-FORMAT = 2
+#   3: OT1 ligatures read as letters (see core.pdf_text); "id" on entries
+#      whose number the script uses twice (see set_ids)
+FORMAT = 3
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 
@@ -264,12 +266,38 @@ def attach_proofs(blocks: list[dict]) -> list[dict]:
     return [b for b in blocks if b["kind"] == "numbered"]
 
 
+def set_ids(entries: list[dict]) -> None:
+    """Give every entry whose type and number occur more than once an "id"
+    with its page: "Definition 1.16 (p. 45)". Scripts in several parts start
+    counting again in each (Analysis 4 has fourteen such pairs), and a
+    selection by name would otherwise take both - a metric-space definition
+    picked for a task would bring the Hilbert-space one along - while Jev
+    was only ever asked about the first. Everything else keeps its plain
+    name, so what is remembered for a course stays valid."""
+    from collections import Counter
+
+    def plain(e):
+        return f"{e['type']} {e['number']}"
+
+    numbered = [e for e in entries if e.get("number")]
+    twice = {k for k, n in Counter(plain(e) for e in numbered).items() if n > 1}
+    seen = Counter()
+    for e in numbered:
+        if plain(e) not in twice:
+            continue
+        e["id"] = f"{plain(e)} (p. {e['page']})"
+        seen[e["id"]] += 1
+        if seen[e["id"]] > 1:
+            e["id"] += f" #{seen[e['id']]}"
+
+
 def run(in_path: Path, out_path: Path, pdf_path: Path) -> None:
     pages, source = load_pages(in_path)
     text = build_joined_text(pages)
     styled_words_per_page = styled_type_words_per_page(pdf_path)
     blocks, rejected = extract_knowledge(text, styled_words_per_page)
     results = attach_proofs(blocks)
+    set_ids(results)
     sections = toc.build(pdf_path, results)
     exercises = exercises_core.extract(pages, sections)
 

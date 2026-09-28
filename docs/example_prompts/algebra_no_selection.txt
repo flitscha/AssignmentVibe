@@ -1,7 +1,7 @@
 Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
 
 # Course: Algebra I
-Sheet None, due: Do. 17. Oktober 2024
+Sheet 2, due: Do. 17. Oktober 2024
 
 # Task 4: Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen
 Bestimmen Sie (bis auf Isomorphie) sämtliche Gruppen mit 1,2,3 und 4 Elementen.

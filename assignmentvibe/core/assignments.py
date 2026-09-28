@@ -7,8 +7,9 @@ Tested against two very different sheet formats:
   on one line, often with sub-parts a)/b)/c) and references to tasks that
   live inside the script itself ("vom Skriptum").
 
-Both formats can be parsed with the same regex family, because "Aufgabe N"
-(with an optional colon+title) is always the block separator in either case.
+Other courses number their tasks "(1)", "1." or "1)" instead (see
+TASK_STYLES); each sheet is read in whichever style gives the longest run of
+task numbers going up.
 
 Note: regexes below match literal German words ("Aufgabe", "Besprechung",
 "Blatt", "vom Skriptum") because that's what appears in the source PDFs -
@@ -29,7 +30,29 @@ from pathlib import Path
 
 from .pdf_text import normalize
 
-TASK_RE = re.compile(r"(?m)^Aufgabe\s+(?P<num>\d+)\s*:?\s*")
+# How a sheet numbers its tasks. Every sheet uses one of these, but which one
+# differs by course: "Aufgabe 3" (Algebra, Optimierung), "(3) Titel:" (PS
+# Analysis, PDE, Numerik), "3. ..." (Geometrie, Category Theory, Stochastik 2),
+# "17) ..." (Diskrete Mathematik, numbered on across all sheets). A number
+# must be followed by text on the same line, so an equation label "(1)" on a
+# line of its own is not a task. A task that opens with a displayed formula
+# has its number alone on the line too, though; the second pattern of a style
+# finds those, and they are only taken where they fill a gap in the numbering
+# (see _fill_gaps).
+TASK_STYLES = [
+    (re.compile(r"(?m)^(?:Aufgabe|Exercise|Problem)\s+(?P<num>\d+)\s*[:.]?[ \t]*"), None),
+    (re.compile(r"(?m)^\((?P<num>\d+)\)[ \t]*(?=\S)"),
+     re.compile(r"(?m)^\((?P<num>\d+)\)[ \t]*$")),
+    # "1.Überprüfen": the umlaut repair in core.pdf_text eats the space in
+    # front of a detached "¨U". A digit after the dot is a number ("1.2").
+    (re.compile(r"(?m)^(?P<num>\d+)\.(?:[ \t]+(?=\S)|(?=[^\W\d_]))"),
+     re.compile(r"(?m)^(?P<num>\d+)\.[ \t]*$")),
+    (re.compile(r"(?m)^(?P<num>\d+)\)[ \t]*(?=\S)"),
+     re.compile(r"(?m)^(?P<num>\d+)\)[ \t]*$")),
+]
+# How far the numbering may jump from one task to the next before a match is
+# taken for something else (a date, a list inside a task).
+MAX_TASK_GAP = 2
 SUBPART_RE = re.compile(r"(?m)^\s*\(?(?P<label>[a-h]|i{1,3}v?|vi{0,3})\)\s")
 DISCUSSION_DATE_RE = re.compile(r"Besprechung(?:stermin)?(?:\s+am)?:?\s*(?P<date>[^\n)]+)")
 # "Aufgabe (1.1) vom Skriptum", "Programmieraufgabe (2.8) vom Skriptum", and
@@ -43,9 +66,17 @@ SCRIPT_REF_RE = re.compile(
 PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
 # Same idea as core.knowledge.FORMAT.
 #   2: page footers stripped, wider script references
-FORMAT = 2
+#   3: tasks numbered "(1)", "1." and "1)" too; sheet number from the header
+#      or the file name; OT1 ligatures
+FORMAT = 3
 
-SHEET_NUM_RE = re.compile(r"Blatt\s+(?P<num>\d+)")
+# Looked for in the sheet's header only - further down, "Blatt 2" is a task
+# referring to an earlier sheet.
+SHEET_NUM_RE = re.compile(
+    r"(?:Blatt|Problem Set|Sheet)\s+(?P<num>\d+)"
+    r"|(?P<pre>\d+)\.\s*Übungsblatt", re.IGNORECASE)
+HEADER_CHARS = 400
+FILE_NUM_RE = re.compile(r"(\d+)(?!.*\d)")
 TITLE_END_RE = re.compile(r"[.:]\s")
 
 
@@ -75,13 +106,65 @@ def split_subparts(body: str) -> list[dict]:
     return parts
 
 
+def _run_from(matches: list[re.Match], first: int) -> list[re.Match]:
+    run = [matches[first]]
+    for m in matches[first + 1:]:
+        if 0 < int(m.group("num")) - int(run[-1].group("num")) <= MAX_TASK_GAP:
+            run.append(m)
+    return run
+
+
+def _num(m: re.Match) -> int:
+    return int(m.group("num"))
+
+
+def _fill_gaps(run: list[re.Match], lone: list[re.Match]) -> list[re.Match]:
+    """`run` with the numbers it skips filled in from `lone` - "(3)" on a line
+    of its own between task 2 and task 4, or "1." and "2." before a run that
+    starts at 3. Only exactly the next missing number is taken, in order."""
+    filled = []
+    prev_pos, expected = -1, 1 if _num(run[0]) > 1 else _num(run[0])
+    for m in run:
+        for candidate in lone:
+            if prev_pos < candidate.start() < m.start() and _num(candidate) == expected < _num(m):
+                filled.append(candidate)
+                expected += 1
+        filled.append(m)
+        prev_pos, expected = m.start(), _num(m) + 1
+    return filled
+
+
+def find_tasks(text: str) -> list[re.Match]:
+    """The task headings: of every style and every starting point, the longest
+    run of numbers going up. Ties go to the style listed first. A header line
+    "3. Übungsblatt" starts a run of its own and loses to the real one."""
+    best: list[re.Match] = []
+    best_lone = None
+    for style, lone in TASK_STYLES:
+        matches = list(style.finditer(text))
+        for first in range(len(matches)):
+            run = _run_from(matches, first)
+            if len(run) > len(best):
+                best, best_lone = run, lone
+    if best and best_lone is not None:
+        best = _fill_gaps(best, list(best_lone.finditer(text)))
+    return best
+
+
+def sheet_number(text: str, pdf_path: Path) -> int | None:
+    m = SHEET_NUM_RE.search(text[:HEADER_CHARS])
+    if m:
+        return int(m.group("num") or m.group("pre"))
+    m = FILE_NUM_RE.search(pdf_path.stem)
+    return int(m.group(1)) if m else None
+
+
 def parse_assignment_sheet(pdf_path: Path) -> dict:
     text = PAGE_FOOTER_RE.sub("", extract_pdf_text(pdf_path))
 
     discussion_date = DISCUSSION_DATE_RE.search(text)
-    sheet_num = SHEET_NUM_RE.search(text)
 
-    matches = list(TASK_RE.finditer(text))
+    matches = find_tasks(text)
     tasks = []
     for i, m in enumerate(matches):
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
@@ -98,7 +181,7 @@ def parse_assignment_sheet(pdf_path: Path) -> dict:
     return {
         "format": FORMAT,
         "source": pdf_path.name,
-        "sheet_number": int(sheet_num.group("num")) if sheet_num else None,
+        "sheet_number": sheet_number(text, pdf_path),
         "discussion_date": discussion_date.group("date").strip() if discussion_date else None,
         "num_tasks": len(tasks),
         "tasks": tasks,

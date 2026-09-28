@@ -1,7 +1,7 @@
 {
- "format": 2,
+ "format": 3,
  "source": "A07.pdf",
- "sheet_number": null,
+ "sheet_number": 7,
  "discussion_date": "Di. 21. November 2024",
  "num_tasks": 4,
  "tasks": [

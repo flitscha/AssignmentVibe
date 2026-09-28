@@ -60,12 +60,23 @@ STRAY_DIAERESIS_RE = re.compile(r"[̈¨](\w)")
 # newline are kept, since the layout does carry information.
 JUNK_CHARS_RE = re.compile(r"[\uE000-\uF8FF]|(?![\t\n])[\x00-\x1f\x7f]")
 
+# Old TeX fonts (OT1 encoding) put the ligatures at 0x1B-0x1F, and a PDF made
+# with them hands those bytes back as text: "o\x1ben" is "offen". Every PS
+# Analysis and PDE sheet is set this way, and without this "offen",
+# "Differentialgleichung" and "trifft" come out as "oen", "Dierentialgleichung",
+# "tri". The same bytes also turn up as pieces of a tall brace from the maths
+# extension font, standing alone on their own line - so only a byte touching
+# a letter is read as a ligature, and the rest is junk as before.
+OT1_LIGATURES = {"\x1b": "ff", "\x1c": "fi", "\x1d": "fl", "\x1e": "ffi", "\x1f": "ffl"}
+OT1_LIGATURE_RE = re.compile(r"(?<=[^\W\d_])[\x1b-\x1f]|[\x1b-\x1f](?=[^\W\d_])")
+
 
 def strip_undisplayable(text: str) -> str:
     return JUNK_CHARS_RE.sub("", text)
 
 
 def normalize(text: str) -> str:
+    text = OT1_LIGATURE_RE.sub(lambda m: OT1_LIGATURES[m.group()], text)
     text = strip_undisplayable(text)
     text = STRAY_SPACE_RE.sub(r"\1", text)
     text = STRAY_DIAERESIS_RE.sub(lambda m: unicodedata.normalize("NFC", m.group(1) + "̈"), text)

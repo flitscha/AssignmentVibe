@@ -1,5 +1,5 @@
 {
- "format": 2,
+ "format": 3,
  "source": "VO3_Optimierung.pdf",
  "sections": [
   {
@@ -429,7 +429,7 @@
    "text": "Ein Polyeder P ist genau dann unbeschränkt, wenn es einen\nHalbstrahl v + R+u enthält.\n1.2 Ecken, Kanten und Seitenflächen\nAnalog zur konvexen Hülle betrachten wir auch die affine Hülle einer Teilmenge\ndes euklidischen Raums. In der linearen Algebra wurde die Dimension eines affinen\nUnterraums als die Dimension des dazu parallelen Untervektorraums definiert. Wir\nverwenden und diese beiden Konzepte, um von der Dimension von konvexen Mengen\nsprechen zu können.",
    "number": "1.1.15",
    "chapter": 1,
-   "section": "1.2",
+   "section": "1.1",
    "name": null,
    "proof": null
   },
@@ -616,7 +616,7 @@
    "text": "Auch wenn jede zulässige Basislösung einer Ecke und jede Ecke\neiner zulässigen Basislösung entspricht, ist die entsprechende Zuordnung nicht not-\nwendigerweise eindeutig. Hat man eine zulässige Basislösung x ∈Rn zu einer Basis\nB mit xj = 0 für ein j ∈B, kann es sein, dass es sich auch um eine Basislösung\nzu einer anderen Basis handelt. In diesem Fall entsprechen beide Basislösungen der\ngleichen Ecke des Polyeders.",
    "number": "2.1.3",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.1",
    "name": null,
    "proof": null
   },
@@ -627,7 +627,7 @@
    "text": "Wir betrachten das lineare Programm in Standardform aus Bei-\nspiel 1.3.2, d.h. wir haben\nA =\n\n\n\n\n1\n1\n−1\n−1\n1\n0\n0\n0\n1\n−1\n−1\n1\n0\n1\n0\n0\n−1\n1\n1\n−1\n0\n0\n1\n0\n−1\n−1\n1\n1\n0\n0\n0\n1\n\n\n\n,\nb =\n\n\n\n\n1\n1\n1\n1\n\n\n\n\nund\nc =\n\n\n\n\n\n\n\n\n\n\n\n\n2\n1\n−2\n−1\n0\n0\n0\n0\n\n\n\n\n\n\n\n\n\n\n\n\n.\nDie Menge B = {1, 2, 7, 8} ist eine Basismenge, da die Matrix\nAB =\n\n\n\n\n1\n1\n0\n0\n1\n−1\n0\n0\n−1\n1\n1\n0\n−1\n−1\n0\n1\n\n\n\n\ninvertierbar ist. Die zugehörige Basislösung\nx =\n1\n0\n0\n0\n0\n0\n2\n2\nT\nist zulässig, da\nxK =\n0\n0\n0\n0\nT\nund\nxB =\n1\n0\n2\n2\nT ≥0\nist. x ist aber auch eine zulässige Basislösung zu B′ = {1, 6, 7, 8}. Dies entspricht\ngenau dem in Bemerkung 2.1.3 angesprochenen Phänomen der möglichen Nichtein-\ndeutigkeit.\nEs seien B, B′ ⊂N zwei Basismengen. Die Basismengen heißen benachbart, falls\nsie sich genau um ein Element unterscheiden.\n2.2 Der Simplexschritt\nSei x ∈Rn eine zulässige Basislösung zur Basis B ⊂N = {1, . . . , n}. Aus\nb = Ax = ABxB + AKxK = ABxB\n26\n\n2.2 Der Simplexschritt\nund der Invertierbarkeit von AB erhalten wir, dass xB = A−1\nB b. Ist darüber hinaus\nz ∈Rn ein zulässiger Punkt, so gilt\nb = Az = ABzB + AKzK\nund folglich\nzB = A−1\nB b −A−1\nB AKzK = xB −A−1\nB AKzK.\n(2.1)\nFür c ∈Rn ist damit also\ncTz = cT\nBzB + cT\nKzK = cT\nB(xB −A−1\nB AKzK) + cT\nKzK\n= cTx + (cT\nK −cT\nBA−1\nB AK)zK,\n(2.2)\nd.h. der Wert der Zielfunktion in z unterscheidet sich vom Wert der Zielfunktion\nin x genau um (cT\nK −cT\nBA−1\nB AK)zK.\nWir betrachten nun die Blockmatrix\nA\nb\ncT\n0\n\n,\ndie wir durch Spaltenvertauschungen auf die Form\nAB\nAK\nb\ncT\nB\ncT\nK\n0\n\n,\nbringen können. Mittels Gauß-Algorithmus wollen wir nun AB auf die Einheitsma-\ntrix transformieren und die Einträge darunter eliminieren, d.h.\nAB\nAK\nb\ncT\nB\ncT\nK\n0\n\n⇝\nIn\nA−1\nB AK\nA−1\nB b\ncT\nB\ncT\nK\n0\n\n⇝\nIn\nA−1\nB AK\nA−1\nB b\n0\ncT\nK −cT\nBA−1\nB AK\n−cT\nBA−1\nB b\n\n.\nWir betrachten nun die Einträge dieser Matrix etwas genauer. In der Spalte ganz\nrechts steht oberhalb xB, aus dem wir durch Ergänzen mit Null die zu B gehörige\nzulässige Basislösung x erhalten, und unterhalb −cTx, d.h. das negative des Werts\nder Zielfunktion in x. In der letzten Zeile des mittleren Blocks steht cT\nK −cT\nBA−1\nB AK,\naus dem wir nach obigenÜberlegungen ablesen können, wie sich der Wert der Ziel-\nfunktionändert, wenn wir von x auf einen anderen zulässigen Punkt wechseln. Man\nkann also aus dieser Matrix die wichtigsten Informationen zur Basis B ablesen. Da-\nher arbeitet man oft mit diesen Matrizen und nennt\nIm\nA−1\nB AK\nA−1\nB b\n0\ncT\nK −cT\nBA−1\nB AK\n−cT\nBA−1\nB b\n,\nbis auf Spaltenvertauschungen, Simplextableau zur Basis B.\n27\n\n2 Der Simplexalgorithmus",
    "number": "2.1.4",
    "chapter": 2,
-   "section": "2.2",
+   "section": "2.1",
    "name": null,
    "proof": null
   },
@@ -1188,7 +1188,7 @@
    "text": "Es sei f : Rn →R eine zweimal stetig differenzierbare Funktion mit\nüberall regulärer Hessematrix und x0 ∈Rn so dass {x ∈Rn : f(x) ≤f(x0)} ei-\nne kompakte Menge ist. Dann besitzt die Folge (xk)k∈N, die von Algorithmus 4.2.5\nerzeugt wird, mindestens einen Häufungspunkt und jeder Häufungspunkt ist ein sta-\ntionärer Punkt von f.",
    "number": "4.2.6",
    "chapter": 4,
-   "section": "4.4",
+   "section": "4.2",
    "name": null,
    "proof": null
   },
@@ -1342,7 +1342,7 @@
    "text": "Sind die Mengen C1, . . . , Cm nicht nur abgeschlossene konvexe\nMengen, sondern affine Unterräume, so kann man zeigen, dass die Folge der alternier-\nten Projektionen nicht nur gegen eine Punkt im Durchschnitt konvergiert, sondern\nsogar gegen die Projektion auf den Durchschnitt.\n5.2 Straffunktionen und Penalty-Verfahren\nWir betrachten wieder das Minimierungsproblem\nmin f(x)\nunter\ngi(x) ≤0 für i = 1, . . . , p\nhj(x) = 0 für j = 1, . . . , q\n(5.5)\nfür Funktionen f, gi, hj : Rn →R für i = 1, . . . , p und j = 1, . . . , q. Die grundle-\ngende Vorgehensweise in diesem Abschnitt ist es das obige Problem in ein Problem\nohne Nebenbedingungen umzuwandeln, dessen Minimalpunkte auch Minima des ur-\nsprünglichen Problems sind. Wir setzen\nl(x) :=\np\nX\ni=1\n(max{gi(x), 0})α +\nq\nX\nj=1\n|hi(x)|α\nmit einem α > 0. Damit erhalten wir eine nicht-negative Funktion l: Rn →R mit\nl(x) = 0 genau für zulässige x ∈Rn. Da die Funktion nicht-zulässige Punkte x mit\neinem positiven Wert ”bestraft“, nennt man l manchmal auch Straffunktion. Damit\ndefinieren wir nun die Penalty-Funktion\np: Rn × (0, ∞) →R,\n(x, r) 7→f(x) + rl(x)\nund betrachten für einen fix gewählten Strafparameter r > 0 das Minimierungspro-\nblem\nmin p(x, r)\nohne Nebenbedingungen.\n83\n\n5 Verfahren zur konvexen Optimierung mit Nebenbedingungen",
    "number": "5.1.14",
    "chapter": 5,
-   "section": "5.2",
+   "section": "5.1",
    "name": null,
    "proof": null
   },
@@ -1551,7 +1551,7 @@
    "text": "Die Annahme, dass a1, . . . , aq zu hj(x) = aT\nj x −bj linear un-\nabhängig sind, ist nicht automatisch erfüllt. Man kann dies aber durch weglassen\nvon geeigneten hj erreichen, ohne den zulässigen Bereich zu verändern.\nDie Annahme, dass die Slater-Bedingung erfüllt sein muss, kann nicht ersatzlos\nweggelassen werden.",
    "number": "6.2.7",
    "chapter": 6,
-   "section": "6.3",
+   "section": "6.2",
    "name": null,
    "proof": null
   },
@@ -1562,7 +1562,7 @@
    "text": "Es seien f : Rn →R und gi : Rn →R für i = 1, . . . , p konvexe\nFunktionen sowie hj : Rn →R für j = 1 . . . , q affine Funktionen. Wir bezeichnen mit\np∗:= inf{f(x): gi(x) ≤0 für i = 1, . . . , p und hj(x) = 0 für j = 1, . . . , q}\nund\nd∗:= sup{Θ(y): y ∈Rm, yi ≥0 für i = 1, . . . , p}\ndie Optimalwerte von (MP) und des Lagrange-dualen Optimierungsproblems. Die\nDifferenz p∗−d∗bezeichnet man als Dualitätslücke von (MP)",
    "number": "6.2.8",
    "chapter": 6,
-   "section": "6.3",
+   "section": "6.2",
    "name": null,
    "proof": null
   },
@@ -1628,7 +1628,7 @@
    "text": "Wir haben also gezeigt, dass für\nP = Konv({x1, . . . , xk}) + KK({y1, . . . , yl})\nmit x1, . . . , xk, y1, . . . , yl ∈Qn die ganzzahlige Hülle die Darstellung\nPZ = Konv({z1, . . . , zp}) + KK({y1, . . . , yl})\nfür geeignete z1, . . . , zp ∈P ∩Zn hat.\nAus dieser Beobachtung erhalten wir mit Satz 1.4.1 direkt folgenden Zusammen-\nhang zwischen linearem Programm und ganzzahligem Programm.",
    "number": "7.1.5",
    "chapter": 7,
-   "section": "7.2",
+   "section": "7.1",
    "name": null,
    "proof": null
   },
@@ -1639,7 +1639,7 @@
    "text": "Es sei A ∈Matm,n(Q), b ∈Qm und c ∈Rn. Wir betrachten P = P(A, b)\nund nehmen an, dass sowohl P als auch die ganzzahlige Hülle PZ nicht-leer ist. Dann\nist die Funktion x 7→cTx auf P genau dann nach unten unbeschränkt, wenn sie auf\nder ganzzahligen Hülle PZ nach unten unbeschränkt ist.\nDas folgende sehr einfache Beispiel zeigt, dass PZ(A, b) := (P(A, b))Z leer sein\nkann auch wenn P(A, b) nicht-leer ist.",
    "number": "7.1.6",
    "chapter": 7,
-   "section": "7.2",
+   "section": "7.1",
    "name": null,
    "proof": null
   },
@@ -1650,7 +1650,7 @@
    "text": "Das Ungleichungssystem\n2y ≤1\n−2y ≤−1\ndefiniert ein unbeschränktes Polyeder in R2, dessen ganzzahlige Hülle leer ist.\n7.2 Branch and Bound\nWir betrachten ein Verfahren zur Lösung von ganzzahligen linearen Programmen.\nGenauer gesagt, wir betrachten das Problem\nLA,b,c := min{cTx: Ax ≤b, x ∈Zn}\nmit A ∈Matm,n(Z), b ∈Zm und c ∈Rn. Dazu betrachten wir das relaxierte Problem\n ̄LA,b,c := min{cTx: Ax ≤b},\nd.h. das gleiche Problem ohne die Ganzzahligkeitsbedingung.",
    "number": "7.1.7",
    "chapter": 7,
-   "section": "7.2",
+   "section": "7.1",
    "name": null,
    "proof": null
   },
@@ -1705,7 +1705,7 @@
    "text": "Sowohl Algorithmus 7.2.1 als auch der Beweis von Satz 7.2.3\nfunktionieren völlig analog, wenn wir nur für manche der Variablen verlangen, dass\ndie Einträge ganzzahlig sind. Solche Minimierungsprobleme nennt man gemischt-\nganzzahlige lineare Minimierugsprobleme.",
    "number": "7.2.5",
    "chapter": 7,
-   "section": "7.3",
+   "section": "7.2",
    "name": null,
    "proof": null
   },

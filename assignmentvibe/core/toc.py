@@ -111,18 +111,63 @@ def assign_sections(entries: list[dict], nodes: list[dict]) -> int:
         return 0
 
     by_page = sorted(nodes, key=lambda n: n["page"])
-    placed = 0
+    # The section running into each entry's page, then every one starting on it.
+    candidates = []
     for e in entries:
         page = e.get("page") or 0
-        current = None
+        here = []
         for n in by_page:
-            if n["page"] <= page:
-                current = n["key"]
+            if n["page"] < page:
+                here = [n["key"]]
+            elif n["page"] == page:
+                here.append(n["key"])
             else:
                 break
-        e["section"] = current
-        placed += current is not None
-    return placed
+        candidates.append(here)
+        e["section"] = here[-1] if here else None
+
+    trusted = _numbers_match_outline(entries)
+    for e, here in zip(entries, candidates):
+        if trusted:
+            e["section"] = _on_shared_page(e, here)
+    return sum(1 for e in entries if e["section"] is not None)
+
+
+def _prefix(entry: dict) -> str | None:
+    number = entry.get("number") or ""
+    return number.rsplit(".", 1)[0] if "." in number else None
+
+
+def _covers(outer: str, key: str) -> bool:
+    return key == outer or key.startswith(outer + ".")
+
+
+def _numbers_match_outline(entries: list[dict]) -> bool:
+    """Whether the script's numbering names its outline: "Satz 2.2.6" placed
+    in 2.2 (or below it) for nearly every entry. True for the Algebra and
+    Optimierung notes; not for maingeo2023, whose outline has a preface
+    chapter in front, so its "Definition 1.1" lives in section 2.1."""
+    numbered = [(p, e["section"]) for e in entries
+                if (p := _prefix(e)) and e.get("section")]
+    agree = sum(1 for p, s in numbered if _covers(p, s))
+    return bool(numbered) and agree >= 0.8 * len(numbered)
+
+
+def _on_shared_page(entry: dict, candidates: list[str]) -> str | None:
+    """Which of the sections sharing a page an entry belongs to. The page
+    alone says the last one, but a statement above the new heading still
+    belongs to the old section - Satz 2.2.6 of the Algebra notes sits on the
+    page where 2.3 begins. Where the entry's own number names one of the
+    candidates, that one wins - unless it is a parent of the last one: a
+    section and its first subsection often start on the same page, and then
+    the subsection is the more precise answer. The numbering is only consulted
+    here, where the page cannot decide, and only for a script whose numbering
+    matches its outline (see the module docstring)."""
+    last = candidates[-1] if candidates else None
+    prefix = _prefix(entry)
+    if len(candidates) > 1 and prefix in candidates and not _covers(prefix, last):
+        return prefix
+    return last
 
 
 def assign_sections_from_numbers(entries: list[dict], nodes: list[dict]) -> int:

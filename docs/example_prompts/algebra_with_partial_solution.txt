@@ -1,7 +1,7 @@
 Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
 
 # Course: Algebra I
-Sheet None, due: Di. 21. November 2024
+Sheet 7, due: Di. 21. November 2024
 
 # Task 1
 Bestimmen Sie alle ganzzahligen Lösungen des folgenden Systems linearer Kon-
