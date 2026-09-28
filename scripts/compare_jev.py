@@ -46,11 +46,12 @@ def main() -> None:
         exercises = exercises[:args.limit]
 
     items = selection.judgement_items(entries)
+    proof_ids = selection.proof_candidates(entries)
     sections = {entry_id(e): selection.section_of(e) or ""
                 for e in selection.statements(entries)}
     batches = jev._batches("x" * 1500, items)
     print(f"{args.course}: {len(exercises)} exercises, {len(items)} statements, "
-          f"{sum(1 for i in items.values() if 'proof' in i)} proofs -> "
+          f"{len(proof_ids)} proofs -> "
           f"{len(batches)} requests per pick")
     if args.dry_run:
         return
@@ -63,7 +64,7 @@ def main() -> None:
         text = f"{ex.get('title') or ''}\n{ex['text']}"
         chapter = ex["section"].split(".")[0]
         start = time.monotonic()
-        statement_p, proof_p = jev.judge(text, items)
+        statement_p, proof_p, _ = jev.judge(text, items, proof_ids)
         seconds.append(time.monotonic() - start)
         picked, proofs = selection.pick_from_judgement(statement_p, proof_p)
 

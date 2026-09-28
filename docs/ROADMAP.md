@@ -40,15 +40,30 @@ selection. Over `max_context_chars` the least certain proofs are dropped.
       Chinese remainder theorem for Z/n x Z/m). But 62% of the proofs picked
       belong to statements Jev judged NOT needed, and each drags its statement
       in: median 7 statements and 3 proofs per pick, up to 15 and 12.
-- [ ] Decide the proof rule. Replayed offline on the same answers:
-      proof >= 0.6 -> 5 statements / 2 proofs; proof only where the statement
-      was picked too -> 4 / 1 (116 proofs down to 44). The second loses cases
-      like "the p=1 case was done in the lecture" (statement 0.32, proof 0.76).
-- [ ] "Beweisen Sie Satz X": Jev picks the proof of X itself (0.95 in
-      maingeo2023) - the prompt then carries the answer. Wanted or not?
+- [x] Proof rule (2026-09-28). Jev now sees the statements only, with a
+      stricter proof question ("same idea or technique, or the task refers to
+      the proof"), and proofs that only point elsewhere ("Übung.", "Aufgabe
+      13.") are not asked about. Hand-judged on the 33 tasks: 46% of the
+      picked proofs help, against 24% before; 39 proofs picked instead of 113;
+      ~40% cheaper. Showing Jev the first 400 characters of each proof was in
+      between (38%). What is lost: proofs whose technique fits while the
+      statement looks unrelated (10 of 28 useful ones).
+- [x] Earlier tasks: Jev is asked about every task of the course's earlier
+      sheets; picked ones go into the prompt as task text only. Found the
+      explicit references ("Blatt 7, Aufgabe 1 (c)", "Aufgabe 5) vom ersten
+      Blatt") and picked nothing where there was nothing.
+- [ ] "Beweisen Sie Satz X" still gets the proof of X (the notes' proof is the
+      answer). Keep or leave out?
 - [x] `usage.cost` arrives - the counter shows real dollars
 
 **Touches:** `integrations/jev.py`, `core/selection.py`, `cli.py`.
+
+## Ideas, not planned yet
+
+- Jev estimates how hard each task on a sheet is (which of the four are
+  quick, which take long).
+- Jev draws a small dependency graph of a sheet's tasks - sometimes task 4
+  is the easier start and task 1 uses it.
 
 ## 1. ⚪ Review what the prompts say
 

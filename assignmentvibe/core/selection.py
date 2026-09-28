@@ -26,6 +26,8 @@ asks you to prove is exactly what a good selection contains), algorithms because
 they are long and only wanted when the task is to implement one.
 """
 
+import re
+
 from .prompts import entry_id
 from .toc import sort_key
 
@@ -133,27 +135,80 @@ def compress(entries: list[dict], ids: set[str],
     return sorted(sections, key=sort_key), singles
 
 
-# The longest proofs run to ~5k characters; the first part says which technique
-# it uses, and that is what judging its relevance needs.
-MAX_PROOF_CHARS = 2500
+# A proof that only says where the proof is: "Übung.", "Aufgabe 13.",
+# "Siehe Aufgabe (3.4).", "Siehe Analysis 2." Asking whether it helps a task
+# can only be answered wrongly, and in a prompt it helps nobody.
+REFERRAL_PROOF_RE = re.compile(
+    r"^(?:Übung|Übungen|Übungsaufgabe|Aufgabe\s*\d|Siehe|siehe|Exercise|See)\b")
+
+
+def is_referral_proof(proof: str) -> bool:
+    text = " ".join(proof.split())
+    return len(text) < 120 and bool(REFERRAL_PROOF_RE.match(text))
 
 
 def judgement_items(entries: list[dict],
                     include_algorithms: bool = False) -> dict[str, dict[str, str]]:
-    """{id: {"statement": ..., "proof": ...}} for every statement, in the
-    script's order - what integrations.jev asks about. The name leads, since it
-    often says what a statement is about in words its text never uses ("2.
-    Isomorphiesatz")."""
+    """{id: {"statement": ...}} for every statement, in the script's order -
+    what integrations.jev asks about. The name leads, since it often says what
+    a statement is about in words its text never uses ("2. Isomorphiesatz").
+
+    The proofs are not part of it. Jev judged them worse for seeing them: on
+    33 real sheet tasks, 24% of the proofs it picked with their text in view
+    helped the task, against 46% when it judged from the statement alone - and
+    leaving 65k characters of proofs out of the Optimierung notes makes a pick
+    ~40% cheaper. What it misses that way is a proof whose technique fits while
+    its statement does not look related."""
     items = {}
     for e in sorted(statements(entries, include_algorithms), key=script_order):
         name = f"({e['name']}) " if e.get("name") else ""
-        item = {"statement": f"{name}{e.get('text', '')}"}
-        if e.get("proof"):
-            proof = e["proof"]
-            item["proof"] = (proof if len(proof) <= MAX_PROOF_CHARS
-                             else proof[:MAX_PROOF_CHARS - 1] + "…")
-        items.setdefault(entry_id(e), item)
+        items.setdefault(entry_id(e), {"statement": f"{name}{e.get('text', '')}"})
     return items
+
+
+def proof_candidates(entries: list[dict], include_algorithms: bool = False) -> set[str]:
+    """The statements whose proof Jev is asked about: those with a proof that
+    is more than a pointer elsewhere."""
+    return {entry_id(e) for e in statements(entries, include_algorithms)
+            if e.get("proof") and not is_referral_proof(e["proof"])}
+
+
+# --- Earlier tasks ------------------------------------------------------------
+# A task often builds on one from an earlier sheet ("Verwenden Sie die Stetigkeit
+# der Translation (Blatt 7, Aufgabe 1 (c))", "Löse Aufgabe 5) vom ersten Blatt").
+# Only the task text goes into the prompt - the solution is the user's own, and
+# handwritten.
+
+def earlier_task_ref(sheet: dict, task: dict) -> str:
+    """How an earlier task is remembered: "analysis-4/Blatt7#1"."""
+    return f"{sheet['sheet_id']}#{task['number']}"
+
+
+def earlier_task_label(sheet: dict, task: dict) -> str:
+    return f"Sheet {sheet.get('sheet_number') or sheet['sheet_id']}, task {task['number']}"
+
+
+def earlier_sheets(sheets: list[dict], current: dict | None) -> list[dict]:
+    """The sheets handed out before `current`, by sheet number. A sheet without
+    a number cannot be placed, and a second version of the same sheet
+    ("Blatt4_english_version") is not earlier."""
+    number = (current or {}).get("sheet_number")
+    if number is None:
+        return []
+    earlier = [s for s in sheets
+               if s.get("sheet_number") is not None and s["sheet_number"] < number]
+    return sorted(earlier, key=lambda s: (s["sheet_number"], s["sheet_id"]))
+
+
+def earlier_tasks(sheets: list[dict], refs: list[str]) -> list[tuple[str, dict]]:
+    """(label, task) for the remembered refs that still exist, in sheet order."""
+    wanted = set(refs)
+    found = []
+    for sheet in sorted(sheets, key=lambda s: (s.get("sheet_number") or 0, s["sheet_id"])):
+        for task in sheet.get("tasks", []):
+            if earlier_task_ref(sheet, task) in wanted:
+                found.append((earlier_task_label(sheet, task), task))
+    return found
 
 
 # Jev answers each yes/no question with a probability; at or above the

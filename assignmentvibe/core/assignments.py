@@ -68,7 +68,8 @@ PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
 #   2: page footers stripped, wider script references
 #   3: tasks numbered "(1)", "1." and "1)" too; sheet number from the header
 #      or the file name; OT1 ligatures
-FORMAT = 3
+#   4: T1 "ÿ" read as ß (see core.pdf_text)
+FORMAT = 4
 
 # Looked for in the sheet's header only - further down, "Blatt 2" is a task
 # referring to an earlier sheet.

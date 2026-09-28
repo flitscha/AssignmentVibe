@@ -17,7 +17,8 @@ DEFAULTS = {
     # stops helping a chat model focus and starts burying the task.
     "max_context_chars": 15_000,
     # Jev answers "is this needed?" with a probability; at or above the
-    # threshold it counts as yes. Raise the proof one if Jev takes too many.
+    # threshold it counts as yes. The statement one also decides the tasks of
+    # earlier sheets. Raise the proof one if Jev takes too many.
     "jev_statement_threshold": 0.5,
     "jev_proof_threshold": 0.5,
     # Whether algorithms count as statements in a course not yet set otherwise.
@@ -28,7 +29,7 @@ TEMPLATE = """{
   "_max_context_chars": "Characters of lecture notes a prompt may carry. When Jev's pick is longer, its least certain proofs are dropped until it fits. The context picker shows the size against this limit.",
   "max_context_chars": 15000,
 
-  "_jev_thresholds": "From 0 to 1: how sure Jev must be that a statement (or a proof) is needed before it is picked. Higher picks fewer.",
+  "_jev_thresholds": "From 0 to 1: how sure Jev must be that a statement (or a proof) is needed before it is picked. The statement threshold also applies to tasks of earlier sheets. Higher picks fewer.",
   "jev_statement_threshold": 0.5,
   "jev_proof_threshold": 0.5,
 

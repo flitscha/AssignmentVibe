@@ -143,11 +143,14 @@ def build_prompt(
     exercises: list[dict] | None = None,
     proof_of: list[str] | None = None,
     statements: list[str] | None = None,
+    earlier_tasks: list[tuple[str, dict]] | None = None,
 ) -> str:
     """`sections` selects script sections to include in full and `statements`
     single ones by id ("Satz 3.1.5", see core.selection); with neither, the
     prompt carries no lecture notes at all. `proof_of` names statements whose
-    proofs go in even while `include_proofs` is off."""
+    proofs go in even while `include_proofs` is off. `earlier_tasks` are
+    (label, task) of earlier sheets the task builds on - their statement only,
+    see core.selection.earlier_tasks."""
     from . import selection
     from .toc import label as section_label
 
@@ -179,6 +182,15 @@ def build_prompt(
         lines.append(f"## Exercise {exercise['number']} from the lecture notes{title}")
         lines.append(exercise["text"])
         lines.append("")
+
+    if earlier_tasks:
+        lines.append("# Earlier exercises this task may build on")
+        lines.append("(their statements only; my solutions to them are not included)")
+        lines.append("")
+        for label, earlier in earlier_tasks:
+            lines.append(f"## {label}")
+            lines.append(task_query(earlier, exercises))
+            lines.append("")
 
     if context:
         # Naming the sections lets the reader (and the model) see what the

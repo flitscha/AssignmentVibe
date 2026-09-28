@@ -100,7 +100,8 @@ PROOF_RE = re.compile(
 #   2: the script's own exercises ("exercises", see core.exercises)
 #   3: OT1 ligatures read as letters (see core.pdf_text); "id" on entries
 #      whose number the script uses twice (see set_ids)
-FORMAT = 3
+#   4: T1 "ÿ" read as ß (see core.pdf_text)
+FORMAT = 4
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 

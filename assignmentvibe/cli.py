@@ -169,12 +169,42 @@ def _read_settings() -> dict:
         return dict(settings.DEFAULTS)
 
 
+def _earlier_rows(state: dict) -> list[tuple[str, str]]:
+    """(ref, label) for the context picker: every task of the earlier sheets,
+    labelled with what it is about."""
+    rows = []
+    for label, (ref, text) in _earlier_candidates(state["sheets"], state["sheet"],
+                                                  state["exercises"]).items():
+        about = " ".join(text.split())
+        rows.append((ref, f"{label}  {about[:50] + '…' if len(about) > 50 else about}"))
+    return rows
+
+
+def _earlier_candidates(sheets: list[dict], sheet: dict | None,
+                        exercises: list[dict]) -> dict[str, tuple[str, str]]:
+    """label -> (ref, task text) for every task of the sheets before `sheet`,
+    as Jev is asked about them. A second version of a sheet under the same
+    number ("Blatt4_english_version") has the same labels and is skipped."""
+    from .core import selection
+    from .core.prompts import task_query
+
+    found = {}
+    for earlier in selection.earlier_sheets(sheets, sheet):
+        for t in earlier.get("tasks", []):
+            label = selection.earlier_task_label(earlier, t)
+            found.setdefault(label, (selection.earlier_task_ref(earlier, t),
+                                     task_query(t, exercises)))
+    return found
+
+
 def _jev_pick(task: dict, knowledge: list[dict], exercises: list[dict],
-              include_algorithms: bool = False
-              ) -> tuple[list[str], list[str], list[str]] | None:
-    """(statement ids, proof ids, proofs dropped for length) Jev judges the task
-    to need, or None when it could not be asked - said in a notification, since
-    the user pressed for it.
+              include_algorithms: bool = False, sheets: list[dict] | None = None,
+              sheet: dict | None = None
+              ) -> tuple[list[str], list[str], list[str], list[str]] | None:
+    """(statement ids, proof ids, proofs dropped for length, earlier task refs)
+    Jev judges the task to need, or None when it could not be asked - said in
+    a notification, since the user pressed for it. Earlier tasks are those of
+    the course's sheets before `sheet`.
 
     Over settings' max_context_chars, the least certain proofs go first; the
     statements stay, since those are what the solution has to cite."""
@@ -184,8 +214,12 @@ def _jev_pick(task: dict, knowledge: list[dict], exercises: list[dict],
 
     config = _settings()
     items = selection.judgement_items(knowledge, include_algorithms)
+    candidates = _earlier_candidates(sheets or [], sheet, exercises)
     try:
-        statement_p, proof_p = jev.judge(task_query(task, exercises), items)
+        statement_p, proof_p, earlier_p = jev.judge(
+            task_query(task, exercises), items,
+            selection.proof_candidates(knowledge, include_algorithms),
+            {label: text for label, (_, text) in candidates.items()})
     except jev.JevUnavailable as e:
         notify.send("Jev unavailable", f"The selection is unchanged. {e}", glyph="⚠")
         return None
@@ -195,7 +229,9 @@ def _jev_pick(task: dict, knowledge: list[dict], exercises: list[dict],
     entries = selection.chosen(knowledge, [], statements, include_algorithms)
     proofs, dropped = selection.trim_proofs(entries, proofs, proof_p,
                                             config["max_context_chars"])
-    return statements, proofs, dropped
+    earlier = [candidates[label][0] for label, p in earlier_p.items()
+               if p >= config["jev_statement_threshold"]]
+    return statements, proofs, dropped, earlier
 
 
 def _build_from_args(args) -> str:
@@ -245,20 +281,24 @@ def _build_from_args(args) -> str:
     statements = getattr(args, "statements", None)
     if statements is None and not getattr(args, "sections", None):
         statements = saved.get("statements")
+    sheets = store.list_sheets(course_slug) if course_slug else []
+    earlier = saved.get("earlier_tasks") or []
     if getattr(args, "jev", False):
-        picked = _jev_pick(task, knowledge, exercises, algorithms)
+        picked = _jev_pick(task, knowledge, exercises, algorithms, sheets, sheet)
         if picked is None:
             print("Jev could not be asked - see the notification.", file=sys.stderr)
             sys.exit(1)
-        sections, (statements, proof_of, _), proofs = [], picked, False
+        sections, (statements, proof_of, _, earlier), proofs = [], picked, False
 
+    from .core import selection
     return build_prompt(task, sheet, knowledge, solution, course_name,
                         sections=sections, include_proofs=proofs,
                         include_algorithms=algorithms,
                         section_titles=store.load_section_titles(course_slug)
                         if course_slug else {},
                         exercises=exercises, proof_of=proof_of,
-                        statements=statements)
+                        statements=statements,
+                        earlier_tasks=selection.earlier_tasks(sheets, earlier))
 
 
 def cmd_build(args):
@@ -319,7 +359,8 @@ def cmd_waybar_status(args):
     # The exact selection, since this is where it can be read without opening
     # anything. Only loads the knowledge base when there is something to name.
     chosen = (_selection_lines(course, state, limit=15)
-              if state.get("sections") or state.get("statements") else [])
+              if state.get("sections") or state.get("statements")
+              or state.get("earlier_tasks") else [])
     notes = "\n".join(f"  {line}" for line in chosen) or "  none"
     tooltip = (f"Course: {name}\n{sheet_text}, task {state['task']}\n\n"
                f"Lecture notes in the prompt:\n{notes}\n")
@@ -468,6 +509,7 @@ def _resolve_state(course: str) -> dict:
         "statements": list(saved.get("statements") or []),
         "proofs": bool(saved.get("proofs")),
         "proof_of": list(saved.get("proof_of") or []),
+        "earlier": list(saved.get("earlier_tasks") or []),
         "algorithms": bool(saved.get("algorithms", _settings()["algorithms_by_default"])),
         "sheets": sheets,
         "exercises": store.load_exercises(course),
@@ -499,7 +541,11 @@ def _context_summary(course: str, state: dict) -> str:
     from .core import selection, toc
     from .core.prompts import context_size
 
+    earlier = (f" · {_count(state['earlier'], 'earlier task')}"
+               if state.get("earlier") else "")
     if not state["sections"] and not state["statements"]:
+        if earlier:
+            return f"no lecture notes{earlier}"
         return "none - the prompt carries no lecture notes"
 
     titles = store.load_section_titles(course)
@@ -517,7 +563,7 @@ def _context_summary(course: str, state: dict) -> str:
     with_proof = [e for e in entries if e.get("proof")]
     on = [e for e in with_proof if proof_wanted(e, state["proofs"], state["proof_of"])]
     proofs = f" · {len(on)} of {_count(with_proof, 'proof')}" if on else ""
-    return f"{names}  ({len(entries)}, {size // 1000}k){proofs}"
+    return f"{names}  ({len(entries)}, {size // 1000}k){proofs}{earlier}"
 
 
 def _hub_rows(course: str, course_name: str, state: dict) -> list[tuple[str, str]]:
@@ -640,6 +686,7 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
     from .core.prompts import build_prompt
     from .integrations import clipboard
 
+    from .core import selection
     from .core.prompts import resolve_exercises
 
     task = _task_of(state)
@@ -652,6 +699,7 @@ def _copy_prompt(course: str, course_name: str, state: dict, solution: str | Non
         section_titles=store.load_section_titles(course),
         exercises=state["exercises"],
         proof_of=state["proof_of"],
+        earlier_tasks=selection.earlier_tasks(state["sheets"], state["earlier"]),
     )
     ok, method = clipboard.copy(prompt)
     _, missing = resolve_exercises(task, state["exercises"])
@@ -694,6 +742,10 @@ def _selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
         inside = selection.entries_in(knowledge, state.get("sections") or [], True)
         lines += [f"+ proof of {entry_id(e)}" for e in inside
                   if entry_id(e) in proofs and entry_id(e) not in singles]
+    earlier = state.get("earlier") or state.get("earlier_tasks") or []
+    if earlier:
+        found = selection.earlier_tasks(store.list_sheets(course), earlier)
+        lines += [f"Earlier: {label}" for label, _ in found]
     if limit and len(lines) > limit:
         lines = lines[:limit - 1] + [f"… and {len(lines) - limit + 1} more"]
     return lines
@@ -710,26 +762,30 @@ def _jev_into_state(course: str, state: dict) -> bool:
     from . import store
     from .integrations import jev
 
+    from .core import selection
+
     knowledge = store.load_knowledge(course)
-    if not knowledge:
+    # Without lecture notes there are still the earlier sheets to look at -
+    # Numerik and Statistik hand out sheets but no script.
+    if not knowledge and not selection.earlier_sheets(state["sheets"], state["sheet"]):
         notify.send("No knowledge base", "Read the lecture notes in first.", glyph="⚠")
         return False
-    notify.send("Asking Jev", "Which statements and proofs does this task need?",
-                glyph="⟳")
+    notify.send("Asking Jev", "Which statements, proofs and earlier tasks does "
+                "this task need?", glyph="⟳")
     picked = _jev_pick(_task_of(state), knowledge, state["exercises"],
-                       state["algorithms"])
+                       state["algorithms"], state["sheets"], state["sheet"])
     if picked is None:
         return False
-    from .core import selection
     from .core.prompts import context_size
 
-    statements, proofs, dropped = picked
+    statements, proofs, dropped, earlier = picked
     sections, singles = selection.compress(knowledge, set(statements),
                                            state["algorithms"])
     context.set_course(course, sections=sections, statements=singles,
-                       proof_of=proofs, proofs=False)
-    state = {"sections": sections, "statements": singles, "proof_of": proofs}
-    lines = _selection_lines(course, state, limit=10)
+                       proof_of=proofs, proofs=False, earlier_tasks=earlier)
+    state = {"sections": sections, "statements": singles, "proof_of": proofs,
+             "earlier": earlier}
+    lines = _selection_lines(course, state, limit=12)
     if dropped:
         limit = _settings()["max_context_chars"]
         shown = ", ".join(dropped[:4]) + (f" +{len(dropped) - 4} more"
@@ -740,8 +796,10 @@ def _jev_into_state(course: str, state: dict) -> bool:
                             False, proofs)
         if size > limit:
             lines.append(f"⚠ Still {size // 1000}k characters without any proof")
-    notify.send(f"Jev picked {_count(statements, 'statement')}, "
-                f"{_count(proofs, 'proof')}",
+    title = f"Jev picked {_count(statements, 'statement')}, {_count(proofs, 'proof')}"
+    if earlier:
+        title += f", {_count(earlier, 'earlier task')}"
+    notify.send(title,
                 "\n".join(lines + ["", jev.usage_summary()]), glyph="✓")
     return True
 
@@ -895,7 +953,8 @@ def cmd_pick(args):
             continue
         if action == "context":
             entries = store.load_knowledge(course)
-            if not entries:
+            earlier = _earlier_rows(state)
+            if not entries and not earlier:
                 notify.send("No knowledge base",
                             f"No lecture notes have been read in for '{courses[course]}' yet.",
                             glyph="⚠")
@@ -903,12 +962,12 @@ def cmd_pick(args):
             picked = _pick_context(entries, store.load_sections(course),
                                     state["sections"], state["proofs"],
                                     state["algorithms"], state["proof_of"],
-                                    state["statements"])
+                                    state["statements"], state["earlier"], earlier)
             if picked is not None:
-                sections, proofs, algorithms, proof_of, statements = picked
+                sections, proofs, algorithms, proof_of, statements, chosen = picked
                 context.set_course(course, sections=sections, proofs=proofs,
                                    algorithms=algorithms, proof_of=proof_of,
-                                   statements=statements)
+                                   statements=statements, earlier_tasks=chosen)
             continue
         if action == "jev":
             _jev_into_state(course, state)
@@ -1040,6 +1099,7 @@ def cmd_launcher(args, cfg=None, quiet=False):
 STATEMENTS_ROW = "   Statements  ▸  {state} …"
 PROOFS_ROW = "   Proofs      ▸  {state} …"
 ALGORITHMS_ROW = "   Algorithms  ▸  {state}"
+EARLIER_ROW = "   Earlier     ▸  {state} …"
 CLEAR_ROW = "   ✕ Clear all"
 # The first rows of the Statements and Proofs lists.
 SELECT_ALL_ROW = "   ✓ Select all"
@@ -1147,9 +1207,13 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
                   include_algorithms: bool = False,
                   proof_of: list[str] | None = None,
                   statements: list[str] | None = None,
-                  ) -> tuple[list[str], bool, bool, list[str], list[str]] | None:
+                  earlier: list[str] | None = None,
+                  earlier_rows: list[tuple[str, str]] | None = None,
+                  ) -> tuple[list[str], bool, bool, list[str], list[str], list[str]] | None:
     """The context picker. Returns (sections, include_proofs, include_algorithms,
-    proof_of, single statements), or None if the user aborted. A loop rather
+    proof_of, single statements, earlier task refs), or None if the user
+    aborted. `earlier_rows` are (ref, label) of the tasks on earlier sheets,
+    see _earlier_rows. A loop rather
     than a multi-select widget because the picker chain (Walker, wofi, fzf,
     stdin) only ever returns ONE choice - see integrations/menu.py.
 
@@ -1165,6 +1229,8 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
     ids = {entry_id(e) for e in selection.chosen(entries, sections, statements,
                                                  include_algorithms)}
     proof_of = list(proof_of or [])
+    earlier_rows = earlier_rows or []
+    earlier = [r for r in earlier or [] if r in {ref for ref, _ in earlier_rows}]
     limit = _settings()["max_context_chars"]
     # A row that could not change anything is left out.
     has_algorithms = any(e.get("type") in selection.ALGORITHM_TYPES for e in entries)
@@ -1195,7 +1261,10 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
                (proofs_label, "proofs")]
         if has_algorithms:
             top.append((algorithms_label, "algorithms"))
-        if ids or proof_of or include_proofs:
+        if earlier_rows:
+            top.append((EARLIER_ROW.format(
+                state=f"{len(earlier)} of {len(earlier_rows)} tasks"), "earlier"))
+        if ids or proof_of or include_proofs or earlier:
             top.append((CLEAR_ROW, "clear"))
         options = top + [(SEPARATOR, None)] + [(label, ("section", key))
                                                for label, key in rows]
@@ -1208,7 +1277,7 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
 
         if action == "done":
             sections, singles = selection.compress(entries, ids, include_algorithms)
-            return sections, include_proofs, include_algorithms, proof_of, singles
+            return sections, include_proofs, include_algorithms, proof_of, singles, earlier
         if action == "statements":
             if not ids:
                 notify.send("Nothing chosen yet",
@@ -1243,8 +1312,15 @@ def _pick_context(entries: list[dict], nodes: list[dict], sections: list[str],
             ids = {entry_id(e) for e in selection.chosen(entries, sections, singles,
                                                          include_algorithms)}
             continue
+        if action == "earlier":
+            picked = _pick_list("Earlier tasks", earlier_rows, set(earlier),
+                                lambda row, on: f"[{'✓' if on else ' '}] {row[1]}",
+                                "tasks", key=lambda row: row[0])
+            if picked is not None:
+                earlier = [ref for ref, _ in earlier_rows if ref in picked]
+            continue
         if action == "clear":
-            ids, proof_of, include_proofs = set(), [], False
+            ids, proof_of, include_proofs, earlier = set(), [], False, []
             continue
 
         _, key = action
@@ -1272,13 +1348,15 @@ def _proofs_state(include_all: bool, proof_of: list[str],
     return f"{names}  ({len(on)} of {total})"
 
 
-def _pick_list(header: str, candidates: list[dict], on: set[str],
-               row, noun: str) -> set[str] | None:
+def _pick_list(header: str, candidates: list, on: set[str],
+               row, noun: str, key=None) -> set[str] | None:
     """A tick list with Select all / Deselect all on top. Returns the ticked ids
-    among `candidates`, or None if the user aborted."""
+    among `candidates`, or None if the user aborted. `key` gives a candidate's
+    id; statements by default."""
     from .core.prompts import entry_id
 
-    ids = [entry_id(e) for e in candidates]
+    key = key or entry_id
+    ids = [key(e) for e in candidates]
     on = {i for i in ids if i in on}
     while True:
         done_label = f"── ✓ Done · {len(on)} of {len(ids)} {noun} ──"
@@ -1286,7 +1364,7 @@ def _pick_list(header: str, candidates: list[dict], on: set[str],
         # tuple cannot collide with an id string.
         options = ([(done_label, ("done",)), (SELECT_ALL_ROW, ("all",)),
                     (DESELECT_ALL_ROW, ("none",))]
-                   + [(row(e, entry_id(e) in on), entry_id(e)) for e in candidates])
+                   + [(row(e, key(e) in on), key(e)) for e in candidates])
         choice = menu.pick(header, [label for label, _ in options])
         if choice is None:
             return None

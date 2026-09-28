@@ -201,8 +201,13 @@ Optimierung · task 1
 - **Jev** (optional): Liegt ein OpenRouter-Key in
   `~/.config/assignmentvibe/openrouter.key` (`chmod 600`), erscheint unter
   „Context“ die Zeile „✨ Let Jev pick the context“. Jev fragt pro Satz
-  „braucht die Lösung das?“ und pro Beweis „hilft der Beweis?“ und ersetzt
-  damit die Auswahl, die sich danach unter „Context“ weiter anpassen lässt.
+  „braucht die Lösung das?“, pro Beweis „hilft genau dieser Beweis (gleiche
+  Idee, gleiche Technik, oder die Aufgabe verweist darauf)?“ und pro Aufgabe
+  früherer Blätter „baut die Aufgabe darauf auf?“, und ersetzt damit die
+  Auswahl, die sich danach unter „Context“ weiter anpassen lässt. Jev sieht
+  dabei nur die Sätze, nicht die Beweise (genauer und billiger, siehe
+  ROADMAP). Frühere Aufgaben kommen nur als Aufgabenstellung in den Prompt;
+  „Earlier“ im Context-Picker wählt sie von Hand.
   Wird die Auswahl länger als `max_context_chars`, fallen Beweise heraus, die
   unsichersten zuerst – Sätze bleiben immer drin.
   Die Zeile zeigt die Kosten der letzten Auswahl, die Gesamtkosten und die

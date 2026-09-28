@@ -69,6 +69,10 @@ JUNK_CHARS_RE = re.compile(r"[\uE000-\uF8FF]|(?![\t\n])[\x00-\x1f\x7f]")
 # a letter is read as a ligature, and the rest is junk as before.
 OT1_LIGATURES = {"\x1b": "ff", "\x1c": "fi", "\x1d": "fl", "\x1e": "ffi", "\x1f": "ffl"}
 OT1_LIGATURE_RE = re.compile(r"(?<=[^\W\d_])[\x1b-\x1f]|[\x1b-\x1f](?=[^\W\d_])")
+# The same fonts in T1 encoding put ß at 0xFF, which comes back as "ÿ":
+# "heiÿt", "Gauÿ", "Maÿ" - every one of 290 in the PS Analysis and PDE
+# material. German maths has no other use for a ÿ.
+T1_ESZETT_RE = re.compile(r"(?<=[^\W\d_])ÿ|ÿ(?=[^\W\d_])")
 
 
 def strip_undisplayable(text: str) -> str:
@@ -77,6 +81,7 @@ def strip_undisplayable(text: str) -> str:
 
 def normalize(text: str) -> str:
     text = OT1_LIGATURE_RE.sub(lambda m: OT1_LIGATURES[m.group()], text)
+    text = T1_ESZETT_RE.sub("ß", text)
     text = strip_undisplayable(text)
     text = STRAY_SPACE_RE.sub(r"\1", text)
     text = STRAY_DIAERESIS_RE.sub(lambda m: unicodedata.normalize("NFC", m.group(1) + "̈"), text)

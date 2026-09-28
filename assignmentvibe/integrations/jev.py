@@ -4,10 +4,12 @@ lecture notes a task needs, and which of their proofs.
 
 Jev does not write text. It answers typed questions with probabilities, in well
 under a second, and bills only the input. Here every statement gets a yes/no
-("Noul") question, and every statement with a proof a second one about the
-proof - two questions per Satz, answered in parallel. The whole Optimierung
-script with its proofs is ~100k characters, so it is split into a few requests
-that run side by side; a pick costs a fraction of a cent.
+("Noul") question, and every statement with a proof a second one: would that
+proof help? Jev sees the statements only, never the proofs - see
+core.selection.judgement_items for why. Earlier tasks of the course get a
+question each too. The statements of a script run to ~30k characters, so they
+are split into a few requests that run side by side; a pick costs a fraction
+of a cent.
 
 The API key is read from $OPENROUTER_API_KEY, else from
 ~/.config/assignmentvibe/openrouter.key. Every failure raises JevUnavailable,
@@ -56,12 +58,24 @@ STATEMENT_QUESTION = {
         "false": "The solution can be written without it.",
     },
 }
+# Strict on purpose: most proofs share objects with a task without helping it,
+# and each one picked also drags its statement into the prompt.
 PROOF_QUESTION = {
-    "instructions": "Does the proof of {id} from the lecture notes help to solve the task?",
+    "instructions": "Would reading the proof of {id} from the lecture notes help to solve the task?",
     "criteria": {
-        "true": ("The task asks for the same or a similar argument, or the "
-                 "solution reuses a technique from this proof."),
-        "false": "Knowing the statement is enough; its proof is not needed.",
+        "true": ("The task asks for a similar argument: its solution reuses the idea, "
+                 "construction or technique of this proof, or proves a similar statement "
+                 "the same way. Or the task refers to this proof explicitly."),
+        "false": ("Citing the statement is enough; or the proof works differently from what "
+                  "the task needs; or it only shares objects or notation with the task."),
+    },
+}
+EARLIER_TASK_QUESTION = {
+    "instructions": "Does the task build on {id}, an exercise from an earlier sheet?",
+    "criteria": {
+        "true": ("The task refers to it, continues it, or its solution uses that "
+                 "exercise's result or the same idea."),
+        "false": "It is about something else, or only shares general notions.",
     },
 }
 
@@ -122,7 +136,7 @@ def _question(template: dict, item_id: str) -> dict:
 
 def _batches(task: str, items: dict[str, dict]) -> list[list[str]]:
     """Item ids split into requests that each stay under MAX_REQUEST_CHARS -
-    an item (statement, proof, its questions) is never split across two."""
+    an item (statement, its questions) is never split across two."""
     question_chars = len(json.dumps(STATEMENT_QUESTION)) + len(json.dumps(PROOF_QUESTION))
     room = MAX_REQUEST_CHARS - len(task) - 200
     batches, current, used = [], [], 0
@@ -138,38 +152,61 @@ def _batches(task: str, items: dict[str, dict]) -> list[list[str]]:
     return batches
 
 
-def _ask(task: str, items: dict[str, dict], ids: list[str], model: str) -> dict:
+def _ask_notes(task: str, items: dict[str, dict], ids: list[str],
+               proof_ids: set[str], model: str) -> dict:
     questions = {}
     for n, item_id in enumerate(ids):
         questions[f"s{n}"] = _question(STATEMENT_QUESTION, item_id)
-        if items[item_id].get("proof"):
+        if item_id in proof_ids:
             questions[f"p{n}"] = _question(PROOF_QUESTION, item_id)
-    state = {"task": task, "lecture_notes": {i: items[i] for i in ids}}
+    state = {"task": task, "lecture_notes": {i: items[i]["statement"] for i in ids}}
     return decide(state, questions, model)
 
 
-def judge(task: str, items: dict[str, dict],
-          model: str = MODEL) -> tuple[dict[str, float], dict[str, float]]:
-    """(P(statement needed), P(proof helps)) per item id, in the order given.
-    `items` is {id: {"statement": text, "proof": text or absent}} - see
-    core.selection.judgement_items."""
+def _ask_earlier(task: str, earlier: dict[str, str], ids: list[str], model: str) -> dict:
+    questions = {f"e{n}": _question(EARLIER_TASK_QUESTION, item_id)
+                 for n, item_id in enumerate(ids)}
+    state = {"task": task, "earlier_exercises": {i: earlier[i] for i in ids}}
+    return decide(state, questions, model)
+
+
+def judge(task: str, items: dict[str, dict], proof_ids=(),
+          earlier: dict[str, str] | None = None, model: str = MODEL
+          ) -> tuple[dict[str, float], dict[str, float], dict[str, float]]:
+    """(P(statement needed), P(its proof helps), P(earlier task built on)).
+
+    `items` is {id: {"statement": text}} - see core.selection.judgement_items;
+    `proof_ids` are the ids whose proof to ask about (core.selection.
+    proof_candidates); `earlier` is {label: task text} for the tasks of earlier
+    sheets. All requests run side by side and count as one pick."""
     from concurrent.futures import ThreadPoolExecutor
 
-    if not items:
-        return {}, {}
-    batches = _batches(task, items)
+    proof_ids = set(proof_ids)
+    earlier = earlier or {}
+    note_batches = _batches(task, items) if items else []
+    earlier_batches = _batches(task, {k: {"text": v} for k, v in earlier.items()})
+    if not note_batches and not earlier_batches:
+        return {}, {}, {}
+    calls = ([lambda ids=ids: _ask_notes(task, items, ids, proof_ids, model)
+              for ids in note_batches]
+             + [lambda ids=ids: _ask_earlier(task, earlier, ids, model)
+                for ids in earlier_batches])
     with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as pool:
-        responses = list(pool.map(lambda ids: _ask(task, items, ids, model), batches))
+        responses = list(pool.map(lambda call: call(), calls))
     record([response.get("usage") or {} for response in responses])
 
-    statement_p, proof_p = {}, {}
-    for ids, response in zip(batches, responses):
+    statement_p, proof_p, earlier_p = {}, {}, {}
+    for ids, response in zip(note_batches, responses):
         answers = response.get("answers") or {}
         for n, item_id in enumerate(ids):
             statement_p[item_id] = _probability(answers, f"s{n}", item_id)
-            if items[item_id].get("proof"):
+            if item_id in proof_ids:
                 proof_p[item_id] = _probability(answers, f"p{n}", item_id)
-    return statement_p, proof_p
+    for ids, response in zip(earlier_batches, responses[len(note_batches):]):
+        answers = response.get("answers") or {}
+        for n, item_id in enumerate(ids):
+            earlier_p[item_id] = _probability(answers, f"e{n}", item_id)
+    return statement_p, proof_p, earlier_p
 
 
 def _probability(answers: dict, qid: str, item_id: str) -> float:
