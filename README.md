@@ -195,7 +195,8 @@ Mittelklick auf die Leiste kopiert den Prompt sofort, ohne Panel.
   Karte und im Setup-Tab. Im Terminal: `assignmentvibe jev`, `jev --usage`.
 - **Blatt planen:** „Plan with Jev“ neben den Blättern fragt Jev **einmal für
   das ganze Blatt**, was jede Aufgabe an Sätzen, Beweisen und früheren
-  Aufgaben braucht, schätzt den Aufwand (1 Routine bis 10 schwer, grün bis rot – mit
+  Aufgaben braucht, schätzt den Aufwand (ein Balken neben der Aufgabe: kurz und grün für
+  Routine, lang und rot für schwer – mit
   diesem Kontext, denn wie schwer eine Aufgabe ist, hängt davon ab, was das
   Skript liefert) und erkennt, welche Aufgabe auf welcher aufbaut („3 builds
   on 1“ neben „Task“). Danach ist beim Wechsel auf eine Aufgabe ihr Kontext

@@ -233,7 +233,7 @@ Flickable {
         visible: !!(root.st && root.st.sheet && root.st.sheet.plan)
         look: root.look
         secondary: true
-        text: "effort 1–10"
+        text: "bar: effort, as Jev rates it"
       }
     }
 
@@ -288,7 +288,7 @@ Flickable {
             font.bold: true
           }
 
-          EffortBadge {
+          EffortMeter {
             id: bars
             anchors.left: number.right
             anchors.verticalCenter: parent.verticalCenter

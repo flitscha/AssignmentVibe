@@ -48,11 +48,12 @@ the panel greys out what would race with them. Progress shows where the
 result will land - a spinner in the context card while Jev picks, beside
 "Task" while it plans the sheet - and the result stays there: Jev's pick in
 the card (with the proofs it left out for length), its effort estimate as a
-badge per task. Only failures come as a message on top.
+bar per task. Only failures come as a message on top.
 
-Effort is Jev's expected level over four (routine … hard), shown as 1-10 on
-a green-to-red badge; the number is always there, so the colour never has to
-carry the meaning alone.
+Effort is Jev's expected level over four (routine … hard), shown as a short
+bar: longer and redder for more work. No number - a row already has the
+task's and often the exercise's - and since length and colour say the same,
+the colour never has to carry it alone. The tooltip has the value (of 10).
 
 Changes made elsewhere - `assignmentvibe jev` in a terminal, say - show up by
 themselves: the service watches `~/.local/state/assignmentvibe/context.json`.

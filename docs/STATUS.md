@@ -50,7 +50,7 @@ behind it moved from cli.py to `hub.py` unchanged; `api.py` serves it.
 | Context tab: outline tree with tri-state boxes, statements with a proof box each, earlier sheets, search, "Chosen" view | ✅ new | ✅ keys, search, Esc; logic in `plugin/tests/model.test.js` | ❌ |
 | Jev pick and busy banner from the panel | ✅ new | ✅ real Jev, task 2 of Optimierung sheet 1 | ❌ |
 | "Plan with Jev" button | ✅ new | ⚠️ button seen, not pressed (costs a plan) | ❌ |
-| Effort as 1-10 on a green-to-red badge; "3 builds on 1" beside "Task" | ✅ new | ✅ on a sheet planned by you | ❌ |
+| Effort as a bar per task (length and colour, green to red; value in the tooltip); "3 builds on 1" beside "Task" | ✅ new | ✅ on a sheet planned by you | ❌ |
 | "Lecture notes" button: opens the script at the page of the task's exercise | ✅ new | ⚠️ command checked for firefox/zathura/evince/okular, not launched | ❌ |
 | Jev's progress and result where they land (card, task header), not in a banner | ✅ new | ⚠️ layout seen; not run again (costs a pick) | ❌ |
 | Copy prompt (Enter / button / middle click), panel closes, notification | ✅ new | ✅ Enter; clipboard checked | ❌ |
