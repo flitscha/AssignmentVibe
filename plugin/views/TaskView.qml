@@ -411,29 +411,6 @@ Flickable {
               onClicked: if (!selected) root.request("select_part", { label: modelData.label })
             }
           }
-
-          Label {
-            height: Style.space(24)
-            verticalAlignment: Text.AlignVCenter
-            leftPadding: Style.space(6)
-            visible: root.part === "" && root.parts.length >= 3
-              && root.currentTask.effort !== null && root.currentTask.effort >= 6
-            look: root.look
-            secondary: true
-            text: "a lot of work - one part at a time keeps the answers short"
-          }
-        }
-
-        Label {
-          width: parent.width
-          visible: root.chosenPart !== null && root.currentTask.preamble !== ""
-          look: root.look
-          secondary: true
-          wrapMode: Text.WordWrap
-          elide: Text.ElideRight
-          maximumLineCount: textCard.expanded ? 400 : 2
-          lineHeight: 1.15
-          text: root.currentTask ? root.currentTask.preamble : ""
         }
 
         Label {

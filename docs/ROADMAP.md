@@ -176,6 +176,17 @@ Open:
 worth doing if item 4 shows that attaching an image is not good enough - and
 then as a vision model reading the PNG item 4 already draws, not local OCR.
 
+Local, as of 2026-09-29: no Tesseract-like package reads mixed German text and
+maths (Kraken/Calamari want a model per script and know no formulas, TrOCR is
+English lines, Seshat single formulas); general vision models (Qwen-VL, 7B)
+are too heavy for the laptop's battery. Parked idea: **a small model for this
+one handwriting** - lines cut from the notebooks' strokes (item 4 does most of
+it), ground truth written by Claude reading the pages, TrOCR-small or similar
+fine-tuned on it (hours of CPU once; a fraction of a second per line after,
+only new lines re-read on save). Expected: good on text and inline maths,
+weak on tableaus and matrices. Waiting until there are English notebooks from
+the master's, so it learns both languages.
+
 ## 6. ⚪ Exercises in running text
 
 `core/exercises.py` only looks inside sections the outline calls
