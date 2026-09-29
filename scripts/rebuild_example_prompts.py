@@ -1,6 +1,6 @@
 """
 Dev helper (not part of the installed package): regenerate the sample prompts in
-docs/example_prompts/ from the committed data/ produced by
+docs/example_prompts/ from the local data/ (not in the repository) produced by
 rebuild_example_data.py.
 
 These files are documentation of what a finished prompt looks like. They were

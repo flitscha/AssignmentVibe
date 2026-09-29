@@ -145,7 +145,9 @@ def _sheet_payload(sheet: dict, state: dict) -> dict:
         "id": sheet["sheet_id"],
         "label": _sheet_label(sheet),
         "source": sheet.get("source"),
-        "discussion": sheet.get("discussion_date"),
+        # "26/27 . 5 . 2026" as the PDF spaced it -> "26/27.5.2026"
+        "discussion": re.sub(r"\s*\.\s*", ".", sheet["discussion_date"])
+        if sheet.get("discussion_date") else None,
         "plan": {"dependencies": plan_core.dependency_text(
                      [tuple(e) for e in plan["edges"]]),
                  "cost": plan.get("cost_usd")} if plan else None,

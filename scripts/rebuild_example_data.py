@@ -1,6 +1,7 @@
 """
 Dev helper (not part of the installed package): re-run the whole core
-pipeline over the bundled example_files/ and regenerate data/. Used to
+pipeline over example_files/ and regenerate data/ - both local only, not in
+the repository (course material is copyrighted: put your own PDFs there). Used to
 regression-test the extraction logic against known-good output counts
 (see docs/POC_REPORT.md) after changing anything under assignmentvibe/core/.
 

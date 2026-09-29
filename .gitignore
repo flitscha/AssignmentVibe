@@ -5,3 +5,9 @@ __pycache__/
 build/
 corpus/
 data/_corpus/
+
+# Course material is copyrighted: lecture notes and sheets, and the text
+# extracted from them, stay local. scripts/ reads them from here.
+example_files/
+data/
+.serena/
