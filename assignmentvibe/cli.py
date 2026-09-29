@@ -167,6 +167,9 @@ def _build_from_args(args) -> str:
         statements = saved.get("statements")
     sheets = store.list_sheets(course_slug) if course_slug else []
     earlier = saved.get("earlier_tasks") or []
+    part = getattr(args, "part", None)
+    if part is None:
+        part = (saved.get("parts") or {}).get(hub.task_ref(sheet["sheet_id"], int(task_num)))
     if getattr(args, "jev", False):
         picked = hub.jev_pick(task, knowledge, exercises, algorithms, sheets, sheet)
         if picked is None:
@@ -182,7 +185,8 @@ def _build_from_args(args) -> str:
                         if course_slug else {},
                         exercises=exercises, proof_of=proof_of,
                         statements=statements,
-                        earlier_tasks=selection.earlier_tasks(sheets, earlier, sheet))
+                        earlier_tasks=selection.earlier_tasks(sheets, earlier, sheet),
+                        part=part)
 
 
 def cmd_build(args):
@@ -223,6 +227,43 @@ def cmd_followup(args):
     emoji, label, text = FOLLOW_UPS[args.number - 1]
     if not hub.copy_text(text, f"{emoji} {label}"):
         sys.exit(1)
+
+
+def cmd_work(args):
+    """What the notebook of a sheet holds for a task: with --list how every
+    pasted image was matched, else a PNG of the task's handwriting."""
+    from . import store
+
+    course = context.current_course()
+    state = hub.resolve_state(course) if course else None
+    sheet = store.load_sheet(args.sheet) if args.sheet else (state or {}).get("sheet")
+    if not sheet:
+        print("No sheet given (--sheet) and none current.", file=sys.stderr)
+        sys.exit(1)
+    course = sheet.get("course_slug") or course
+    task = args.task or (state or {}).get("task")
+    path = hub.notebook_for(course, sheet)
+    if path is None:
+        print(f"No .xopp for sheet {sheet.get('sheet_number')} in the course folder.",
+              file=sys.stderr)
+        sys.exit(1)
+    if args.list:
+        _, seen, found = hub.read_notebook(course, sheet, path)
+        _print(path)
+        for s in seen:
+            what = (f"task {s['task']}{' ' + s['part'] + ')' if s['part'] else ''}"
+                    if s["task"] else "-")
+            _print(f"  p.{s['page'] + 1} img {s['image']}  {what:<12} {s['score']:.2f}  {s['text']}")
+        for st in found:
+            pages = sorted({p + 1 for p, _, _ in st["slices"]})
+            _print(f"task {st['task']}{' ' + st['part'] + ')' if st['part'] else ''}: "
+                   f"pages {pages}")
+        return
+    _, png, mine = hub.render_work(course, sheet, task)
+    if png is None:
+        print(f"Nothing written for task {task} in {path.name}.", file=sys.stderr)
+        sys.exit(1)
+    _print(png)
 
 
 def cmd_serve(args):
@@ -614,6 +655,9 @@ def build_arg_parser():
                              "set for the course, else settings.json)")
         pb.add_argument("--statements", nargs="*", default=None, metavar="STATEMENT",
                         help='single statements, e.g. --statements "Satz 3.1.5"')
+        pb.add_argument("--part", default=None, metavar="LABEL",
+                        help="ask for one part of the task only, e.g. --part b "
+                             "(default: as last chosen for the task)")
         pb.add_argument("--jev", action="store_true",
                         help="let Jev pick statements and proofs for this build")
         pb.set_defaults(func=fn)
@@ -631,6 +675,13 @@ def build_arg_parser():
     p_fu = sub.add_parser("followup", help="list the canned follow-ups, or copy one")
     p_fu.add_argument("number", type=int, nargs="?", default=None)
     p_fu.set_defaults(func=cmd_followup)
+
+    p_work = sub.add_parser("work", help="the handwritten work on a task, from its .xopp")
+    p_work.add_argument("--sheet", default=None, help="a sheet id (default: the current one)")
+    p_work.add_argument("--task", type=int, default=None)
+    p_work.add_argument("--list", action="store_true",
+                        help="show how the pasted statements were matched")
+    p_work.set_defaults(func=cmd_work)
 
     p_serve = sub.add_parser("serve", help="the panel's backend: JSON lines on stdin/stdout")
     p_serve.set_defaults(func=cmd_serve)

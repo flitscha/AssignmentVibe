@@ -282,7 +282,9 @@ KeyboardPanel {
         Button {
           id: copyButton
           iconText: Glyphs.copy
-          text: panel.hasTask ? "Copy prompt · task " + panel.st.task : "Copy prompt"
+          text: panel.hasTask
+            ? "Copy prompt · task " + panel.st.task + (panel.st.part ? " " + panel.st.part + ")" : "")
+            : "Copy prompt"
           selected: true
           bordered: true
           enabled: panel.hasTask && !panel.busy

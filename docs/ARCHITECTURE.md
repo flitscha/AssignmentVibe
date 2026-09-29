@@ -22,6 +22,8 @@ assignmentvibe/
                           into the script ("Aufgabe (1.1) vom Skriptum")
     selection.py           which sections and single statements go into a prompt -
                             only what was chosen; also turns Jev's answers into a pick
+    worklog.py             which stretch of a handwritten notebook belongs to
+                            which task/part, from the OCR of the pasted statements
     prompts.py               task + exercises + knowledge -> prompt string
                              (depends on selection, toc, exercises - all pure)
 
@@ -49,6 +51,8 @@ assignmentvibe/
                               whether a task needs it; counts requests/tokens/cost.
                               No key or no network -> JevUnavailable, selection
                               stays as it was
+    xournal.py               .xopp -> pages/images/strokes; OCR of the pasted
+                              images (Tesseract, cached); render a stretch to PNG
     editor.py                omarchy-launch-config-editor / xdg-terminal-exec
                               $EDITOR -> False (caller shows the path)
 

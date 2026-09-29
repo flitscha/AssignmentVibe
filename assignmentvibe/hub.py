@@ -131,9 +131,22 @@ def resolve_state(course: str) -> dict:
     if sheet and not any(t["number"] == task_num for t in sheet["tasks"]):
         task_num = sheet["tasks"][0]["number"] if sheet["tasks"] else None
 
+    # The part asked for is kept per task, so going to another task and back
+    # finds it again - and a label the task does not have (any more) is none.
+    part = ""
+    if sheet and task_num is not None:
+        from .core.prompts import task_parts
+
+        wanted = (saved.get("parts") or {}).get(task_ref(sheet["sheet_id"], task_num), "")
+        task = next(t for t in sheet["tasks"] if t["number"] == task_num)
+        if wanted and any(p["label"] == wanted
+                          for p in task_parts(task, store.load_exercises(course))[1]):
+            part = wanted
+
     return {
         "sheet": sheet,
         "task": task_num,
+        "part": part,
         "sections": saved.get("sections") or [],
         "statements": list(saved.get("statements") or []),
         "proofs": bool(saved.get("proofs")),
@@ -182,6 +195,18 @@ def select_task(course: str, sheet_id: str, task: int | None) -> None:
     planned = (plan or {}).get("tasks", {}).get(str(task))
     if planned and planned.get("selection"):
         context.set_course(course, **planned["selection"])
+
+
+def select_part(course: str, state: dict, label: str) -> None:
+    """Ask for one part of the current task ("b"), or "" for all of it."""
+    saved = context.course_state(course)
+    parts = dict(saved.get("parts") or {})
+    ref = task_ref(state["sheet"]["sheet_id"], state["task"])
+    if label:
+        parts[ref] = label
+    else:
+        parts.pop(ref, None)
+    context.set_course(course, parts=parts)
 
 
 def select_sheet(course: str, sheet: dict) -> None:
@@ -573,6 +598,7 @@ def build_current_prompt(course: str, course_name: str, state: dict,
         proof_of=state["proof_of"],
         earlier_tasks=selection.earlier_tasks(state["sheets"], state["earlier"],
                                               state["sheet"]),
+        part=state.get("part") or None,
     )
 
 
@@ -598,7 +624,8 @@ def copy_prompt(course: str, course_name: str, state: dict,
             "Paste it into the chat yourself, or read the notes in again.",
             glyph="⚠", desktop=True)
     if ok:
-        say(f"Task {state['task']} copied",
+        part = f" {state['part']})" if state.get("part") else ""
+        say(f"Task {state['task']}{part} copied",
             f"{len(prompt)} characters - paste it into the chat.", glyph="", desktop=True)
     else:
         say("Prompt built", f"No clipboard available, saved to: {method}", glyph="⚠",
@@ -747,6 +774,79 @@ def open_notes(course: str, state: dict) -> bool:
             "or its file is not in the course folder.", glyph="⚠")
         return False
     return open_pdf(path, task_page(task_of(state), state["exercises"]))
+
+
+# --- The handwritten work (Xournal++) ----------------------------------------------
+
+def notebook_for(course_slug: str, sheet: dict) -> Path | None:
+    """The .xopp a sheet was solved in: in the course's folder, the notebook
+    whose name ends in the sheet's number ("blatt_6.xopp",
+    "Campidell_Felix_Blatt_06.xopp"); the newest if there are several."""
+    import re
+
+    from . import store, uniconfig
+
+    number = sheet.get("sheet_number")
+    if number is None:
+        return None
+    try:
+        cfg = uniconfig.load()
+    except Exception:
+        return None
+    for course in cfg.courses:
+        if store.slug_for(course.name) != course_slug:
+            continue
+        found = [f for f in cfg.course_dir(course).rglob("*.xopp")
+                 if (nums := re.findall(r"\d+", f.stem)) and int(nums[-1]) == number]
+        if found:
+            return max(found, key=lambda f: f.stat().st_mtime)
+    return None
+
+
+def read_notebook(course: str, sheet: dict, path: Path) -> tuple[list[dict], list[dict], list[dict]]:
+    """(pages, what each pasted image was taken for, the stretches per task)
+    of a notebook. The image list is [{"page", "image", "task", "part",
+    "score", "text"}], for checking the matching."""
+    from . import store
+    from .core import worklog
+    from .integrations import xournal
+
+    pages = xournal.load(path)
+    cands = worklog.candidates(sheet, store.load_exercises(course))
+    labels, seen = {}, []
+    for p, page in enumerate(pages):
+        for i, image in enumerate(page["images"]):
+            text = xournal.ocr(image["png"], paths.OCR_CACHE_DIR)
+            match, score = worklog.classify(text, cands)
+            key = (match["task"], match["part"]) if match else None
+            labels[(p, i)] = key
+            seen.append({"page": p, "image": i, "task": key[0] if key else None,
+                         "part": key[1] if key else "", "score": round(score, 2),
+                         "text": " ".join(text.split())[:80]})
+    return pages, seen, worklog.stretches(pages, labels)
+
+
+def render_work(course: str, sheet: dict, task: int) -> tuple[Path | None, Path | None, list[dict]]:
+    """(notebook, PNG of everything written for `task` in it, the stretches)
+    - the PNG None when the notebook has nothing for the task."""
+    from .core import worklog
+    from .integrations import xournal
+
+    path = notebook_for(course, sheet)
+    if path is None:
+        return None, None, []
+    pages, _, found = read_notebook(course, sheet, path)
+    mine = worklog.work_on(found, task)
+    if not mine:
+        return path, None, []
+    # Each stretch says what it is, where there is more than the one.
+    slices = []
+    for stretch in mine:
+        label = (f"{stretch['part']})" if stretch["part"] else f"Task {task}") if len(mine) > 1 else ""
+        for n, (p, top, bottom) in enumerate(stretch["slices"]):
+            slices.append((p, top, bottom, label if n == 0 else ""))
+    out = paths.WORK_DIR / f"{sheet['sheet_id'].replace('/', '_')}-task{task}.png"
+    return path, xournal.render(pages, slices, out), mine
 
 
 def ingest(cfg) -> dict:

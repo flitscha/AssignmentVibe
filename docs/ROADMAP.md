@@ -26,6 +26,10 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 - 🟢 **Single proofs.** In the context picker, "Proofs" opens the list of the
   chosen statements' proofs, with Select all / Deselect all on top. The hub
   shows the count in its Context row. `build --proof-of "Satz 3.1.5"` on the command line.
+- 🟢 **One part at a time** (2026-09-29). A task with a), b), c) can be asked
+  for part by part: the prompt keeps the whole task but asks for the chosen
+  part only, earlier parts for reference. Chosen per task in the panel ("Ask
+  for"), `build --part b` in the terminal.
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 
@@ -140,22 +144,37 @@ result, and some knowledge entries are inflated by it.
 
 **Touches:** `core/pdf_text.py` and/or `core/knowledge.py`, `core/exercises.py`.
 
-## 4. ⚪ Xournal++ integration
+## 4. 🟡 Xournal++ integration
 
 The partial solution is the missing third piece of the prompt (task + notes +
-*what I have so far*). Today it can only come from the clipboard.
+*what I have so far*).
 
-- [ ] Find the currently open `.xopp` document (window title via `hyprctl`)
-- [ ] Export the current page (`xournalpp --create-pdf` / `--create-img`)
-- [ ] Either OCR it (item 5) or attach the image - most chat UIs read
-      handwriting from an image better than any local OCR would
+**Done (2026-09-29), from the terminal:** `assignmentvibe work [--sheet ID]
+[--task N] [--list]` finds the sheet's notebook in the course folder (the
+`.xopp` whose name ends in the sheet number), OCRs the task statements pasted
+into it (Tesseract, cached), matches them to the sheet's tasks and parts
+(`core/worklog.py`), and draws everything handwritten for a task into one PNG
+(`integrations/xournal.py`, pycairo) - across page breaks, with "b)", "c)"
+where each part begins. Checked on all nine Optimierung notebooks: every
+pasted statement lands on its task or part; pasted excerpts of the lecture
+notes ("Satz 1.1.13. …", "Theorem …") are recognised as none. ~0.1s once the
+OCR is cached.
 
-**Touches:** a new `integrations/xournal.py`; `hub.py` and a button in the panel.
+Open:
+- [ ] How it reaches the chat. First try: "Copy my work" in the panel puts the
+      PNG on the clipboard, to paste right after the prompt - the chat model
+      reads this handwriting well, costs nothing, and cannot mistranscribe.
+      If two pastes turn out to be one too many: transcribe the PNG with a
+      vision model (OpenRouter) into "What I have so far".
+- [ ] A thumbnail in the panel, so a wrong match is seen before pasting.
+- [ ] Only the work up to the part asked for (today: the whole task).
+- [ ] `tesseract-data-deu` would read the statements better (not needed so far).
 
 ## 5. ⚪ Handwriting OCR
 
 `integrations/ocr.py` wraps Tesseract, which does not read handwriting. Only
-worth doing if item 4 shows that attaching an image is not good enough.
+worth doing if item 4 shows that attaching an image is not good enough - and
+then as a vision model reading the PNG item 4 already draws, not local OCR.
 
 ## 6. ⚪ Exercises in running text
 

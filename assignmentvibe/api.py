@@ -75,6 +75,7 @@ def state_payload() -> dict:
         "sheet": None,
         "tasks": [],
         "task": None,
+        "part": "",
         "summary": None,
         "jev": {"configured": jev.configured(), "picked": None, "dropped": [],
                 "usage": jev.usage_summary(compact=True)
@@ -120,6 +121,7 @@ def state_payload() -> dict:
         payload["sheet"] = _sheet_payload(sheet, state)
         payload["tasks"] = _tasks_payload(sheet, state)
     payload["task"] = state["task"]
+    payload["part"] = state["part"]
     payload["summary"] = _summary(course, state)
 
     task = hub.task_of(state)
@@ -153,7 +155,7 @@ def _sheet_payload(sheet: dict, state: dict) -> dict:
 def _tasks_payload(sheet: dict, state: dict) -> list[dict]:
     from . import store
     from .core import plan as plan_core
-    from .core.prompts import resolve_exercises
+    from .core.prompts import resolve_exercises, task_parts
 
     plan = store.load_plan(sheet["sheet_id"])
     edges = [tuple(e) for e in plan["edges"]] if plan else []
@@ -161,6 +163,7 @@ def _tasks_payload(sheet: dict, state: dict) -> list[dict]:
     for t in sheet["tasks"]:
         planned = (plan or {}).get("tasks", {}).get(str(t["number"]))
         found, missing = resolve_exercises(t, state["exercises"])
+        preamble, parts = task_parts(t, state["exercises"])
         text = readable(t["text"])
         if found:
             text += "".join(f"\n\n({e['number']}) {readable(e['text'])}" for e in found)
@@ -173,6 +176,8 @@ def _tasks_payload(sheet: dict, state: dict) -> list[dict]:
             "after": plan_core.after(t["number"], edges) if planned else [],
             "missing": missing,
             "page": found[0].get("page") if found else None,
+            "preamble": readable(preamble),
+            "parts": [{"label": p["label"], "text": readable(p["text"])} for p in parts],
         })
     return tasks
 
@@ -339,6 +344,10 @@ def handle(cmd: str, args: dict):
         if not any(t["number"] == args["number"] for t in state["sheet"]["tasks"]):
             raise ApiError(f"No task {args['number']} on this sheet.")
         hub.select_task(course, state["sheet"]["sheet_id"], args["number"])
+    elif cmd == "select_part":
+        if hub.task_of(state) is None:
+            raise ApiError("No task chosen yet.")
+        hub.select_part(course, state, args.get("label") or "")
     elif cmd == "set_selection":
         hub.set_selection(course, set(args.get("ids", [])), args.get("proofOf", []),
                           bool(args.get("allProofs")), args.get("earlier", []))

@@ -30,6 +30,20 @@ SOLVE_INSTRUCTION = (
     "ambiguous, say so instead of guessing."
 )
 
+# A task with parts a), b), c) is often solved one part at a time, and each
+# part can be long; asking for all of it at once gets a long answer to parts
+# not reached yet. With a part chosen the prompt still carries the whole task
+# - the earlier parts are often what the chosen one builds on - but asks for
+# that part only, and names it again at the end.
+SOLVE_PART_INSTRUCTION = (
+    "Solve part {label}) of the task below - only that part. The parts before "
+    "it are there for reference: you may use their results as given, without "
+    "solving them again. Work through it one step at a time, and for each step "
+    "name the definition or theorem from the lecture notes below that "
+    "justifies it. Stick to the notation used in the notes. If anything in the "
+    "task is ambiguous, say so instead of guessing."
+)
+
 # Canned replies to paste back into the chat. The point is the keyboard: these
 # are used on a tablet or with a pen in hand, where typing "erklaere den letzten
 # Schritt genauer" is the expensive part of asking it. Each one has to stand
@@ -122,6 +136,21 @@ def resolve_exercises(task: dict, exercises: list[dict] | None) -> tuple[list[di
     return found, missing
 
 
+def task_parts(task: dict, exercises: list[dict] | None) -> tuple[str, list[dict]]:
+    """(the text before the first part, [{"label", "text"}]) of what a task
+    asks - the exercise it points at, when it points at exactly one, since
+    "Lösen Sie Aufgabe (1.1) vom Skriptum" has no parts of its own. No parts:
+    ("", [])."""
+    from .assignments import SUBPART_RE, split_subparts
+
+    found, _ = resolve_exercises(task, exercises)
+    text = found[0]["text"] if len(found) == 1 else task["text"]
+    parts = split_subparts(text)
+    if not parts:
+        return "", []
+    return text[:SUBPART_RE.search(text).start()].strip(), parts
+
+
 def task_query(task: dict, exercises: list[dict] | None) -> str:
     """What the task asks, as one text to judge relevance against. A task that
     only says "Aufgabe (1.1) vom Skriptum" says nothing by itself - the
@@ -144,13 +173,16 @@ def build_prompt(
     proof_of: list[str] | None = None,
     statements: list[str] | None = None,
     earlier_tasks: list[tuple[str, dict]] | None = None,
+    part: str | None = None,
 ) -> str:
     """`sections` selects script sections to include in full and `statements`
     single ones by id ("Satz 3.1.5", see core.selection); with neither, the
     prompt carries no lecture notes at all. `proof_of` names statements whose
     proofs go in even while `include_proofs` is off. `earlier_tasks` are
     (label, task) of earlier sheets the task builds on - their statement only,
-    see core.selection.earlier_tasks."""
+    see core.selection.earlier_tasks. `part` ("b") asks for that part of the
+    task only, see SOLVE_PART_INSTRUCTION; a label the task does not have is
+    ignored."""
     from . import selection
     from .assignments import title_of
     from .toc import label as section_label
@@ -164,8 +196,12 @@ def build_prompt(
         include_proofs = INCLUDE_PROOFS_BY_DEFAULT
     proof_of = set(proof_of or ())
 
+    _, parts = task_parts(task, exercises)
+    asked = next((p for p in parts if p["label"] == part), None) if part else None
+
     lines = []
-    lines.append(SOLVE_INSTRUCTION)
+    lines.append(SOLVE_PART_INSTRUCTION.format(label=asked["label"]) if asked
+                 else SOLVE_INSTRUCTION)
     lines.append("")
     lines.append(f"# Course: {course_name}")
     if sheet_meta.get("discussion_date"):
@@ -223,6 +259,11 @@ def build_prompt(
             lines.append("")
             lines.append(format_knowledge_entry(
                 e, include_proof=proof_wanted(e, include_proofs, proof_of)))
+        lines.append("")
+
+    if asked:
+        lines.append(f"# Asked now: part {asked['label']})")
+        lines.append(asked["text"])
         lines.append("")
 
     lines.append("# What I have so far")

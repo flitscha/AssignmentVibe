@@ -24,6 +24,12 @@ Flickable {
   readonly property var st: service ? service.state : null
   readonly property bool busy: !!(service && service.busy !== "")
   readonly property var tasks: st ? st.tasks : []
+  readonly property var parts: currentTask && currentTask.parts ? currentTask.parts : []
+  readonly property string part: st && st.part ? st.part : ""
+  readonly property var chosenPart: {
+    for (var i = 0; i < parts.length; i++) if (parts[i].label === part) return parts[i]
+    return null
+  }
   readonly property var currentTask: {
     if (!st) return null
     for (var i = 0; i < tasks.length; i++) if (tasks[i].number === st.task) return tasks[i]
@@ -363,16 +369,87 @@ Flickable {
         width: parent.width - Style.space(24)
         spacing: Style.space(6)
 
+        // Which part the prompt asks for. A long part is often a prompt of
+        // its own; the whole task is the default.
+        Flow {
+          width: parent.width
+          spacing: Style.space(4)
+          visible: root.parts.length > 0
+
+          Label {
+            height: Style.space(24)
+            verticalAlignment: Text.AlignVCenter
+            rightPadding: Style.space(4)
+            look: root.look
+            secondary: true
+            text: "Ask for"
+          }
+
+          Chip {
+            look: root.look
+            text: "the whole task"
+            selected: root.part === ""
+            enabled: !root.busy
+            horizontalPadding: Style.space(8)
+            verticalPadding: Style.space(2)
+            tooltipText: "One prompt for all parts"
+            onClicked: if (!selected) root.request("select_part", { label: "" })
+          }
+
+          Repeater {
+            model: root.parts
+
+            Chip {
+              required property var modelData
+              look: root.look
+              text: modelData.label + ")"
+              selected: root.part === modelData.label
+              enabled: !root.busy
+              horizontalPadding: Style.space(8)
+              verticalPadding: Style.space(2)
+              tooltipText: "Only part " + modelData.label + ") - the earlier parts stay in the prompt for reference"
+              onClicked: if (!selected) root.request("select_part", { label: modelData.label })
+            }
+          }
+
+          Label {
+            height: Style.space(24)
+            verticalAlignment: Text.AlignVCenter
+            leftPadding: Style.space(6)
+            visible: root.part === "" && root.parts.length >= 3
+              && root.currentTask.effort !== null && root.currentTask.effort >= 6
+            look: root.look
+            secondary: true
+            text: "a lot of work - one part at a time keeps the answers short"
+          }
+        }
+
+        Label {
+          width: parent.width
+          visible: root.chosenPart !== null && root.currentTask.preamble !== ""
+          look: root.look
+          secondary: true
+          wrapMode: Text.WordWrap
+          elide: Text.ElideRight
+          maximumLineCount: textCard.expanded ? 400 : 2
+          lineHeight: 1.15
+          text: root.currentTask ? root.currentTask.preamble : ""
+        }
+
         Label {
           id: fullText
           width: parent.width
           look: root.look
           wrapMode: Text.WordWrap
           elide: Text.ElideRight
-          maximumLineCount: textCard.expanded ? 400 : 3
+          maximumLineCount: textCard.expanded ? 400 : (root.chosenPart ? 5 : 3)
           font.pixelSize: Style.font.bodySmall
           lineHeight: 1.15
-          text: root.currentTask ? root.currentTask.text : ""
+          text: {
+            if (!root.currentTask) return ""
+            if (root.chosenPart) return root.chosenPart.label + ")  " + root.chosenPart.text
+            return root.currentTask.text
+          }
         }
 
         Row {

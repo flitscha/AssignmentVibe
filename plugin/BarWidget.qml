@@ -33,11 +33,13 @@ BarWidget {
   readonly property var st: service ? service.state : null
   readonly property bool hasTask: !!(st && st.course && st.task !== null && st.task !== undefined)
   readonly property bool working: !!(service && service.busy !== "")
+  // "A3" or, with one part asked for, "A3b".
+  readonly property string taskLabel: hasTask ? " A" + st.task + (st.part || "") : ""
 
   readonly property string pillText: {
-    if (working) return Glyphs.sparkle + (hasTask ? " " + st.course.short + " A" + st.task : "")
+    if (working) return Glyphs.sparkle + (hasTask ? " " + st.course.short + taskLabel : "")
     if (!hasTask) return Glyphs.school
-    return Glyphs.school + " " + st.course.short + " A" + st.task
+    return Glyphs.school + " " + st.course.short + taskLabel
   }
 
   readonly property string tooltip: {
@@ -50,7 +52,7 @@ BarWidget {
     var lines = st.summary.lines.slice(0, 12)
     if (st.summary.lines.length > 12) lines.push("… and " + (st.summary.lines.length - 12) + " more")
     var notes = lines.length ? lines.map(function(l) { return "  " + l }).join("\n") : "  none"
-    return st.course.name + "\n" + sheet + "task " + st.task
+    return st.course.name + "\n" + sheet + "task " + st.task + (st.part ? ", part " + st.part + ")" : "")
       + "\n\nIn the prompt:\n" + notes
       + "\n\nLeft: panel · Right: follow-ups · Middle: copy prompt"
   }

@@ -211,6 +211,16 @@ Mittelklick auf die Leiste kopiert den Prompt sofort, ohne Panel.
   `jev_statement_threshold` und `jev_proof_threshold` (0.5; höher = Jev nimmt
   weniger) und `algorithms_by_default` (true).
 
+- **Teilaufgaben:** Hat eine Aufgabe a), b), c), wählt „Ask for“ in der
+  Aufgabenkarte einen Teil. Der Prompt enthält weiter die ganze Aufgabe,
+  verlangt aber nur diesen Teil – die früheren Teile als Referenz. Gemerkt
+  pro Aufgabe; der Hinweis „a lot of work …“ erscheint, wenn Jev die Aufgabe
+  als aufwendig einschätzt.
+- **Handschrift (erster Schritt, nur Terminal):** `assignmentvibe work
+  [--task N] [--list]` findet das Xournal-Notizbuch des Blatts im
+  Kursordner, erkennt an den eingefügten Aufgabenstellungen, was zu welcher
+  Aufgabe gehört, und zeichnet deine Handschrift zu einer Aufgabe als PNG.
+
 Im Terminal gibt es dasselbe ohne Panel: `assignmentvibe build|copy
 [--task N] [--sections 3.1] [--jev]`, `followup [N]`, `context show`.
 
