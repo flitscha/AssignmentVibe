@@ -44,7 +44,15 @@ redraw. Only the context editor ticks locally (Model.js) and saves a moment
 after the last click - a round trip per tick would lag.
 
 Jev and reading in PDFs take seconds; the backend runs them on a thread and
-the panel greys out what would race with them.
+the panel greys out what would race with them. Progress shows where the
+result will land - a spinner in the context card while Jev picks, beside
+"Task" while it plans the sheet - and the result stays there: Jev's pick in
+the card (with the proofs it left out for length), its effort estimate as a
+badge per task. Only failures come as a message on top.
+
+Effort is Jev's expected level over four (routine … hard), shown as 1-10 on
+a green-to-red badge; the number is always there, so the colour never has to
+carry the meaning alone.
 
 Changes made elsewhere - `assignmentvibe jev` in a terminal, say - show up by
 themselves: the service watches `~/.local/state/assignmentvibe/context.json`.
@@ -58,8 +66,9 @@ themselves: the service watches `~/.local/state/assignmentvibe/context.json`.
 | middle click | copy the prompt, no panel |
 
 In the panel: `1`–`4` or Tab switch tabs, Enter copies the prompt, Esc
-closes. Task tab: ↑↓ task, ←→ sheet, `O` open the sheet, `A` ask Jev, `E`
-edit the context, `P` preview. Context tab: ↑↓ move, →/← open/close, Space
+closes. Task tab: ↑↓ task, ←→ sheet, `O` open the sheet, `N` open the
+lecture notes (at the page of the exercise the task points at), `A` ask Jev,
+`E` edit the context, `P` preview. Context tab: ↑↓ move, →/← open/close, Space
 tick, `P` tick the proof, `/` search.
 
 For a keybinding, the service is an IPC target:

@@ -29,6 +29,27 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
 
+## Next: read new PDFs in without a click
+
+Today a new sheet or a changed script only becomes knowledge after "Read in
+new PDFs" (Setup tab) or `store.ingest_missing` from somewhere. That is a step
+you have to remember, right when you want to start on the new sheet. It should
+happen by itself:
+
+- **After filing.** `sort --apply` (Super+Shift+U, `bin/uni-sort`) just moved
+  the files into the course folders - it knows exactly which ones are new and
+  can read them in straight away, in the background.
+- **When the panel's backend starts and when the panel opens** - a cheap check
+  (mtimes of the course folders against what was read in) catches files that
+  got there some other way, e.g. copied by hand or synced.
+- Optionally a file watcher (inotify on the course folders) in `serve`, so a
+  sheet dropped in while the panel is open shows up in it.
+
+The panel then only has to say "Sheet 12 read in" once, beside the sheet
+chips, and the Setup button stays for forcing a re-read. A script takes up to
+a minute (pymupdf), so this must run on the backend's worker thread and never
+block the panel.
+
 ## 0. 🟡 Jev picks statements and proofs
 
 Nothing is chosen automatically any more - no selection, no context. With an

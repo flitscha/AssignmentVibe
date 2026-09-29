@@ -76,7 +76,7 @@ def state_payload() -> dict:
         "tasks": [],
         "task": None,
         "summary": None,
-        "jev": {"configured": jev.configured(), "picked": None,
+        "jev": {"configured": jev.configured(), "picked": None, "dropped": [],
                 "usage": jev.usage_summary(compact=True)
                 if paths.JEV_USAGE_FILE.exists() else ""},
         "followUps": [{"emoji": e, "label": label, "text": text}
@@ -105,7 +105,8 @@ def state_payload() -> dict:
                            "hasNotes": bool(store.load_knowledge(slug))}
                           for slug, name in courses.items()]
     payload["course"] = {"slug": course, "name": courses[course],
-                         "short": courses[course].split()[0]}
+                         "short": courses[course].split()[0],
+                         "notesPdf": bool(hub.notes_pdf(course))}
 
     state = hub.resolve_state(course)
     sheet = state["sheet"]
@@ -125,6 +126,7 @@ def state_payload() -> dict:
     picked = state.get("jev_pick") or {}
     if task and sheet and picked.get("task") == hub.task_ref(sheet["sheet_id"], task["number"]):
         payload["jev"]["picked"] = "edited" if picked.get("edited") else "jev"
+        payload["jev"]["dropped"] = picked.get("dropped") or []
     return payload
 
 
@@ -166,10 +168,11 @@ def _tasks_payload(sheet: dict, state: dict) -> list[dict]:
             "number": t["number"],
             "title": hub.task_title(t, state["exercises"]) or "",
             "text": text,
-            "effort": round(planned["effort"]) if planned else None,
+            "effort": plan_core.effort_out_of_ten(planned["effort"]) if planned else None,
             "effortWord": plan_core.effort_word(planned["effort"]) if planned else "",
             "after": plan_core.after(t["number"], edges) if planned else [],
             "missing": missing,
+            "page": found[0].get("page") if found else None,
         })
     return tasks
 
@@ -361,6 +364,8 @@ def handle(cmd: str, args: dict):
         if not state["sheet"]:
             raise ApiError("No sheet read in yet.")
         return {"opened": hub.open_sheet(state["sheet"])}
+    elif cmd == "open_notes":
+        return {"opened": hub.open_notes(course, state)}
     elif cmd == "open_chat":
         return {"opened": hub.open_chat(args.get("provider"))}
     elif cmd == "open_config":
@@ -393,8 +398,11 @@ def respond(request: dict) -> dict:
             traceback.print_exc(file=sys.stderr)
             response["ok"] = False
             hub.say("Could not read the state", f"{type(e).__name__}: {e}", glyph="⚠")
-    # "Asking Jev …" is what the panel's spinner already says.
-    response["messages"] = [m for m in messages if m["level"] != "progress"]
+    # "Asking Jev …" is what the panel's spinner already says, and what Jev
+    # made of it shows where it lands - the task list and the context card -
+    # rather than in a note that goes away. Only a failure is news.
+    quiet = {"progress"} | ({"ok", "info"} if cmd in ("jev", "plan") else set())
+    response["messages"] = [m for m in messages if m["level"] not in quiet]
     return response
 
 

@@ -377,3 +377,23 @@ function earlierRow(sel, t, level, withSheet) {
 function sheetRefs(idx, sheet) {
   return idx.earlierBySheet[sheet].map(function(t) { return t.ref })
 }
+
+// ---- Effort ------------------------------------------------------------------
+
+// Jev's effort estimate, 1 (routine) to 10 (hard), as a colour from green over
+// yellow to red: [hue 0-1, saturation, lightness] for Qt.hsla. Light enough
+// for dark text on it in either theme; the number is always shown beside the
+// colour, so it never has to carry the meaning alone.
+function effortHsl(effort) {
+  var t = Math.max(0, Math.min(1, (effort - 1) / 9))
+  return [(1 - t) * 120 / 360, 0.62, 0.58]
+}
+
+// "3 builds on 2 · 5 builds on 1, 3", from each task's `after` list.
+function dependencyText(tasks) {
+  var parts = []
+  tasks.forEach(function(t) {
+    if (t.after && t.after.length) parts.push(t.number + " builds on " + t.after.join(", "))
+  })
+  return parts.join("  ·  ")
+}

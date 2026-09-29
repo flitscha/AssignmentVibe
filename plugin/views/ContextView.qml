@@ -195,7 +195,10 @@ Item {
           visible: text !== ""
           text: {
             if (!root.st || !root.st.task) return ""
-            var who = root.st.jev.picked === "jev" ? " · picked by Jev"
+            var dropped = root.st.jev.dropped || []
+            var who = root.st.jev.picked === "jev"
+              ? " · picked by Jev" + (dropped.length ? ", " + Model.plural(dropped.length, "proof")
+                                                       + " left out for length" : "")
               : root.st.jev.picked === "edited" ? " · picked by Jev, changed by hand" : ""
             return "For task " + root.st.task + (root.st.sheet ? " of sheet " + root.st.sheet.label : "") + who
           }
@@ -210,11 +213,13 @@ Item {
 
         Button {
           visible: !!(root.st && root.st.jev.configured)
-          iconText: Glyphs.sparkle
-          text: "Let Jev pick"
+          readonly property bool asking: !!(root.service && root.service.busy === "jev")
+          iconText: asking ? Glyphs.loading : Glyphs.sparkle
+          iconSpinning: asking
+          text: asking ? "Jev is picking …" : "Let Jev pick"
           bordered: true
           enabled: !root.busy && !!(root.st && root.st.task !== null)
-          opacity: enabled ? 1 : 0.45
+          opacity: enabled || asking ? 1 : 0.45
           foreground: root.look.fg
           fontFamily: root.look.font
           tooltipText: "Replaces the selection with what Jev judges the task to need"

@@ -8,8 +8,8 @@ import "../controls"
 // Where you stand: course, sheet and task side by side, the task's text, and
 // what the prompt carries - with the buttons that change each right beside it.
 //
-// Keys: ↑↓ task, ←→ sheet, O open the sheet, A ask Jev, E edit the context,
-// P preview the prompt.
+// Keys: ↑↓ task, ←→ sheet, O open the sheet, N open the lecture notes,
+// A ask Jev, E edit the context, P preview the prompt.
 Flickable {
   id: root
 
@@ -57,13 +57,23 @@ Flickable {
 
   function key(t) {
     if (t === "o" || t === "O") openSheet()
+    else if (t === "n" || t === "N") openNotes()
     else if (t === "a" || t === "A") askJev()
     else if (t === "e" || t === "E") navigate("context")
     else if (t === "p" || t === "P") { if (currentTask) navigate("prompt") }
   }
 
+  // Opening a PDF races with nothing, so it works while Jev is busy too.
   function openSheet() {
-    request("open_sheet", {}, function(r) { if (r.ok && r.result && r.result.opened) root.closeRequested() })
+    if (service) service.request("open_sheet", {}, function(r) {
+      if (r.ok && r.result && r.result.opened) root.closeRequested()
+    })
+  }
+
+  function openNotes() {
+    if (service && st && st.course && st.course.notesPdf) service.request("open_notes", {}, function(r) {
+      if (r.ok && r.result && r.result.opened) root.closeRequested()
+    })
   }
 
   function askJev() {
@@ -85,7 +95,22 @@ Flickable {
 
     // ---- Course -----------------------------------------------------------------
 
-    SectionTitle { look: root.look; text: "Course" }
+    HeaderRow {
+      look: root.look
+      text: "Course"
+
+      SmallButton {
+        visible: !!(root.st && root.st.course && root.st.course.notesPdf)
+        look: root.look
+        iconText: Glyphs.book
+        text: root.currentTask && root.currentTask.page ? "Lecture notes · p. " + root.currentTask.page
+                                                       : "Lecture notes"
+        tooltipText: root.currentTask && root.currentTask.page
+          ? "N · the script, at the exercise this task points at"
+          : "N · the script of this course"
+        onClicked: root.openNotes()
+      }
+    }
 
     Flow {
       width: parent.width
@@ -192,13 +217,24 @@ Flickable {
 
     // ---- Tasks ------------------------------------------------------------------
 
-    SectionTitle {
+    HeaderRow {
       look: root.look
       visible: root.tasks.length > 0
       text: "Task"
-      detail: root.st && root.st.sheet && root.st.sheet.plan
-        ? "effort as Jev rates it  ·  " + root.st.sheet.plan.dependencies.replace("no dependencies", "none builds on another")
-        : ""
+      note: {
+        if (root.service && root.service.busy === "plan") return "Jev is planning this sheet …"
+        if (!root.st || !root.st.sheet || !root.st.sheet.plan) return ""
+        return Model.dependencyText(root.tasks) || "no task builds on another"
+      }
+      noteColor: root.service && root.service.busy === "plan" ? root.look.accent : root.look.fg
+      spinning: !!(root.service && root.service.busy === "plan")
+
+      Label {
+        visible: !!(root.st && root.st.sheet && root.st.sheet.plan)
+        look: root.look
+        secondary: true
+        text: "effort 1–10"
+      }
     }
 
     Column {
@@ -252,13 +288,13 @@ Flickable {
             font.bold: true
           }
 
-          EffortBars {
+          EffortBadge {
             id: bars
             anchors.left: number.right
             anchors.verticalCenter: parent.verticalCenter
             look: root.look
             effort: taskRow.modelData.effort === null ? -1 : taskRow.modelData.effort
-            highlighted: taskRow.current
+            word: taskRow.modelData.effortWord
           }
 
           Label {
@@ -285,7 +321,7 @@ Flickable {
             anchors.verticalCenter: parent.verticalCenter
             look: root.look
             secondary: true
-            text: taskRow.modelData.after.length ? "after " + taskRow.modelData.after.join(", ") : ""
+            text: taskRow.modelData.after.length ? "builds on " + taskRow.modelData.after.join(", ") : ""
           }
 
           Text {
@@ -389,6 +425,7 @@ Flickable {
 
       readonly property var summary: root.st ? root.st.summary : null
       readonly property bool empty: !summary || (summary.statements === 0 && summary.earlier === 0)
+      readonly property bool asking: !!(root.service && root.service.busy === "jev")
 
       Column {
         id: contextColumn
@@ -397,8 +434,37 @@ Flickable {
         width: parent.width - Style.space(24)
         spacing: Style.space(6)
 
+        // While Jev picks, the card says so right where its pick will appear.
+        Row {
+          visible: contextCard.asking
+          spacing: Style.space(8)
+
+          Text {
+            anchors.verticalCenter: parent.verticalCenter
+            textFormat: Text.PlainText
+            text: Glyphs.loading
+            color: root.look.accent
+            font.family: root.look.font
+            font.pixelSize: Style.font.icon
+            RotationAnimation on rotation {
+              running: contextCard.asking
+              from: 0; to: 360; duration: 900
+              loops: Animation.Infinite
+            }
+          }
+
+          Label {
+            anchors.verticalCenter: parent.verticalCenter
+            look: root.look
+            color: root.look.accent
+            font.bold: true
+            text: "Jev is reading the task and the lecture notes …"
+          }
+        }
+
         Label {
           width: parent.width
+          visible: !contextCard.asking
           look: root.look
           font.bold: true
           text: {
@@ -417,10 +483,18 @@ Flickable {
           width: parent.width
           look: root.look
           secondary: true
-          visible: text !== ""
+          visible: text !== "" && !contextCard.asking
+          wrapMode: Text.WordWrap
+          maximumLineCount: 3
           text: {
             if (!root.st) return ""
-            if (root.st.jev.picked === "jev") return Glyphs.sparkle + " Picked by Jev"
+            var dropped = root.st.jev.dropped || []
+            var left = dropped.length
+              ? " · " + Model.plural(dropped.length, "proof") + " left out to stay under "
+                + Math.round(root.st.limit / 1000) + "k characters: " + dropped.slice(0, 3).join(", ")
+                + (dropped.length > 3 ? " …" : "")
+              : ""
+            if (root.st.jev.picked === "jev") return Glyphs.sparkle + " Picked by Jev" + left
             if (root.st.jev.picked === "edited") return Glyphs.sparkle + " Picked by Jev, changed by hand"
             if (contextCard.empty && contextCard.summary && !contextCard.summary.hasNotes)
               return "No lecture notes read in for this course."
@@ -429,7 +503,7 @@ Flickable {
         }
 
         Repeater {
-          model: contextCard.summary ? contextCard.summary.lines.slice(0, 5) : []
+          model: contextCard.summary && !contextCard.asking ? contextCard.summary.lines.slice(0, 5) : []
 
           Label {
             required property var modelData
@@ -442,7 +516,7 @@ Flickable {
         }
 
         Label {
-          visible: !!(contextCard.summary && contextCard.summary.lines.length > 5)
+          visible: !!(contextCard.summary && contextCard.summary.lines.length > 5) && !contextCard.asking
           look: root.look
           secondary: true
           leftPadding: Style.space(8)

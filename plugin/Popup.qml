@@ -135,17 +135,45 @@ KeyboardPanel {
         }
       }
 
-      Label {
+      // Where a job runs is shown where its result lands (the task list, the
+      // context card); this corner says it on every tab.
+      Row {
         anchors.right: parent.right
-        anchors.left: tabRow.right
-        anchors.leftMargin: Style.space(12)
         anchors.verticalCenter: parent.verticalCenter
-        horizontalAlignment: Text.AlignRight
-        look: panel.theme
-        secondary: true
-        text: panel.st && panel.st.course
-          ? panel.st.course.name + (panel.st.semester ? "  ·  " + panel.st.semester : "")
-          : ""
+        spacing: Style.space(6)
+
+        Text {
+          visible: panel.busy
+          anchors.verticalCenter: parent.verticalCenter
+          textFormat: Text.PlainText
+          text: Glyphs.loading
+          color: panel.theme.accent
+          font.family: panel.theme.font
+          font.pixelSize: Style.font.body
+          RotationAnimation on rotation {
+            running: panel.busy
+            from: 0; to: 360; duration: 900
+            loops: Animation.Infinite
+          }
+        }
+
+        Label {
+          anchors.verticalCenter: parent.verticalCenter
+          width: Math.min(implicitWidth, header.width - tabRow.width - Style.space(40))
+          look: panel.theme
+          secondary: !panel.busy
+          color: panel.busy ? panel.theme.accent : panel.theme.muted
+          font.pixelSize: Style.font.caption
+          text: {
+            if (panel.busy) {
+              if (panel.service.busy === "jev") return "Jev is picking the context"
+              if (panel.service.busy === "plan") return "Jev is planning the sheet"
+              return "Reading in new PDFs"
+            }
+            return panel.st && panel.st.course
+              ? panel.st.course.name + (panel.st.semester ? "  ·  " + panel.st.semester : "") : ""
+          }
+        }
       }
     }
 
@@ -159,29 +187,10 @@ KeyboardPanel {
       spacing: Style.space(6)
       // From the conditions, not the banners' `visible`: a child of an
       // invisible column reads as invisible itself, so that would never flip.
-      readonly property bool any: panel.busy || !!(panel.service && panel.service.backendError)
+      readonly property bool any: !!(panel.service && panel.service.backendError)
         || messageBanner.message !== null
       visible: any
       height: any ? implicitHeight : 0
-
-      Banner {
-        id: busyBanner
-        width: parent.width
-        visible: panel.busy
-        look: panel.theme
-        busy: true
-        title: {
-          if (!panel.service) return ""
-          if (panel.service.busy === "jev") return "Jev is picking the context …"
-          if (panel.service.busy === "plan") return "Jev is planning the sheet …"
-          return "Reading in new PDFs …"
-        }
-        body: panel.service && panel.service.busy === "plan"
-          ? "Every task's context, how much work each is, and what builds on what. Takes a few seconds."
-          : panel.service && panel.service.busy === "ingest"
-            ? "A long set of lecture notes can take a minute."
-            : "Asking about every statement of the notes, and the earlier tasks."
-      }
 
       Banner {
         id: errorBanner

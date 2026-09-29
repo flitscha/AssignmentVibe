@@ -155,7 +155,9 @@ plugin/install.sh              # das Panel in die Omarchy-Leiste
 Ein Klick auf `󰷉 Optimierung A3` in der Leiste öffnet ein Panel mit vier Tabs
 (Details und Einrichtung: [plugin/README.md](plugin/README.md)):
 
-- **Task** – Kurs, Blatt und Aufgabe nebeneinander als Knöpfe, darunter der
+- **Task** – Kurs, Blatt und Aufgabe nebeneinander als Knöpfe (neben dem Kurs
+  „Lecture notes“: das Skript, gleich auf der Seite der Übung, auf die die
+  Aufgabe verweist), darunter der
   Text der gewählten Aufgabe und eine Karte „In the prompt“: was an Skript im
   Prompt landet, mit *Edit context*, *Let Jev pick* und *Clear*. Alles wird
   pro Kurs gemerkt – der übliche Fall ist ein einziger Klick auf **Copy
@@ -193,10 +195,10 @@ Mittelklick auf die Leiste kopiert den Prompt sofort, ohne Panel.
   Karte und im Setup-Tab. Im Terminal: `assignmentvibe jev`, `jev --usage`.
 - **Blatt planen:** „Plan with Jev“ neben den Blättern fragt Jev **einmal für
   das ganze Blatt**, was jede Aufgabe an Sätzen, Beweisen und früheren
-  Aufgaben braucht, schätzt den Aufwand (▮▯▯▯ Routine bis ▮▮▮▮ schwer – mit
+  Aufgaben braucht, schätzt den Aufwand (1 Routine bis 10 schwer, grün bis rot – mit
   diesem Kontext, denn wie schwer eine Aufgabe ist, hängt davon ab, was das
-  Skript liefert) und erkennt, welche Aufgabe auf welcher aufbaut („after 2“
-  in der Liste). Danach ist beim Wechsel auf eine Aufgabe ihr Kontext
+  Skript liefert) und erkennt, welche Aufgabe auf welcher aufbaut („3 builds
+  on 1“ neben „Task“). Danach ist beim Wechsel auf eine Aufgabe ihr Kontext
   **automatisch gewählt**, ohne neue Jev-Anfrage; was man von Hand ändert,
   bleibt pro Aufgabe gemerkt, und die Karte sagt „Picked by Jev, changed by
   hand“. Eine Reihenfolge wird nicht vorgeschlagen. Im Terminal:

@@ -5,7 +5,7 @@ cli._plan_sheet); this module only turns them into something to show. The
 same plan keeps each task's context selection - see cli._plan_sheet.
 
 EFFORT is a score from 0 to 3 - the expected level on EFFORT_LEVELS, as Jev's
-"score" questions answer. DEPENDENCIES are "task b builds on task a" with a
+"score" questions answer - shown as 1 to 10 (effort_out_of_ten). DEPENDENCIES are "task b builds on task a" with a
 probability; at or above DEPENDS_THRESHOLD it is an edge.
 
 No order is suggested beyond the dependencies themselves: which task to start
@@ -32,10 +32,16 @@ def effort_word(score: float) -> str:
     return EFFORT_LEVELS[min(len(EFFORT_LEVELS) - 1, max(0, round(score)))][0]
 
 
-def effort_bars(score: float) -> str:
-    """"▮▮▯▯" - one bar per level reached, routine being one."""
-    filled = min(len(EFFORT_LEVELS), max(1, round(score) + 1))
-    return "▮" * filled + "▯" * (len(EFFORT_LEVELS) - filled)
+def effort_out_of_ten(score: float) -> float:
+    """The score on a scale from 1 (routine) to 10 (hard), one decimal.
+
+    Jev's answer is already continuous - the expected level over the four,
+    1.49 for a task between short and medium - and showing it as four bars
+    rounded that away: 1.49 and 1.51 looked a level apart, 1.51 and 2.49 the
+    same. Stretching it to ten is no more than a rescale; the decimals are
+    Jev's, not invented."""
+    top = len(EFFORT_LEVELS) - 1
+    return round(1 + 9 * min(top, max(0.0, score)) / top, 1)
 
 
 def edges_from(depends_p: dict[tuple[int, int], float],

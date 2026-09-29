@@ -378,7 +378,7 @@ def jev_into_state(course: str, state: dict) -> bool:
     context.set_course(course, sections=sections, statements=singles,
                        proof_of=proofs, proofs=False, earlier_tasks=earlier,
                        jev_pick={"task": task_ref(sheet_id, state.get("task")),
-                                 "edited": False})
+                                 "edited": False, "dropped": dropped})
     remember_selection(course)
     state = {"sections": sections, "statements": singles, "proof_of": proofs,
              "earlier": earlier}
@@ -469,7 +469,7 @@ def plan_sheet(course: str, state: dict) -> dict | None:
             "selection": {"sections": sections, "statements": singles, "proof_of": proofs,
                           "proofs": False, "earlier_tasks": earlier,
                           "jev_pick": {"task": task_ref(sheet["sheet_id"], task["number"]),
-                                       "edited": False}},
+                                       "edited": False, "dropped": dropped}},
             "dropped": dropped,
         }
     plan = {"format": store.PLAN_FORMAT, "sheet_id": sheet["sheet_id"],
@@ -502,7 +502,7 @@ def plan_lines(plan: dict, course: str) -> list[str]:
         if chosen.get("earlier_tasks"):
             parts.append(count(chosen["earlier_tasks"], "earlier task"))
         what = f" · {', '.join(parts)}" if parts else ""
-        lines.append(f"Task {n}  {plan_core.effort_bars(planned['effort'])} "
+        lines.append(f"Task {n}  {plan_core.effort_out_of_ten(planned['effort']):4.1f}/10 "
                      f"{plan_core.effort_word(planned['effort'])}{what}")
     lines.append(f"Dependencies: {plan_core.dependency_text(edges)}")
     return lines
@@ -660,29 +660,93 @@ def sheet_pdf(sheet: dict) -> Path | None:
     return None
 
 
-def open_sheet(sheet: dict) -> bool:
-    """Open the sheet's PDF in the configured viewer (Firefox by default)."""
+def notes_pdf(course_slug: str) -> Path | None:
+    """The lecture notes a course's knowledge base was read from: the script
+    uni.json points at, else the file named in the knowledge base, looked for
+    in the course folder."""
+    from . import store, uniconfig
+
+    try:
+        cfg = uniconfig.load()
+    except Exception:
+        return None
+    for course in cfg.courses:
+        if store.slug_for(course.name) != course_slug:
+            continue
+        script = store._course_script(cfg, course)
+        if script is not None:
+            return script
+        source = store.knowledge_source(course_slug)
+        if source:
+            folder = cfg.category_dir(course, "skript")
+            for path in [folder / source] + sorted(folder.rglob(source)):
+                if path.exists():
+                    return path
+    return None
+
+
+def task_page(task: dict | None, exercises: list[dict]) -> int | None:
+    """The page of the lecture notes a task points at ("Aufgabe (1.1) vom
+    Skriptum"), to open the notes right there."""
+    from .core.prompts import resolve_exercises
+
+    if not task:
+        return None
+    found, _ = resolve_exercises(task, exercises)
+    return found[0].get("page") if found else None
+
+
+def open_pdf(path: Path, page: int | None = None) -> bool:
+    """Open a PDF in the configured viewer (Firefox by default), at `page`
+    where the viewer can be told one."""
     import shlex
     import subprocess
 
     from . import uniconfig
 
+    try:
+        viewer = uniconfig.load().pdf_viewer
+    except Exception:
+        viewer = "firefox"
+    argv = shlex.split(viewer)
+    name = Path(argv[0]).name if argv else ""
+    target = [str(path)]
+    if page:
+        if any(b in name for b in ("firefox", "chrom", "brave", "librewolf", "zen")):
+            target = [f"{path.as_uri()}#page={page}"]
+        elif name == "zathura":
+            target = ["-P", str(page), str(path)]
+        elif name in ("okular", "qpdfview"):
+            target = ["-p", str(page), str(path)]
+        elif name == "evince":
+            target = ["-i", str(page), str(path)]
+    try:
+        subprocess.Popen(argv + target, start_new_session=True,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except OSError as e:
+        say("Could not open the PDF", f"{viewer}: {e}", glyph="⚠")
+        return False
+    return True
+
+
+def open_sheet(sheet: dict) -> bool:
     path = sheet_pdf(sheet)
     if path is None:
         say("Sheet not found", f"{sheet.get('source')} is not in the course folder "
             "any more.", glyph="⚠")
         return False
-    try:
-        viewer = uniconfig.load().pdf_viewer
-    except Exception:
-        viewer = "firefox"
-    try:
-        subprocess.Popen(shlex.split(viewer) + [str(path)], start_new_session=True,
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except OSError as e:
-        say("Could not open the sheet", f"{viewer}: {e}", glyph="⚠")
+    return open_pdf(path)
+
+
+def open_notes(course: str, state: dict) -> bool:
+    """The course's lecture notes - at the exercise the current task points
+    at, if it points at one."""
+    path = notes_pdf(course)
+    if path is None:
+        say("Lecture notes not found", "uni.json names no script for this course, "
+            "or its file is not in the course folder.", glyph="⚠")
         return False
-    return True
+    return open_pdf(path, task_page(task_of(state), state["exercises"]))
 
 
 def ingest(cfg) -> dict:

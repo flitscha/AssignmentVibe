@@ -221,6 +221,7 @@ Flickable {
           "Space", "tick the row (Context tab)",
           "P", "preview the prompt; on a statement, tick its proof",
           "O", "open the sheet's PDF",
+          "N", "open the lecture notes (at the task's exercise)",
           "A", "let Jev pick the context",
           "E", "edit the context",
           "/", "search the lecture notes"

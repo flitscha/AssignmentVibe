@@ -91,3 +91,11 @@ assert.deepStrictEqual(M.toRequest(sel), { ids: [], proofOf: [], allProofs: fals
 assert.strictEqual(M.kilo(1234), "1.2k")
 assert.strictEqual(M.kilo(40), "<0.1k")
 console.log("model: all passed")
+
+// Effort colours run from green to red; dependencies read as sentences.
+assert.deepStrictEqual(M.effortHsl(1).map(x => +x.toFixed(3)), [0.333, 0.62, 0.58])
+assert.strictEqual(M.effortHsl(10)[0], 0)
+assert.strictEqual(M.effortHsl(12)[0], 0)
+assert.strictEqual(M.dependencyText([{ number: 1, after: [] }, { number: 3, after: [2] }, { number: 5, after: [1, 3] }]),
+                   "3 builds on 2  ·  5 builds on 1, 3")
+console.log("effort: all passed")

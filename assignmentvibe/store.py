@@ -198,6 +198,12 @@ def load_knowledge(course_slug: str) -> list[dict]:
     return _load_json(path, {"entries": []})["entries"]
 
 
+def knowledge_source(course_slug: str) -> str | None:
+    """The file name of the lecture notes a knowledge base was read from."""
+    path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
+    return _load_json(path, {}).get("source")
+
+
 def load_exercises(course_slug: str) -> list[dict]:
     """The exercises the script itself carries (see core.exercises). Empty for
     a script ingested before these were extracted - re-ingesting it fills them."""
