@@ -1,4 +1,11 @@
-Solve the task below. Work through it one step at a time, and for each step name the definition or theorem from the lecture notes below that justifies it. Stick to the notation used in the notes. If anything in the task is ambiguous, say so instead of guessing.
+Solve the task below the way a model solution would.
+- Go straight to the result: no restating the task, no general remarks, no summary at the end, no alternative approaches.
+- Justify every step. Routine steps get a line; the steps the argument rests on are carried out in full - never skipped or covered by "clearly" or "similarly".
+- Use the definitions below exactly as stated there, in their notation.
+- The theorems below may be cited where they help - they are offered, not required. Do not force them in.
+- Any other result must be well known (standard Bachelor material): name it and quote, right below, the exact statement you use.
+- If the task is ambiguous or seems wrong, say so instead of guessing.
+- Write in the language of the task, in later replies too.
 
 # Course: PS Optimierung
 Sheet 7, due: 5/6 . 5 . 2026
@@ -155,5 +162,3 @@ so gibt es ein y∗∈D so, dass (x∗, y∗) ein Sattelpunkt der Lagrange-Funkt
 52
 PAGE57
 
-# What I have so far
-(nothing yet)

@@ -110,9 +110,16 @@ selection. Over `max_context_chars` the least certain proofs are dropped.
 The prompt is the product, and its wording has not been checked against real
 use yet. Concretely:
 
-- [ ] `SOLVE_INSTRUCTION` in `core/prompts.py` - is "solve it step by step,
-      cite the notes" the right default?
-- [ ] The ten `FOLLOW_UPS` - wording, which are missing, which are never used
+- [x] The instruction (`core/prompts.py`, SOLVE_RULES; 2026-09-29): the
+      direct route of a model solution, every step justified, the hard ones in
+      full; definitions below as stated; theorems and earlier exercises
+      offered, not required; other results only well-known ones, named and
+      quoted; the language of the task. Lines about notes only when the prompt
+      carries notes.
+- [x] The `FOLLOW_UPS` reworked (2026-09-29): out "Step by step", "Stick to
+      the notes", "Shorter" (the instruction covers them); in "Split into
+      lemmas", "Check my attempt" (for a pasted screenshot), "Write it up".
+- [ ] Watch how ChatGPT/Claude actually follow it, and tighten what they ignore
 - [ ] How the exercise block and the context block read to the model
       (`docs/example_prompts/optimierung_script_exercise.txt`)
 - [ ] Whether the context header line ("every definition and theorem of these

@@ -1,5 +1,5 @@
 """
-Step 4: use-case + task + (simulated) partial solution + knowledge context
+Task + chosen lecture notes + earlier exercises (+ an attempt, if given)
 -> finished LLM prompt.
 
 Context is only what was chosen - whole sections, single statements (by hand
@@ -23,26 +23,55 @@ from pathlib import Path
 # free to make afterwards and impossible to make before - you read the first
 # step, see the idea, and stop. What the modes were really for lives on in
 # FOLLOW_UPS below, where it costs one click at the moment you know you need it.
-SOLVE_INSTRUCTION = (
-    "Solve the task below. Work through it one step at a time, and for each step "
-    "name the definition or theorem from the lecture notes below that justifies "
-    "it. Stick to the notation used in the notes. If anything in the task is "
-    "ambiguous, say so instead of guessing."
-)
-
+#
+# How it asks. Chat models tend to pad (restating the task, general remarks, a
+# summary) and still wave through the one step the argument rests on with
+# "clearly". So: the direct route, every step justified, and the care spent
+# where the difficulty is. The lines about definitions, theorems and earlier
+# exercises only appear when the prompt carries such things - "use the
+# definitions below" above a prompt without any is noise.
+SOLVE_HEAD = "Solve {what} the way a model solution would."
+SOLVE_RULES = [
+    "Go straight to the result: no restating the task, no general remarks, no "
+    "summary at the end, no alternative approaches.",
+    "Justify every step. Routine steps get a line; the steps the argument rests "
+    "on are carried out in full - never skipped or covered by \"clearly\" or "
+    "\"similarly\".",
+]
+DEFINITIONS_RULE = "Use the definitions below exactly as stated there, in their notation."
+RESULTS_RULE = ("The {what} below may be cited where they help - they are offered, "
+                "not required. Do not force them in.")
+TAIL_RULES = [
+    "Any other result must be well known (standard Bachelor material): name it "
+    "and quote, right below, the exact statement you use.",
+    "If the task is ambiguous or seems wrong, say so instead of guessing.",
+    "Write in the language of the task, in later replies too.",
+]
+WHOLE_TASK = "the task below"
 # A task with parts a), b), c) is often solved one part at a time, and each
 # part can be long; asking for all of it at once gets a long answer to parts
 # not reached yet. With a part chosen the prompt still carries the whole task
 # - the earlier parts are often what the chosen one builds on - but asks for
 # that part only, and names it again at the end.
-SOLVE_PART_INSTRUCTION = (
-    "Solve part {label}) of the task below - only that part. The parts before "
-    "it are there for reference: you may use their results as given, without "
-    "solving them again. Work through it one step at a time, and for each step "
-    "name the definition or theorem from the lecture notes below that "
-    "justifies it. Stick to the notation used in the notes. If anything in the "
-    "task is ambiguous, say so instead of guessing."
-)
+ONE_PART = "only part {label}) of the task below"
+EARLIER_PARTS = " The parts before it may be used as given."
+
+
+def instruction(part: str | None = None, definitions: bool = False,
+                theorems: bool = False, earlier: bool = False) -> str:
+    """The instruction a prompt opens with; see SOLVE_RULES above."""
+    rules = list(SOLVE_RULES)
+    if definitions:
+        rules.append(DEFINITIONS_RULE)
+    offered = [w for w, on in (("theorems", theorems), ("earlier exercises", earlier)) if on]
+    if offered:
+        rules.append(RESULTS_RULE.format(what=" and ".join(offered)))
+    rules += TAIL_RULES
+    head = SOLVE_HEAD.format(what=ONE_PART.format(label=part) if part else WHOLE_TASK)
+    if part:
+        head += EARLIER_PARTS
+    return "\n".join([head] + [f"- {r}" for r in rules])
+
 
 # Canned replies to paste back into the chat. The point is the keyboard: these
 # are used on a tablet or with a pen in hand, where typing "erklaere den letzten
@@ -50,32 +79,36 @@ SOLVE_PART_INSTRUCTION = (
 # alone as a chat message - no placeholders to fill in, nothing to edit after
 # pasting - which is why none of them name a step number or a symbol.
 FOLLOW_UPS = [
-    ("\U0001F50E", "Expand last step",
-     "Expand on that last step. What exactly happens there, and why is it allowed?"),
-    ("\U0001F4CF", "Step by step",
-     "Break that down further. Do not skip any intermediate step, including the "
-     "ones that look obvious."),
-    ("\U0001F4D6", "Stick to the notes",
-     "Use only the definitions and theorems from the lecture notes above. If you "
-     "need something that is not in them, say so instead of using it."),
+    ("\U0001F50E", "Explain that step",
+     "Explain the last step in more detail: what exactly happens there, and why "
+     "is it allowed?"),
+    ("\u2753", "Why does that hold?",
+     "Why does that hold? Name the definition or theorem that justifies this step, "
+     "and show that its conditions are met here."),
+    ("\U0001F9E9", "Split into lemmas",
+     "This is too long to see the idea. Move the technical parts into auxiliary "
+     "lemmas: state them first, then give the main proof in a few lines using "
+     "them. After that, prove each lemma cleanly."),
+    ("\U0001F9E0", "Idea behind it",
+     "Set the calculation aside for a moment: what is the idea behind this "
+     "approach, and how could I have recognised myself that it fits here?"),
     ("\U0001F4A1", "Just a hint",
      "Do not give me the solution yet. Just give me a hint so I can get to the "
      "idea myself."),
     ("\u27A1\uFE0F", "Only the next step",
      "Only the next step, not the rest of the solution."),
-    ("\u2753", "Why does that hold?",
-     "Why does that hold? Name the definition or theorem that justifies this step, "
-     "and explain why its conditions are met here."),
-    ("\U0001F50D", "Find the mistake",
-     "Check that again. If there is a mistake, tell me where it is - and fix only "
-     "that spot, not the whole calculation."),
-    ("\U0001F9E0", "Idea behind it",
-     "Set the calculation aside for a moment: what is the idea behind this "
-     "approach, and how could I have recognised myself that it fits here?"),
-    ("\u2702\uFE0F", "Shorter",
-     "Too long-winded. Keep it short: just the calculation and the result."),
+    ("\U0001F4DD", "Check my attempt",
+     "Attached is my own attempt. Check it: is the approach sensible? Is every "
+     "step correct - if not, point to the first mistake exactly? And how does it "
+     "continue from where I stopped? Build on my attempt instead of starting over."),
+    ("\U0001F50D", "Check your solution",
+     "Check your solution again, step by step. If there is a mistake, say where "
+     "it is and fix only that spot, not the whole solution."),
     ("\U0001F9EA", "Give an example",
      "Give me a small concrete example I can follow to see that this is true."),
+    ("\U0001F4C4", "Write it up",
+     "Now write the complete solution out cleanly, the way I would hand it in: "
+     "every step, no commentary."),
 ]
 
 # Proofs stay out unless asked for. The theorem a task asks you to prove is
@@ -181,7 +214,7 @@ def build_prompt(
     proofs go in even while `include_proofs` is off. `earlier_tasks` are
     (label, task) of earlier sheets the task builds on - their statement only,
     see core.selection.earlier_tasks. `part` ("b") asks for that part of the
-    task only, see SOLVE_PART_INSTRUCTION; a label the task does not have is
+    task only, see ONE_PART; a label the task does not have is
     ignored."""
     from . import selection
     from .assignments import title_of
@@ -200,8 +233,11 @@ def build_prompt(
     asked = next((p for p in parts if p["label"] == part), None) if part else None
 
     lines = []
-    lines.append(SOLVE_PART_INSTRUCTION.format(label=asked["label"]) if asked
-                 else SOLVE_INSTRUCTION)
+    lines.append(instruction(
+        part=asked["label"] if asked else None,
+        definitions=any(e.get("type") == "Definition" for e in context),
+        theorems=any(e.get("type") != "Definition" for e in context),
+        earlier=bool(earlier_tasks)))
     lines.append("")
     lines.append(f"# Course: {course_name}")
     if sheet_meta.get("discussion_date"):
@@ -222,7 +258,8 @@ def build_prompt(
 
     if earlier_tasks:
         lines.append("# Earlier exercises this task may build on")
-        lines.append("(their statements only; my solutions to them are not included)")
+        lines.append("(their statements only - their results may be used as given; "
+                     "my solutions to them are not included)")
         lines.append("")
         for label, earlier in earlier_tasks:
             lines.append(f"## {label}")
@@ -266,10 +303,12 @@ def build_prompt(
         lines.append(asked["text"])
         lines.append("")
 
-    lines.append("# What I have so far")
-    lines.append(partial_solution.strip() if partial_solution else "(nothing yet)")
+    if partial_solution and partial_solution.strip():
+        lines.append("# My attempt so far")
+        lines.append(partial_solution.strip())
+        lines.append("")
 
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip() + "\n"
 
 
 if __name__ == "__main__":
