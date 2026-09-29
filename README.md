@@ -5,7 +5,7 @@ exercise you are working on into a precise prompt for ChatGPT or Claude: the
 task, the definitions and theorems of *your* lecture notes it needs, and the
 earlier exercises it builds on - one click, onto the clipboard.
 
-![The bar button](docs/screenshots/bar.png)
+<img src="docs/screenshots/bar.png" width="143" alt="The bar button">
 
 > **Fully vibe-coded.** Every line here - code, docs and this README - was
 > written by an AI (Claude) from plain-language descriptions, and I have not
@@ -14,9 +14,20 @@ earlier exercises it builds on - one click, onto the clipboard.
 > tests, and the panel was driven on a real Omarchy desktop and checked by
 > screenshot. It works on my machine; read it with that in mind.
 
-| Task | Context | Follow-ups |
-|---|---|---|
-| ![Task tab](docs/screenshots/task.png) | ![Context tab](docs/screenshots/context.png) | ![Follow-ups tab](docs/screenshots/followups.png) |
+**Task** - course, sheet and task side by side, and what goes into the prompt:
+
+<img src="docs/screenshots/task.png" width="660" alt="Task tab">
+
+**Context** - the outline of the lecture notes: tick chapters, statements,
+proofs, and tasks of earlier sheets:
+
+<img src="docs/screenshots/context.png" width="660" alt="Context tab">
+
+<details>
+<summary><b>Follow-ups</b> - canned replies for the chat, one click each</summary>
+<br>
+<img src="docs/screenshots/followups.png" width="660" alt="Follow-ups tab">
+</details>
 
 ## What it does
 
