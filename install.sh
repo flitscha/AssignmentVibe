@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Links this checkout's panel into the Omarchy plugin folder and puts it on
-# the bar - where the old command widget ("assignmentvibe", which ran
-# `assignmentvibe pick`) was, if it is still there; that one is removed.
+# Links this checkout - the repository is the plugin - into the Omarchy plugin
+# folder and puts it on the bar, where the old command widget
+# ("assignmentvibe", which ran `assignmentvibe pick`) was, if it is still
+# there; that one is removed. For a plain install without a checkout to work
+# on: omarchy plugin add https://github.com/flitscha/AssignmentVibe.git
 # Safe to run again.
 set -euo pipefail
 

@@ -1,5 +1,5 @@
 """
-The backend of the panel in the Omarchy bar (plugin/ in this repo).
+The backend of the panel in the Omarchy bar (the QML at the root of this repo).
 
 `assignmentvibe serve` runs for as long as the shell does and speaks JSON
 lines over stdin/stdout: one request per line in,

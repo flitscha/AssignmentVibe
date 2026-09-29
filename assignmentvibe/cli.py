@@ -1,6 +1,6 @@
 """
 `assignmentvibe` CLI - the terminal side of the tool, and the backend of the
-panel in the Omarchy bar (`serve`, see assignmentvibe.api and plugin/).
+panel in the Omarchy bar (`serve`, see assignmentvibe.api and the QML at the root).
 
 Subcommands:
   config show|init|path                   the per-semester config (uniconfig.py)
@@ -30,7 +30,7 @@ read the first step, get the idea, and stop. What those modes were for now
 lives in the follow-ups, one click at the moment it is needed.
 
 Everything interactive - picking a task, the context, Jev - lives in the panel
-(plugin/); the logic behind it is assignmentvibe.hub, shared with the commands
+(Service.qml, Popup.qml, views/); the logic behind it is assignmentvibe.hub, shared with the commands
 here.
 """
 

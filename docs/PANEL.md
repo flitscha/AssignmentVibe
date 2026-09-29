@@ -10,35 +10,69 @@ by side, a new window for every step.
 
 ## Install
 
+The repository is the plugin: `manifest.json` and the QML sit at its root,
+next to the Python backend (`assignmentvibe/`, `bin/`) the panel runs. Either
+
 ```bash
-plugin/install.sh
+omarchy plugin add https://github.com/flitscha/AssignmentVibe.git --enable
 ```
 
-links this folder to `~/.config/omarchy/plugins/felix.assignmentvibe`, enables
-it, and puts it where the old command widget (`"id": "assignmentvibe"` in
-`shell.json`) was - removing that one, with a backup of `shell.json` beside it.
-Without the old widget it lands in the right section; move it with
+which clones it into `~/.config/omarchy/plugins/felix.assignmentvibe`, or,
+for a checkout you work on,
+
+```bash
+./install.sh
+```
+
+which links the checkout there instead, enables it, and puts it where the old
+command widget (`"id": "assignmentvibe"` in `shell.json`) was - removing that
+one, with a backup of `shell.json` beside it. Without the old widget it lands
+in the right section; move it with
 `omarchy bar move felix.assignmentvibe --before omarchy.tray`.
 
-After changing QML here, restart the shell (`omarchy restart shell`): the
-plugin lives outside `~/.config`, and hot reload does not reliably pick up
-changed files through the link.
+Either way it needs `python-pymupdf`. After changing QML in a linked
+checkout, restart the shell (`omarchy restart shell`): the shell watches the
+plugin folder with `inotifywait -r`, which does not follow the link.
+
+## What it does on your machine
+
+Omarchy plugins run unsandboxed, so, plainly:
+
+- Runs `bin/assignmentvibe serve` (Python) for as long as the shell runs; the
+  panel talks to it over stdin/stdout. Python's bytecode cache goes to
+  `~/.cache/assignmentvibe/pycache`, not into the plugin folder (which the
+  shell watches for changes).
+- Reads and writes only its own files: `~/.config/assignmentvibe/` (uni.json,
+  settings.json, openrouter.key), `~/.local/share/assignmentvibe/` (the
+  knowledge base), `~/.local/state/assignmentvibe/` and
+  `~/.cache/assignmentvibe/`. Reads the PDFs in the course folders uni.json
+  names; `sort --apply` (terminal only) moves downloads there and puts
+  replaced files in the trash.
+- Network: only with an OpenRouter key in `openrouter.key`, and only when
+  you press a Jev button - to `openrouter.ai`, with the task and the
+  statements of your notes. Nothing else leaves the machine.
+- Starts other programs when asked: the clipboard (`wl-copy`), your PDF viewer
+  and browser, your editor for the config files, `tesseract` for
+  `assignmentvibe work`.
 
 ## How it is built
 
 ```
+manifest.json     the plugin's manifest (Omarchy wants it at the repo root)
 BarWidget.qml     the pill: course and task, tooltip with what the prompt holds
 Popup.qml         the panel: tabs, the banner for messages, the copy footer
 Service.qml       runs `assignmentvibe serve` and talks JSON lines with it
 Model.js          the context editor's logic - plain JS, tested under node
 views/            Task, Context (+ ContextRow), Follow-ups, Setup, Preview
 controls/         small pieces: chips, tri-state box, meter, banner, …
+tests/            Model.js under node
+install.sh        link a checkout into the plugin folder
 ```
 
 The Python side does all the work (`assignmentvibe/api.py` on top of
 `assignmentvibe/hub.py`); the panel only draws what it answers. The backend is
-one process for the whole session, found next to this folder
-(`../bin/assignmentvibe`), so panel and backend are always the same version.
+one process for the whole session, found in the same checkout
+(`bin/assignmentvibe`), so panel and backend are always the same version.
 Every answer carries the whole state, so a click is one round trip and one
 redraw. Only the context editor ticks locally (Model.js) and saves a moment
 after the last click - a round trip per tick would lag.
@@ -83,7 +117,7 @@ qs ipc -p "$OMARCHY_PATH/shell" call assignmentvibe copy
 ## Tests
 
 ```bash
-node plugin/tests/model.test.js
+node tests/model.test.js
 ```
 
 The views themselves have no automatic tests; they were checked on a real

@@ -1,4 +1,4 @@
-// node plugin/tests/model.test.js
+// node tests/model.test.js
 const assert = require("assert")
 const M = require("./load")("Model.js")
 

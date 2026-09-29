@@ -7,10 +7,9 @@ import Quickshell.Io
 // answer carries the whole `state`, which is all the bar pill and the panel
 // draw from.
 //
-// The backend is found next to this plugin - plugin/ is linked into
-// ~/.config/omarchy/plugins, and ../bin/assignmentvibe beside it is the same
-// checkout - so panel and backend are always the same version. Failing that,
-// `assignmentvibe` on PATH.
+// The backend is found in this plugin's own folder - the repository is the
+// plugin, bin/assignmentvibe beside this file - so panel and backend are
+// always the same version. Failing that, `assignmentvibe` on PATH.
 //
 // Also the IPC target `assignmentvibe`, for keybindings:
 //   qs ipc -p $OMARCHY_PATH/shell call assignmentvibe toggle
@@ -115,7 +114,7 @@ Item {
     id: backend
     stdinEnabled: true
     command: ["sh", "-c",
-      "dir=$(readlink -f \"$1\"); bin=\"$dir/../bin/assignmentvibe\"; "
+      "dir=$(readlink -f \"$1\"); bin=\"$dir/bin/assignmentvibe\"; "
       + "[ -x \"$bin\" ] || bin=$(command -v assignmentvibe) || { echo 'assignmentvibe not found' >&2; exit 127; }; "
       + "exec \"$bin\" serve",
       "sh", root.pluginDir]

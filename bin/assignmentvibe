@@ -16,4 +16,8 @@ if [[ -n "$ON_PATH" && "$(readlink -f "$ON_PATH")" != "$SELF" ]]; then
   exec "$ON_PATH" "$@"
 fi
 
+# The repository is also an Omarchy plugin, and the shell reloads a plugin on
+# any file written into its folder - __pycache__ included. So the bytecode
+# cache lives in ~/.cache instead.
+export PYTHONPYCACHEPREFIX="${PYTHONPYCACHEPREFIX:-${XDG_CACHE_HOME:-$HOME/.cache}/assignmentvibe/pycache}"
 exec env PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}" python3 -m assignmentvibe.cli "$@"

@@ -13,7 +13,7 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
 - 🟢 **Hub in the Omarchy shell bar.** One menu that shows where you are and
   changes one thing at a time, state remembered per course; follow-ups on
   right click.
-- 🟢 **A real panel instead of the Walker menu** (`plugin/`, 2026-09-28).
+- 🟢 **A real panel instead of the Walker menu** (QML at the repo root, 2026-09-28).
   Course, sheet and task side by side, the context as a tree with a box per
   chapter, statement and proof, search, a preview of the prompt, follow-ups
   as cards. Backed by `assignmentvibe serve` (`api.py` over `hub.py`).
@@ -32,6 +32,20 @@ Legend: 🟢 done · 🟡 partial · ⚪ not started
   for"), `build --part b` in the terminal.
 - 🟢 **Old data is re-read automatically.** `FORMAT` in `core/knowledge.py`
   and `core/assignments.py`; "Read in new sheets" re-reads anything older.
+
+## Later: publish on plugins.omarchy.org
+
+Prepared (2026-09-29): the repository is the plugin (`manifest.json` and the
+QML at its root, `omarchy plugin validate .` passes), `preview.png`, README
+and LICENSE, and what it does on the machine is listed in docs/PANEL.md.
+Submitted through the form in omacom/omarchy-plugin-marketplace, after it has
+been used for a while in English master's courses. Before that:
+
+- [ ] English sheets: "Exercise 3", "Problem 2", "Sheet"/"Assignment", and
+      "Solve Exercise 1.4 from the lecture notes" as a pointer into the notes
+- [ ] English keys in uni.json as an alternative (`notes`, `slides`,
+      `sheets`, `subfolders`), the German ones still read
+- [ ] Try a clean `omarchy plugin add` install on a fresh user
 
 ## Next: read new PDFs in without a click
 

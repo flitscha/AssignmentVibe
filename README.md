@@ -60,22 +60,31 @@ click copies the prompt straight away. In the panel, Enter copies.
 
 ## Install
 
-Omarchy 4 (the Quickshell-based bar), Python 3.10+, and pymupdf:
+Omarchy 4 (the Quickshell-based bar), Python 3.10+ and pymupdf. The
+repository is the plugin:
 
 ```bash
-git clone https://github.com/flitscha/AssignmentVibe.git ~/projects/AssignmentVibe
-cd ~/projects/AssignmentVibe
 sudo pacman -S python-pymupdf
-ln -s "$PWD/bin/assignmentvibe" ~/.local/bin/assignmentvibe
-
-assignmentvibe config init     # ~/.config/assignmentvibe/uni.json - your courses
-plugin/install.sh              # the panel, into the bar
+omarchy plugin add https://github.com/flitscha/AssignmentVibe.git --enable
 ```
 
-Then, in the panel's Setup tab: fill in `uni.json`, and *Read in new PDFs*.
-For Jev, put an [OpenRouter](https://openrouter.ai) key into
-`~/.config/assignmentvibe/openrouter.key` (the Setup tab creates it with the
-right permissions). Tesseract is optional (see below).
+Then, in the panel's Setup tab: fill in `uni.json` (your semester's courses
+and how their PDFs are named), and *Read in new PDFs*. For Jev, put an
+[OpenRouter](https://openrouter.ai) key into
+`~/.config/assignmentvibe/openrouter.key` - the Setup tab creates the file
+with the right permissions. Tesseract is optional (see below).
+
+For the terminal commands, put the launcher on your PATH:
+
+```bash
+ln -s ~/.config/omarchy/plugins/felix.assignmentvibe/bin/assignmentvibe ~/.local/bin/
+```
+
+Working on it: clone it anywhere and run `./install.sh`, which links the
+checkout into the plugin folder instead.
+
+What the plugin does on your machine - processes, files, network - is listed
+in [docs/PANEL.md](docs/PANEL.md#what-it-does-on-your-machine).
 
 ## From the terminal
 
@@ -100,7 +109,7 @@ PNG. Turning that into text for the prompt is not solved yet - see
 
 ## More
 
-- [plugin/README.md](plugin/README.md) - how the panel is built, keys, IPC
+- [docs/PANEL.md](docs/PANEL.md) - how the panel is built, keys, IPC
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - module map and why
 - [docs/STATUS.md](docs/STATUS.md) - what is implemented and tested
 - [docs/ROADMAP.md](docs/ROADMAP.md) - what's next

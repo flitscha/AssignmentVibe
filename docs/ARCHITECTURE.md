@@ -77,10 +77,11 @@ assignmentvibe/
                     the panel draws. Slow jobs (Jev, reading in) on a thread.
   cli.py           The terminal commands.
 
-plugin/            The panel in the Omarchy bar - a Quickshell plugin (QML).
+*.qml, views/,     The panel in the Omarchy bar - a Quickshell plugin, at the
+controls/, Model.js repo root because Omarchy plugins keep manifest.json there.
                     Draws what api.py answers; only the context editor's
-                    ticking is local (plugin/Model.js, tested under node).
-                    See plugin/README.md.
+                    ticking is local (Model.js, tested under node in tests/).
+                    See docs/PANEL.md.
 ```
 
 ## Dependency graph
@@ -102,7 +103,7 @@ paths  <---  store  <---  core.*
 
 hub  --->  store, context, core.*, integrations.*
 api  --->  hub          cli  --->  hub, store, organizer, integrations.launcher
-plugin/ (QML)  --->  `assignmentvibe serve` (api.py), over a pipe
+panel (QML)  --->  `assignmentvibe serve` (api.py), over a pipe
 ```
 
 Rule of thumb for where new code goes: if it's "PDF/text in, data out" with
