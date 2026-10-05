@@ -32,9 +32,11 @@ _slugify = slug_for  # kept for readability at the existing call sites
 
 # Reading the same file twice in one run is the normal case, not an edge one:
 # building a single hub row wants the entries AND the section titles, which live
-# in one 166KB document. Keyed by path and mtime, so a re-ingest inside the same
-# process is still picked up.
+# in one 166KB document - and a course with slides has a second one beside it.
+# Keyed by path and mtime, so a re-ingest inside the same process is still
+# picked up.
 _JSON_CACHE: dict[tuple[str, float], object] = {}
+_JSON_CACHE_SIZE = 8
 
 
 def _load_json(path: Path, default):
@@ -43,7 +45,8 @@ def _load_json(path: Path, default):
     except OSError:
         return default
     if key not in _JSON_CACHE:
-        _JSON_CACHE.clear()
+        if len(_JSON_CACHE) >= _JSON_CACHE_SIZE:
+            _JSON_CACHE.clear()
         _JSON_CACHE[key] = json.loads(path.read_text(encoding="utf-8"))
     return _JSON_CACHE[key]
 
@@ -90,11 +93,17 @@ def ingest_script(pdf_path: Path, course_name: str) -> dict:
     }
 
 
+def _slides_path(course_slug: str) -> Path:
+    return paths.KNOWLEDGE_DIR / f"{course_slug}.slides.json"
+
+
 def load_sections(course_slug: str) -> list[dict]:
     """A course's section tree: [{"key", "level", "title", "page"}, ...] in
-    reading order. Empty for a script ingested before the tree existed."""
+    reading order - the script's, then its slide decks' ("S1", "S1.3", with
+    the deck's "pdf"). Empty for a script ingested before the tree existed."""
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
-    return _load_json(path, {}).get("sections", [])
+    return (_load_json(path, {}).get("sections", [])
+            + _load_json(_slides_path(course_slug), {}).get("sections", []))
 
 
 def load_section_titles(course_slug: str) -> dict[str, str]:
@@ -192,10 +201,33 @@ def load_plan(sheet_id: str) -> dict | None:
 
 
 def load_knowledge(course_slug: str) -> list[dict]:
+    """The script's statements and the slides of the course's decks (see
+    core.slides), as one list: everything downstream - Jev, the context
+    editor, the prompt - treats a slide as one more statement."""
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
-    if not path.exists():
-        return []
-    return _load_json(path, {"entries": []})["entries"]
+    return (_load_json(path, {}).get("entries", [])
+            + _load_json(_slides_path(course_slug), {}).get("entries", []))
+
+
+def ingest_slides(pdfs: list[Path], course_name: str) -> dict:
+    """A course's slide decks -> one entry per slide, beside its script's
+    knowledge base. All decks at once: they are numbered among each other."""
+    from .core import slides as slides_core
+
+    paths.ensure_dirs()
+    slug = _slugify(course_name)
+    _register_course(slug, course_name)
+    sections, entries = slides_core.extract_decks(pdfs)
+    _save_json(_slides_path(slug), {
+        "format": slides_core.FORMAT, "decks": _deck_stamps(pdfs),
+        "sections": sections, "entries": entries})
+    return {"course": course_name, "decks": len(pdfs), "slides": len(entries)}
+
+
+def _deck_stamps(pdfs: list[Path]) -> list[list]:
+    """What a slides file was made from: every deck's path and mtime. A deck
+    added, replaced or gone makes it outdated."""
+    return sorted([str(p), p.stat().st_mtime] for p in pdfs)
 
 
 def knowledge_source(course_slug: str) -> str | None:
@@ -212,14 +244,17 @@ def load_exercises(course_slug: str) -> list[dict]:
 
 
 def _matching_pdfs(cfg, course, category: str) -> list[Path]:
-    """The course's files of one category, as they lie in the library."""
+    """The course's files of one category, as they lie in the library. Slides
+    are looked for in subfolders too: a course folder is often divided by hand
+    (vo/Kapitel 5 - .../), and sort files re-downloads into those."""
     import fnmatch
 
     directory = cfg.category_dir(course, category)
     if not directory.is_dir():
         return []
     patterns = course.patterns.get(category, [])
-    found = [f for f in sorted(directory.glob("*.pdf"))
+    candidates = directory.rglob("*.pdf") if category == "folien" else directory.glob("*.pdf")
+    found = [f for f in sorted(candidates)
              if any(fnmatch.fnmatch(f.name.lower(), pat.lower()) for pat in patterns)]
     return found
 
@@ -238,10 +273,11 @@ def ingest_missing(cfg, progress=None) -> dict:
     in core.knowledge and core.assignments)."""
     from .core.assignments import FORMAT as SHEET_FORMAT
     from .core.knowledge import FORMAT as KNOWLEDGE_FORMAT
+    from .core.slides import FORMAT as SLIDES_FORMAT
 
     known_sheets = {s["sheet_id"] for s in list_sheets()
                     if s.get("format", 1) >= SHEET_FORMAT}
-    result = {"scripts": [], "sheets": [], "errors": []}
+    result = {"scripts": [], "slides": [], "sheets": [], "errors": []}
 
     for course in cfg.active_courses():
         slug = slug_for(course.name)
@@ -260,6 +296,20 @@ def ingest_missing(cfg, progress=None) -> dict:
                     result["scripts"].append(course.name)
                 except Exception as e:
                     result["errors"].append(f"{script.name}: {e}")
+
+        decks = _matching_pdfs(cfg, course, "folien")
+        stored = _load_json(_slides_path(slug), {})
+        if decks and (stored.get("decks") != _deck_stamps(decks)
+                      or stored.get("format", 0) < SLIDES_FORMAT):
+            if progress:
+                progress(f"Slides: {course.name}")
+            try:
+                ingest_slides(decks, course.name)
+                result["slides"].append(course.name)
+            except Exception as e:
+                result["errors"].append(f"{course.name} slides: {e}")
+        elif not decks and stored:
+            _slides_path(slug).unlink()
 
         for pdf in _matching_pdfs(cfg, course, "blaetter"):
             if sheet_id_for(slug, pdf) in known_sheets:

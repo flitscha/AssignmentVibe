@@ -104,7 +104,8 @@ In the panel: `1`–`4` or Tab switch tabs, Enter copies the prompt, Esc
 closes. Task tab: ↑↓ task, ←→ sheet, `O` open the sheet, `N` open the
 lecture notes (at the page of the exercise the task points at), `A` ask Jev,
 `E` edit the context, `P` preview. Context tab: ↑↓ move, →/← open/close, Space
-tick, `P` tick the proof, `/` search.
+tick, `P` tick the proof, `O` open the script or slides at that page, `/`
+search. A line of "In the prompt" on the Task tab opens its page when clicked.
 
 For a keybinding, the service is an IPC target:
 

@@ -134,6 +134,9 @@ function index(ctx) {
 }
 
 function nodeLabel(node) {
+  // A slide deck's parts are keyed "S1.3" (core/slides.py) - nothing a
+  // reader knows; the title says it all.
+  if (node.key.charAt(0) === "S") return node.title || node.key
   if (node.title) return node.key + " " + node.title
   return (node.level === 1 ? "Kapitel " : "Abschnitt ") + node.key
 }
@@ -262,13 +265,14 @@ function statementRow(ctx, idx, sel, id, level, caption) {
   var s = idx.byId[id]
   return {
     kind: "statement", id: id, level: level,
-    label: id, about: s.name || s.text, caption: caption || "",
+    label: id, about: aboutText(s), caption: caption || "",
     on: !!sel.ids[id],
     algorithm: s.algorithm,
     hasProof: hasProof(s),
     proofOn: hasProof(s) && proofOn(sel, id),
     proofText: "proof " + kilo(s.proofSize),
-    size: kilo(s.size)
+    size: kilo(s.size),
+    page: s.page || 0
   }
 }
 
@@ -293,8 +297,8 @@ function rows(ctx, idx, sel, expanded, query, mode) {
       return (mode !== "chosen" || sel.ids[s.id]) && (!needle || matches(s, needle))
     })
     if (ctx.statements.length) {
-      out.push({ kind: "header", text: needle ? "Matching statements" : "Chosen statements",
-                 detail: plural(found.length, "statement") })
+      out.push({ kind: "header", text: needle ? "Matching " + noun(ctx) + "s" : "Chosen " + noun(ctx) + "s",
+                 detail: plural(found.length, noun(ctx)) })
       found.forEach(function(s) {
         out.push(statementRow(ctx, idx, sel, s.id, 0, sectionCaption(ctx, idx, s)))
       })
@@ -314,8 +318,8 @@ function rows(ctx, idx, sel, expanded, query, mode) {
   }
 
   if (ctx.statements.length) {
-    out.push({ kind: "header", text: "Lecture notes",
-               detail: plural(visible.length, "statement") })
+    out.push({ kind: "header", text: sourceName(ctx),
+               detail: plural(visible.length, noun(ctx)) })
     var walk = function(key, level) {
       var node = idx.nodes[key]
       var ids = listed(ctx, idx, sel, idx.beneath[key] || [])
@@ -326,7 +330,7 @@ function rows(ctx, idx, sel, expanded, query, mode) {
       var on = ids.filter(function(id) { return sel.ids[id] }).length
       out.push({ kind: "node", key: key, level: level, label: nodeLabel(node),
                  state: tri(ids, sel.ids), expanded: open,
-                 count: on + "/" + ids.length, size: kilo(size) })
+                 count: on + "/" + ids.length, size: kilo(size), page: node.page || 0 })
       if (!open) return
       ;(idx.children[key] || []).forEach(function(child) { walk(child, level + 1) })
       listed(ctx, idx, sel, idx.direct[key] || []).forEach(function(id) {
@@ -364,6 +368,31 @@ function rows(ctx, idx, sel, expanded, query, mode) {
     out.push({ kind: "empty", text: "No lecture notes read in for this course, and no earlier "
                                   + "sheets - the prompt carries the task alone." })
   return out
+}
+
+// "Lecture notes", "Slides" or both - what the course was read in from.
+function sourceName(ctx) {
+  var slides = ctx.statements.some(function(s) { return s.type === "Slide" })
+  var notes = ctx.statements.some(function(s) { return s.type !== "Slide" })
+  if (slides && notes) return "Lecture notes & slides"
+  return slides ? "Slides" : "Lecture notes"
+}
+
+// What a statement is about. A slide's title alone ("Lemma", "Examples")
+// does not say which; its first words do.
+function aboutText(s) {
+  if (s.type === "Slide" && s.text) return (s.name ? s.name + ": " : "") + s.text
+  return s.name || s.text
+}
+
+// "slide" for a course read in from slides alone, else "statement".
+function noun(ctx) {
+  return sourceName(ctx) === "Slides" ? "slide" : "statement"
+}
+
+// What open_source opens a row at: a section of the outline, or a statement.
+function target(row) {
+  return row.kind === "node" ? "section:" + row.key : row.id
 }
 
 function earlierRow(sel, t, level, withSheet) {

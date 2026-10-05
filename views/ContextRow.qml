@@ -8,7 +8,7 @@ import "../controls"
 //
 //   header      LECTURE NOTES                               96 statements
 //   node        ▸ [◐] 3 Konvexe Funktionen                     2/17 · 3.1k
-//   statement       [✓] Satz 3.1.5  Charakterisierung …  [proof 1.2k]  0.3k
+//   statement       [✓] Satz 3.1.5  Charakterisierung …  [proof 1.2k]  0.3k  ↗
 //   sheet       ▸ [ ] Sheet 2                                        0/5
 //   earlier         [✓] Task 3  Zeigen Sie, dass …
 //
@@ -24,6 +24,7 @@ BorderSurface {
   signal toggled()
   signal expandToggled()
   signal proofToggled()
+  signal openRequested()
 
   readonly property bool folder: row.kind === "node" || row.kind === "sheet"
   readonly property bool tickable: folder || row.kind === "statement" || row.kind === "earlier"
@@ -185,6 +186,20 @@ BorderSurface {
         text: root.folder
           ? (root.row.count || "") + (root.row.size ? "  ·  " + root.row.size : "")
           : (root.row.kind === "statement" ? (root.row.size || "") : "")
+      }
+
+      // To look a statement or slide up where it is, instead of searching the
+      // PDF for it. Not on sheets and earlier tasks: those are no page.
+      Button {
+        visible: (root.row.kind === "statement" || root.row.kind === "node") && root.row.page > 0
+        iconText: Glyphs.openExternal
+        iconSize: Style.font.bodySmall
+        horizontalPadding: Style.space(4)
+        verticalPadding: Style.space(1)
+        foreground: root.hot ? root.look.fg : root.look.muted
+        fontFamily: root.look.font
+        tooltipText: "O · open the PDF at page " + root.row.page
+        onClicked: root.openRequested()
       }
     }
   }

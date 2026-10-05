@@ -35,12 +35,17 @@ proofs, and tasks of earlier sheets:
   a small knowledge base: every definition, theorem and proof, placed in the
   outline of the notes; every task of every sheet, split into its parts. A
   sheet that only says "Lösen Sie Aufgabe (1.11) vom Skriptum" gets the
-  exercise's text from the notes.
+  exercise's text from the notes. A course taught from slides is read slide
+  by slide: each one is a statement of its own, placed under its lecture and
+  the part of the deck it is in.
 - **You pick the context - or let Jev pick it.** Tick chapters, single
   statements and their proofs, and tasks of earlier sheets. Optionally, Jev
   (a yes/no decision model on OpenRouter, fractions of a cent per pick)
   judges for each statement whether the task needs it. Nothing chosen means
   no context - nothing is guessed.
+- **Takes you there.** Every statement, slide and section in the context
+  opens the script or slide deck at its page with one click - to look up
+  what Jev picked without searching the PDF for it.
 - **Plans a sheet.** Jev once per sheet: each task's context, how much work
   each is (the bar beside it, green to red), and which task builds on which.
 - **One part at a time.** For a task with a), b), c): ask for one part; the

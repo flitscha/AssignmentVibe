@@ -197,12 +197,34 @@ def build(pdf_path: Path, entries: list[dict]) -> list[dict]:
     return nodes
 
 
+# Slide decks are keyed "S1", "S1.3" (see core.slides) and come after every
+# chapter of a script.
+SLIDES_OFFSET = 10_000
+
+
 def sort_key(key: str) -> tuple:
-    return tuple(int(p) if p.isdigit() else 0 for p in key.split("."))
+    def part(p: str) -> int:
+        if p.isdigit():
+            return int(p)
+        if p[:1] == "S" and p[1:].isdigit():
+            return SLIDES_OFFSET + int(p[1:])
+        return 0
+    return tuple(part(p) for p in key.split("."))
+
+
+def is_slides(key: str) -> bool:
+    return key[:1] == "S"
 
 
 def label(nodes: dict[str, str], key: str) -> str:
     """'3.1' -> '3.1 Konvexe Funktionen', or the bare key when the script had no
-    outline and there is no title to show."""
+    outline and there is no title to show. A part of a slide deck is named by
+    its deck and title, the key being nothing a reader knows:
+    'S1.3' -> 'Lecture 1 · Primitive Recursive Functions'."""
     title = nodes.get(key)
+    if is_slides(key):
+        deck = key.split(".")[0]
+        if deck != key and nodes.get(deck):
+            return f"{nodes[deck]} · {title or key}"
+        return title or key
     return f"{key} {title}" if title else key

@@ -99,3 +99,15 @@ assert.strictEqual(M.effortHsl(12)[0], 0)
 assert.strictEqual(M.dependencyText([{ number: 1, after: [] }, { number: 3, after: [2] }, { number: 5, after: [1, 3] }]),
                    "3 builds on 2  ·  5 builds on 1, 3")
 console.log("effort: all passed")
+
+// Slide decks (core/slides.py): their parts are keyed "S1.3", which nobody
+// knows - the label is the title alone. A row opens at a section or a statement.
+assert.strictEqual(M.nodeLabel({ key: "S1.3", title: "Pairing", level: 2 }), "Pairing")
+assert.strictEqual(M.nodeLabel({ key: "3.1", title: "Konvexe Funktionen", level: 2 }), "3.1 Konvexe Funktionen")
+assert.strictEqual(M.target({ kind: "node", key: "S1.3" }), "section:S1.3")
+assert.strictEqual(M.target({ kind: "statement", id: "Lecture 1, slide 16" }), "Lecture 1, slide 16")
+assert.strictEqual(M.sourceName(ctx), "Lecture notes")
+assert.strictEqual(M.sourceName({ statements: [{ type: "Slide" }] }), "Slides")
+assert.strictEqual(M.sourceName({ statements: [{ type: "Slide" }, { type: "Satz" }] }), "Lecture notes & slides")
+assert.strictEqual(M.statementRow(ctx, idx, sel, "Satz 1.1.2", 0).page, 0)
+console.log("slides: all passed")

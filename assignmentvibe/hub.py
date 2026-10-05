@@ -541,39 +541,57 @@ def statement_label(e: dict, width: int = 48) -> str:
     # The number alone says nothing ("Satz 3.1.5"), so the label carries what
     # the statement is about: its name if it has one, else how it begins.
     about = e.get("name") or " ".join(e["text"].split())
+    if e.get("type") == "Slide":
+        # "Lemma" alone does not say which; the slide's first words do.
+        about = f"{about}: {' '.join(e['text'].split())}" if e.get("text") else about
     if len(about) > width:
         about = about[:width - 1] + "…"
     return f"{entry_id(e)}  {about}"
 
 
-def selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
+SECTION_TARGET = "section:"
+
+
+def selection_items(course: str, state: dict) -> list[dict]:
     """One line per chosen section and per single statement, "+ proof" where
-    its proof goes in too - the exact list, for the tooltip and notifications.
-    `limit` cuts it with an "… and N more" line."""
+    its proof goes in too - the exact list. Each with the `target` that
+    open_source opens it at ("section:3.1", "Satz 3.1.5", "Lecture 1, slide
+    16"), None for a line that is not in a PDF of the course."""
     from . import store
     from .core import selection, toc
     from .core.prompts import entry_id
 
     knowledge = store.load_knowledge(course)
     titles = store.load_section_titles(course)
-    lines = [f"Section {toc.label(titles, k)}" for k in state.get("sections") or []]
+    items = [{"text": (toc.label(titles, k) if toc.is_slides(k)
+                       else f"Section {toc.label(titles, k)}"),
+              "target": SECTION_TARGET + k}
+             for k in state.get("sections") or []]
     by_id = {entry_id(e): e for e in selection.statements(knowledge, True)}
     proofs = set(state.get("proof_of") or ())
     singles = state.get("statements") or []
     for i in singles:
         label = statement_label(by_id[i]) if i in by_id else i
-        lines.append(label + ("  + proof" if i in proofs else ""))
+        items.append({"text": label + ("  + proof" if i in proofs else ""),
+                      "target": i if i in by_id else None})
     # Proofs of statements inside a whole section have no line of their own.
     if state.get("proofs"):
-        lines.append("+ all their proofs")
+        items.append({"text": "+ all their proofs", "target": None})
     else:
         inside = selection.entries_in(knowledge, state.get("sections") or [], True)
-        lines += [f"+ proof of {entry_id(e)}" for e in inside
-                  if entry_id(e) in proofs and entry_id(e) not in singles]
+        items += [{"text": f"+ proof of {entry_id(e)}", "target": entry_id(e)}
+                  for e in inside if entry_id(e) in proofs and entry_id(e) not in singles]
     earlier = state.get("earlier") or state.get("earlier_tasks") or []
     if earlier:
         found = selection.earlier_tasks(store.list_sheets(course), earlier)
-        lines += [f"Earlier: {label}" for label, _ in found]
+        items += [{"text": f"Earlier: {label}", "target": None} for label, _ in found]
+    return items
+
+
+def selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
+    """selection_items as text, for the tooltip and notifications. `limit`
+    cuts it with an "… and N more" line."""
+    lines = [item["text"] for item in selection_items(course, state)]
     if limit and len(lines) > limit:
         lines = lines[:limit - 1] + [f"… and {len(lines) - limit + 1} more"]
     return lines
@@ -756,6 +774,44 @@ def open_pdf(path: Path, page: int | None = None) -> bool:
     return True
 
 
+def source_of(course: str, target: str) -> tuple[Path | None, int | None, str]:
+    """(PDF, page, what it is) of a line of the context - a section of the
+    script or a slide deck, a statement, a slide. The PDF is None when it is
+    not where it was read in from any more."""
+    from . import store
+    from .core import selection
+    from .core.prompts import entry_id
+
+    if target.startswith(SECTION_TARGET):
+        key = target[len(SECTION_TARGET):]
+        node = next((n for n in store.load_sections(course) if n["key"] == key), None)
+        if node is None:
+            return None, None, key
+        found, page, what = node.get("pdf"), node.get("page"), node.get("title") or key
+    else:
+        entry = next((e for e in selection.statements(store.load_knowledge(course), True)
+                      if entry_id(e) == target), None)
+        if entry is None:
+            return None, None, target
+        found, page, what = entry.get("pdf"), entry.get("page"), target
+    if found:
+        # A slide deck: read in from where it lies in the course folder.
+        path = Path(found)
+        return (path if path.exists() else None), page, what
+    return notes_pdf(course), page, what
+
+
+def open_source(course: str, target: str) -> bool:
+    """Open the script or slide deck at the page where `target` (see
+    selection_items) is - to look up what Jev picked without searching."""
+    path, page, what = source_of(course, target)
+    if path is None:
+        say("PDF not found", f"Where {what} was read from is not in the course folder "
+            "any more. Read in new PDFs, then try again.", glyph="⚠")
+        return False
+    return open_pdf(path, page)
+
+
 def open_sheet(sheet: dict) -> bool:
     path = sheet_pdf(sheet)
     if path is None:
@@ -857,6 +913,8 @@ def ingest(cfg) -> dict:
     parts = []
     if result["scripts"]:
         parts.append(f"{len(result['scripts'])} lecture note(s)")
+    if result.get("slides"):
+        parts.append(f"slides of {', '.join(result['slides'])}")
     if result["sheets"]:
         parts.append(f"{len(result['sheets'])} sheet(s)")
     if result["errors"]:

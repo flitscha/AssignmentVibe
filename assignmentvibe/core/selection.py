@@ -37,6 +37,8 @@ from .toc import sort_key
 STATEMENT_TYPES = (
     "Definition", "Satz", "Lemma", "Korollar", "Proposition",
     "Theorem", "Corollary",
+    # A course taught from slides: one slide is one statement (core.slides).
+    "Slide",
 )
 
 # Opt-in, via the picker. Rare outside applied courses - of the ten corpus

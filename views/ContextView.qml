@@ -12,7 +12,7 @@ import "../controls"
 // moment after the last click.
 //
 // Keys: ↑↓ move, → open, ← close, Space or Enter tick, P tick the proof,
-// / search, Esc leaves the search.
+// O open the script or slides at that page, / search, Esc leaves the search.
 Item {
   id: root
 
@@ -101,6 +101,12 @@ Item {
     if (r && r.kind === "statement" && r.hasProof) change(Model.toggleProof(ctx, idx, sel, r.id))
   }
 
+  // Opening a PDF races with nothing, so it works while Jev is busy too.
+  function openRow(r) {
+    if (service && r && (r.kind === "node" || r.kind === "statement") && r.page)
+      service.request("open_source", { target: Model.target(r) })
+  }
+
   function setExpanded(r, open) {
     if (!r || (r.kind !== "node" && r.kind !== "sheet")) return
     var id = (r.kind === "node" ? "n:" : "s:") + r.key
@@ -150,6 +156,7 @@ Item {
   function key(t) {
     if (t === "/") search.forceActiveFocus()
     else if ((t === "p" || t === "P") && cursor >= 0) toggleProof(rows[cursor])
+    else if ((t === "o" || t === "O") && cursor >= 0) openRow(rows[cursor])
   }
 
   onRowsChanged: if (cursor >= rows.length) cursor = rows.length - 1
@@ -181,7 +188,7 @@ Item {
             var t = root.totals
             if (!t) return root.ctx ? "" : "Loading …"
             if (!t.statements && !t.earlier) return "Nothing chosen - the prompt carries the task alone"
-            var parts = [Model.plural(t.statements, "statement")]
+            var parts = [Model.plural(t.statements, Model.noun(root.ctx))]
             if (t.withProof) parts.push(t.proofs + " of " + Model.plural(t.withProof, "proof"))
             if (t.earlier) parts.push(Model.plural(t.earlier, "earlier task"))
             return parts.join(" · ")
@@ -301,7 +308,8 @@ Item {
       }
 
       OptionRow {
-        visible: !!(root.ctx && root.ctx.statements.length)
+        // Slides have no proofs of their own to add.
+        visible: !!(root.ctx && root.ctx.statements.some(function(s) { return s.proofSize > 0 }))
         look: root.look
         text: "All proofs"
         hint: "Proofs often give the solution away - one by one, beside each statement, is usually better"
@@ -354,6 +362,7 @@ Item {
           onToggled: { root.cursor = index; root.toggleRow(modelData) }
           onExpandToggled: { root.cursor = index; root.setExpanded(modelData, !modelData.expanded) }
           onProofToggled: { root.cursor = index; root.toggleProof(modelData) }
+          onOpenRequested: { root.cursor = index; root.openRow(modelData) }
           onHasCursorChanged: if (hasCursor) Qt.callLater(function() { list.reveal(contextRow) })
         }
       }

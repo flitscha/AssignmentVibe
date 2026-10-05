@@ -224,12 +224,19 @@ def _summary(course: str, state: dict) -> dict:
     proofs_on = [e for e in with_proof
                  if proof_wanted(e, state["proofs"], state["proof_of"])]
     earlier = selection.earlier_tasks(state["sheets"], state["earlier"], state["sheet"])
+    slides = sum(1 for e in entries if e.get("type") == "Slide")
     return {
+        # Slides are counted among the statements (the card is empty without
+        # either) and on their own, for saying "6 slides".
         "statements": len(entries),
+        "slides": slides,
         "proofs": len(proofs_on),
         "earlier": len(earlier),
         "size": context_size(entries, state["proofs"], state["proof_of"]),
         "lines": hub.selection_lines(course, state),
+        # The same, each with where it is: a click opens the script or the
+        # slide deck at that page.
+        "items": hub.selection_items(course, state),
         "hasNotes": bool(knowledge),
         "hasEarlier": bool(selection.earlier_sheets(state["sheets"], state["sheet"])),
         "algorithms": state["algorithms"],
@@ -270,12 +277,14 @@ def context_payload() -> dict | None:
             "proofSize": (len(format_knowledge_entry(e, include_proof=True))
                           - len(format_knowledge_entry(e, include_proof=False))) if proof else 0,
             "referral": bool(proof) and selection.is_referral_proof(proof),
+            "page": e.get("page"),
         })
 
     # Only the outline nodes something lives under; a bibliography or a
     # foreword is not something to hand to the model.
     keys = {s["section"] for s in statements if s["section"]}
-    nodes = [{"key": n["key"], "title": n.get("title") or "", "level": n["level"]}
+    nodes = [{"key": n["key"], "title": n.get("title") or "", "level": n["level"],
+              "page": n.get("page")}
              for n in store.load_sections(course)
              if any(selection.covers(n["key"], k) for k in keys)]
 
@@ -375,6 +384,8 @@ def handle(cmd: str, args: dict):
         if not state["sheet"]:
             raise ApiError("No sheet read in yet.")
         return {"opened": hub.open_sheet(state["sheet"])}
+    elif cmd == "open_source":
+        return {"opened": hub.open_source(course, args["target"])}
     elif cmd == "open_notes":
         return {"opened": hub.open_notes(course, state)}
     elif cmd == "open_chat":

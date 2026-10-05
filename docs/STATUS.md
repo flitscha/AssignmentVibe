@@ -1,6 +1,6 @@
 # Status
 
-What exists right now, as of 2026-09-28. Three separate questions per row,
+What exists right now, as of 2026-10-05. Three separate questions per row,
 because they're genuinely different things:
 
 - **Implemented** - does the code exist and do what it's supposed to.
@@ -23,6 +23,8 @@ clicks could not be simulated there.
 | Chunking by the PDF's own outline (`toc.py`) | ✅ | ✅ 100% of entries placed in all ten corpus scripts | ✅ Optimierung |
 | **The script's own exercises (`exercises.py`)** | ✅ new | ✅ Optimierung: 64 exercises, all 34 sheet references resolve; Algebra 103, LinAlg 106 | ❌ |
 | Task titles only where the sheet has a heading (`assignments.guess_title`) | ✅ new | ✅ all 850 tasks compared old vs new | ❌ |
+| **Slide decks, one entry per slide (`slides.py`)**: footer, title page, outline slides and overlay steps left out; sections per deck from its outline | ✅ new | ✅ Automata and Logic, Computability Theory (2 decks each, 47 and 51 slides), Programmverifikation decks; Jev on Computability sheet 2 task 2 picked the slide the task names plus the definitions and lemmas it needs (0.9s, $0.0006) | ❌ |
+| **Open at the page**: every line of the context (statement, slide, section) opens the script or deck at its page (`hub.open_source`) | ✅ new | ✅ targets checked against the PDFs; `O` in the context tab opened Firefox at slide 19 of 01x1.pdf (2026-10-05) | ❌ |
 | Assignment-sheet parsing (`assignments.py`): "Aufgabe N", "(N)", "N.", "N)"; ids per course | ✅ | ✅ all 186 maths sheets under ~/Uni, 16 courses, 850 tasks (2026-09-28) | ✅ Optimierung |
 | Selection: chapters and/or single statements; nothing chosen, no context (`selection.py`) | ✅ changed | ✅ | ❌ (the keyword guess is gone) |
 | **Jev picks statements and proofs** (`integrations/jev.py`), one yes/no per Satz and per proof | ✅ | ✅ 33 real sheet tasks in 9 courses (2026-09-28): 0.4-1.3s and $0.001-0.008 per pick; statements mostly on target, statements only since then, proofs judged from those; earlier sheets' tasks too (see ROADMAP 0) | ✅ (before the rework) |

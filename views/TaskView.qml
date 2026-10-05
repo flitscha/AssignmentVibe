@@ -9,7 +9,8 @@ import "../controls"
 // what the prompt carries - with the buttons that change each right beside it.
 //
 // Keys: ↑↓ task, ←→ sheet, O open the sheet, N open the lecture notes,
-// A ask Jev, E edit the context, P preview the prompt.
+// A ask Jev, E edit the context, P preview the prompt. A line of the context
+// opens the script or slide deck at its page when clicked.
 Flickable {
   id: root
 
@@ -78,6 +79,14 @@ Flickable {
 
   function openNotes() {
     if (service && st && st.course && st.course.notesPdf) service.request("open_notes", {}, function(r) {
+      if (r.ok && r.result && r.result.opened) root.closeRequested()
+    })
+  }
+
+  // A statement, slide or section of the context, in its PDF at its page -
+  // for looking up what Jev picked without searching the script for it.
+  function openSource(target) {
+    if (service && target) service.request("open_source", { target: target }, function(r) {
       if (r.ok && r.result && r.result.opened) root.closeRequested()
     })
   }
@@ -480,6 +489,13 @@ Flickable {
       readonly property var summary: root.st ? root.st.summary : null
       readonly property bool empty: !summary || (summary.statements === 0 && summary.earlier === 0)
       readonly property bool asking: !!(root.service && root.service.busy === "jev")
+      readonly property var items: summary && summary.items ? summary.items : []
+      property bool allItems: false
+
+      Connections {
+        target: root
+        function onCurrentTaskChanged() { contextCard.allItems = false }
+      }
 
       Column {
         id: contextColumn
@@ -526,7 +542,9 @@ Flickable {
             if (!s) return ""
             if (contextCard.empty) return "No lecture notes - the prompt carries the task alone"
             var parts = []
-            if (s.statements) parts.push(Model.plural(s.statements, "statement"))
+            var slides = s.slides || 0
+            if (s.statements - slides) parts.push(Model.plural(s.statements - slides, "statement"))
+            if (slides) parts.push(Model.plural(slides, "slide"))
             if (s.proofs) parts.push(Model.plural(s.proofs, "proof"))
             if (s.earlier) parts.push(Model.plural(s.earlier, "earlier task"))
             return parts.join(" · ")
@@ -556,25 +574,70 @@ Flickable {
           }
         }
 
-        Repeater {
-          model: contextCard.summary && !contextCard.asking ? contextCard.summary.lines.slice(0, 5) : []
+        Column {
+          width: parent.width
+          visible: !contextCard.asking
 
-          Label {
-            required property var modelData
-            width: contextColumn.width
-            look: root.look
-            secondary: true
-            leftPadding: Style.space(8)
-            text: "·  " + modelData
+          Repeater {
+            model: contextCard.allItems ? contextCard.items : contextCard.items.slice(0, 5)
+
+            Rectangle {
+              id: itemRow
+              required property var modelData
+              readonly property bool openable: !!modelData.target
+
+              width: contextColumn.width
+              height: itemLabel.implicitHeight + Style.space(6)
+              radius: Style.cornerRadius
+              color: itemMouse.containsMouse ? Style.hoverFillFor(root.look.fg, root.look.accent)
+                                             : "transparent"
+
+              MouseArea {
+                id: itemMouse
+                anchors.fill: parent
+                enabled: itemRow.openable
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.openSource(itemRow.modelData.target)
+              }
+
+              Label {
+                id: itemLabel
+                x: Style.space(8)
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width - x - openIcon.width - Style.space(12)
+                look: root.look
+                secondary: !itemMouse.containsMouse
+                font.pixelSize: Style.font.caption
+                text: "·  " + itemRow.modelData.text
+              }
+
+              Text {
+                id: openIcon
+                visible: itemRow.openable
+                anchors.right: parent.right
+                anchors.rightMargin: Style.space(6)
+                anchors.verticalCenter: parent.verticalCenter
+                textFormat: Text.PlainText
+                text: Glyphs.openExternal
+                color: itemMouse.containsMouse ? root.look.accent : root.look.muted
+                font.family: root.look.font
+                font.pixelSize: Style.font.bodySmall
+              }
+            }
           }
-        }
 
-        Label {
-          visible: !!(contextCard.summary && contextCard.summary.lines.length > 5) && !contextCard.asking
-          look: root.look
-          secondary: true
-          leftPadding: Style.space(8)
-          text: contextCard.summary ? "… and " + (contextCard.summary.lines.length - 5) + " more" : ""
+          Button {
+            visible: contextCard.items.length > 5
+            text: contextCard.allItems ? "Show less"
+                                       : "… and " + (contextCard.items.length - 5) + " more"
+            fontSize: Style.font.caption
+            verticalPadding: Style.space(2)
+            horizontalPadding: Style.space(6)
+            foreground: root.look.muted
+            fontFamily: root.look.font
+            onClicked: contextCard.allItems = !contextCard.allItems
+          }
         }
 
         Item { width: 1; height: Style.space(2) }

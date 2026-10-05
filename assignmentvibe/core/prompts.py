@@ -144,6 +144,30 @@ def format_knowledge_entry(e: dict, include_proof: bool = True) -> str:
     return out
 
 
+# What a slide holds, by its title ("Definition", "Lemma (case analysis)"),
+# for the instruction's rules on definitions and citable results.
+SLIDE_RESULT_WORDS = ("theorem", "lemma", "corollary", "proposition", "satz", "korollar")
+
+
+def kind_of(e: dict) -> str:
+    """"definition", "result" or "other" - for a slide, read off its title."""
+    if e.get("type") == "Slide":
+        title = (e.get("name") or "").lower()
+        if title.startswith("definition"):
+            return "definition"
+        return "result" if title.startswith(SLIDE_RESULT_WORDS) else "other"
+    return "definition" if e.get("type") == "Definition" else "result"
+
+
+def source_name(context: list[dict]) -> str:
+    """"lecture notes", "lecture slides", or both - where the context is from."""
+    slides = any(e.get("type") == "Slide" for e in context)
+    notes = any(e.get("type") != "Slide" for e in context)
+    if slides and notes:
+        return "lecture notes and slides"
+    return "lecture slides" if slides else "lecture notes"
+
+
 def context_size(entries: list[dict], include_proofs: bool,
                  proof_of: "set[str] | list[str] | None" = None) -> int:
     """Characters these entries cost a prompt: formatted as build_prompt
@@ -235,8 +259,8 @@ def build_prompt(
     lines = []
     lines.append(instruction(
         part=asked["label"] if asked else None,
-        definitions=any(e.get("type") == "Definition" for e in context),
-        theorems=any(e.get("type") != "Definition" for e in context),
+        definitions=any(kind_of(e) == "definition" for e in context),
+        theorems=any(kind_of(e) == "result" for e in context),
         earlier=bool(earlier_tasks)))
     lines.append("")
     lines.append(f"# Course: {course_name}")
@@ -278,9 +302,13 @@ def build_prompt(
                                                  for k in sections))
         if singles:
             where.append(", ".join(singles))
-        lines.append(f"# From the lecture notes: {'; '.join(where)}")
-        contents = ("every definition and theorem of these sections" if sections
-                    else "the definitions and theorems chosen for this task")
+        lines.append(f"# From the {source_name(context)}: {'; '.join(where)}")
+        if all(e.get("type") == "Slide" for e in context):
+            contents = ("every slide of these sections" if sections
+                        else "the slides chosen for this task")
+        else:
+            contents = ("every definition and theorem of these sections" if sections
+                        else "the definitions and theorems chosen for this task")
         if sections and singles:
             contents += ", plus the single statements named"
         if any(e.get("type") in selection.ALGORITHM_TYPES for e in context):
@@ -289,7 +317,8 @@ def build_prompt(
                       if not include_proofs and e.get("proof") and entry_id(e) in proof_of]
         if with_proof:
             contents += ", proofs only for " + ", ".join(with_proof)
-        elif not include_proofs:
+        elif not include_proofs and any(e.get("type") != "Slide" for e in context):
+            # A slide has no separate proof to leave out: it shows what it shows.
             contents += ", proofs omitted"
         lines.append(f"({contents})")
         for e in context:

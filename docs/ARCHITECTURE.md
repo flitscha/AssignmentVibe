@@ -17,6 +17,8 @@ assignmentvibe/
     knowledge.py         raw text -> definitions/theorems/proofs (depends on font_styles,
                           toc, exercises); writes entries + outline + exercises
     toc.py                 the PDF's outline -> chapter/section tree, places entries in it
+    slides.py              slide decks -> one entry per slide, sections per deck ("S1.3"),
+                            for courses taught from slides; store merges them with the script
     exercises.py            the script's own exercises ("(1.1) ..." in "Aufgaben" sections)
     assignments.py        assignment-sheet PDF -> structured tasks + references
                           into the script ("Aufgabe (1.1) vom Skriptum")
