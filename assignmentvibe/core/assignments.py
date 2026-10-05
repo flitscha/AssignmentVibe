@@ -69,7 +69,8 @@ PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
 #   3: tasks numbered "(1)", "1." and "1)" too; sheet number from the header
 #      or the file name; OT1 ligatures
 #   4: T1 "ÿ" read as ß (see core.pdf_text)
-FORMAT = 4
+#   5: a last task whose number stands alone above its "(a)"
+FORMAT = 5
 
 # Looked for in the sheet's header only - further down, "Blatt 2" is a task
 # referring to an earlier sheet.
@@ -200,7 +201,12 @@ def _num(m: re.Match) -> int:
 def _fill_gaps(run: list[re.Match], lone: list[re.Match]) -> list[re.Match]:
     """`run` with the numbers it skips filled in from `lone` - "(3)" on a line
     of its own between task 2 and task 4, or "1." and "2." before a run that
-    starts at 3. Only exactly the next missing number is taken, in order."""
+    starts at 3. Only exactly the next missing number is taken, in order.
+
+    After the last task, a lone number is taken only when a part "(a)" follows
+    it straight away: the last task of Automata and Logic's sheet 1 is "4." on
+    its own line above "(a) Prove that ...". Without that, an equation label
+    "(4)" below the last task would become a task of its own."""
     filled = []
     prev_pos, expected = -1, 1 if _num(run[0]) > 1 else _num(run[0])
     for m in run:
@@ -210,6 +216,11 @@ def _fill_gaps(run: list[re.Match], lone: list[re.Match]) -> list[re.Match]:
                 expected += 1
         filled.append(m)
         prev_pos, expected = m.start(), _num(m) + 1
+    for candidate in lone:
+        if (candidate.start() > prev_pos and _num(candidate) == expected
+                and NEXT_PART_RE.match(candidate.string[candidate.end():].lstrip())):
+            filled.append(candidate)
+            prev_pos, expected = candidate.start(), expected + 1
     return filled
 
 
