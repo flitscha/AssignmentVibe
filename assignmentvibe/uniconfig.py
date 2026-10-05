@@ -22,6 +22,10 @@ Names are glob patterns (* ? [0-9]), matched case-insensitively against the
 filename. A download is course material if and only if it matches a pattern
 here; everything else in ~/Downloads is left alone. That is the whole rule.
 
+When two courses name their files alike ("01x1.pdf" for the slides of both),
+a course can add "inhalt": text that must also appear on the PDF's first page
+(or in its title). The filename still has to match; the text only narrows it.
+
 The three categories don't affect where a file goes - everything lands flat in
 <uni_root>/<semester>/<folder>/. They only label the file so the launcher can
 offer "<course> Skript", "<course> Folien" and "<course> Blatt" (the newest one).
@@ -50,6 +54,9 @@ class Course:
     # Optional per-category subfolder, e.g. {"folien": "vo", "blaetter": "ps"}.
     # Default is flat: everything directly in the course folder.
     unterordner: dict[str, str] = field(default_factory=dict)
+    # Optional texts of which one must appear on the first page, for courses
+    # whose filenames alone are not enough. Empty: the filename decides.
+    inhalt: list[str] = field(default_factory=list)
 
     def match(self, filename: str) -> tuple[str, str] | None:
         """(category, pattern) this filename falls into, or None if not ours.
@@ -64,6 +71,30 @@ class Course:
                 if fnmatch.fnmatch(lower, pattern.lower()):
                     return category, pattern
         return None
+
+    def content_matches(self, first_page: str) -> bool:
+        """Whether the first-page text (see first_page_text) says this is ours.
+        Always true for a course without "inhalt"."""
+        return not self.inhalt or any(_squash(t) in first_page for t in self.inhalt)
+
+
+def _squash(text: str) -> str:
+    return " ".join(text.lower().split())
+
+
+def first_page_text(pdf: Path) -> str:
+    """The PDF's title and first page, lowercased with whitespace collapsed -
+    what "inhalt" is compared against. Empty if it cannot be read, so an
+    unreadable file matches no course with "inhalt"."""
+    import pymupdf  # only when a course uses "inhalt"; see core.pdf_text
+
+    try:
+        with pymupdf.open(pdf) as doc:
+            title = (doc.metadata or {}).get("title") or ""
+            page = doc[0].get_text() if doc.page_count else ""
+    except Exception:
+        return ""
+    return _squash(f"{title}\n{page}")
 
 
 @dataclass
@@ -117,7 +148,7 @@ def parse(raw: dict, path: Path) -> Config:
             # a note and ignored - both as a course name and inside a course.
             if folder.startswith("_"):
                 continue
-            allowed = {"name", "unterordner", *CATEGORIES}
+            allowed = {"name", "unterordner", "inhalt", *CATEGORIES}
             unknown = {k for k in spec if not k.startswith("_")} - allowed
             if unknown:
                 raise ConfigError(f'{semester}/{folder}: unknown fields '
@@ -134,12 +165,14 @@ def parse(raw: dict, path: Path) -> Config:
             for category in CATEGORIES:
                 value = spec.get(category) or []
                 patterns[category] = [value] if isinstance(value, str) else list(value)
+            inhalt = spec.get("inhalt") or []
             courses.append(Course(
                 semester=semester,
                 folder=folder,
                 name=spec.get("name") or folder,
                 patterns=patterns,
                 unterordner={k: str(v) for k, v in subfolders.items()},
+                inhalt=[inhalt] if isinstance(inhalt, str) else list(inhalt),
             ))
 
     # Absolute, because generated .desktop entries embed these paths and are

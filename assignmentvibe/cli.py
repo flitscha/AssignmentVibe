@@ -395,6 +395,8 @@ def cmd_config(args):
             patterns = course.patterns.get(category, [])
             if patterns:
                 _print(f"    {category:9} {', '.join(patterns)}")
+        if course.inhalt:
+            _print(f"    {'inhalt':9} {' | '.join(course.inhalt)}  (first page)")
 
 
 def cmd_sort(args):

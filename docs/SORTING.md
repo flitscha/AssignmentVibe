@@ -56,6 +56,39 @@ are different sheets. Several downloads competing for one name: the newest
 wins. Nothing is ever deleted - replaced files and leftover downloads go to
 the trash (`gio trash`).
 
+## Two courses, one naming scheme: `inhalt`
+
+Some lecturers name the files of all their courses alike - `01x1.pdf` are the
+slides of both Automata and Logic and Computability Theory. Then the filename
+alone cannot say which course a file is, and `inhalt` adds text that must also
+appear on the PDF's **first page** (or in its title):
+
+```jsonc
+"automata_and_logic": {
+  "name": "Automata and Logic",
+  "inhalt": "Automata and Logic",
+  "folien":   ["[0-9][0-9]x[0-9]*.pdf"],
+  "blaetter": ["[0-9][0-9].pdf"]
+},
+"computability_theory": {
+  "name": "Computability Theory",
+  "inhalt": "Computability Theory",
+  "folien":   ["[0-9][0-9]x[0-9]*.pdf"],
+  "blaetter": ["[0-9][0-9].pdf"]
+}
+```
+
+The filename still has to match - `inhalt` only narrows it down, so the rule
+stays "filed if it matches what is written here". Case and line breaks do not
+matter; a list means any one of them. It also keeps a loose pattern safe:
+`"skript": ["notes*.pdf"]` with `"inhalt": "Lie Groups"` takes the versioned
+`notes1.pdf`, `notes_2.pdf`, … but not the same lecturer's `notes48.pdf` of
+another course. Only files that match such a course's pattern are opened
+(pymupdf); everything else in downloads is never read.
+
+A download that is byte-identical to a file already filed under another name
+counts as already filed.
+
 ## Subfolders
 
 By default everything goes flat into the course folder. If a course folder is

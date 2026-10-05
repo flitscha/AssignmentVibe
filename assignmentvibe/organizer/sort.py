@@ -31,7 +31,8 @@ downloads. Otherwise the name is kept as it is.
 Nothing is ever deleted outright: replaced files and redundant downloads go to
 the desktop trash via `gio trash`, so a wrong guess stays recoverable.
 
-Deliberately free of pymupdf, so sorting works on a bare Python install.
+Free of pymupdf unless a course uses "inhalt" (text the first page must
+contain), so sorting works on a bare Python install.
 """
 
 import filecmp
@@ -41,7 +42,7 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 
-from ..uniconfig import Config, Course
+from ..uniconfig import Config, Course, first_page_text
 
 NEW = "new"                # nothing there yet, just move it in
 REPLACE = "replace"        # supersedes file(s) already in the course folder
@@ -116,6 +117,17 @@ def _find_filed(cfg: Config, course: Course, category: str, name: str) -> Path |
     return next((p for p in sorted(directory.rglob(name)) if p.is_file()), None)
 
 
+def _filed_copy(cfg: Config, item: Item) -> Path | None:
+    """A byte-identical file already in the category folder, whatever its name."""
+    directory = cfg.category_dir(item.course, item.category)
+    if not directory.is_dir():
+        return None
+    size = item.source.stat().st_size
+    return next((p for p in sorted(directory.rglob("*"))
+                 if p.is_file() and p.stat().st_size == size
+                 and filecmp.cmp(item.source, p, shallow=False)), None)
+
+
 def plan(cfg: Config) -> tuple[list[Item], int]:
     """Returns (items, ignored_count). Touches nothing on disk."""
     courses = cfg.active_courses()
@@ -132,6 +144,11 @@ def plan(cfg: Config) -> tuple[list[Item], int]:
             hit = course.match(source.name) or (base and course.match(base))
             if hit:
                 hits.append((course, *hit))
+        # Only now open the PDF, and only if a matching course asks about its
+        # content - most downloads match no pattern and are never read.
+        if any(course.inhalt for course, *_ in hits):
+            text = first_page_text(source)
+            hits = [h for h in hits if h[0].content_matches(text)]
         if not hits:
             ignored += 1
             continue
@@ -184,6 +201,10 @@ def _resolve_against_disk(cfg: Config, items: list[Item]) -> None:
                 continue
             item.status = REPLACE
             item.replaces.append(item.target)
+        elif _filed_copy(cfg, item) is not None:
+            # Filed by hand under another name ("01x1c.pdf" kept as "01x1.pdf").
+            item.status = DUPLICATE
+            continue
 
         # A lecture script replaces the previous one even under a different
         # name - but only within its own pattern. Slides and sheets exist in
