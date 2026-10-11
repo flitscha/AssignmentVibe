@@ -89,6 +89,17 @@ another course. Only files that match such a course's pattern are opened
 A download that is byte-identical to a file already filed under another name
 counts as already filed.
 
+## All sheets in one PDF
+
+Some lecturers hand out every sheet of the term in one file and re-upload it
+as the term goes on (Advanced Numerics: `Sheets_Projects_AdvancedNumerics_2026_2027.pdf`,
+one page per sheet, projects at the end). Nothing to configure: the file is
+filed like any sheet, and reading it in splits it into one PDF per sheet
+(`~/.local/share/assignmentvibe/sheets/`). A page starts a new sheet when it
+opens with the same line as the first page and names another sheet number;
+a part without a number (the projects) is left out. A longer re-upload only
+adds the new sheets.
+
 ## Subfolders
 
 By default everything goes flat into the course folder. If a course folder is

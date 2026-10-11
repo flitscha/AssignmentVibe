@@ -311,7 +311,13 @@ def ingest_missing(cfg, progress=None) -> dict:
         elif not decks and stored:
             _slides_path(slug).unlink()
 
+        sheets = []
         for pdf in _matching_pdfs(cfg, course, "blaetter"):
+            try:
+                sheets += split_sheets(pdf)
+            except Exception as e:
+                result["errors"].append(f"{pdf.name}: {e}")
+        for pdf in sheets:
             if sheet_id_for(slug, pdf) in known_sheets:
                 continue
             if progress:
@@ -323,6 +329,64 @@ def ingest_missing(cfg, progress=None) -> dict:
                 result["errors"].append(f"{pdf.name}: {e}")
 
     return result
+
+
+def split_sheets(pdf: Path) -> list[Path]:
+    """The sheets in one PDF: [pdf] itself, or - when it holds several - one
+    PDF per sheet, written next to the knowledge base.
+
+    Advanced Numerics hands out every sheet of the term in one file
+    (Sheets_Projects_AdvancedNumerics_2026_2027.pdf), one page per sheet and a
+    page of projects at the end, and re-uploads it under the same name as the
+    term goes on. Read as one sheet it was "Sheet 1" with sheet 2's tasks run
+    into it. Split, every sheet is a sheet of its own, and a longer re-upload
+    only adds the new ones - a sheet is read in once.
+
+    A page starts a sheet when it opens like the first page (the course line)
+    and its head names a sheet number other than the one before. That keeps an
+    ordinary sheet whole: its second page does not repeat the course line, or
+    repeats the same sheet number. A part that opens like a sheet but has no
+    number (the projects page) is left out."""
+    import pymupdf
+
+    from .core.assignments import HEADER_CHARS, SHEET_NUM_RE
+    from .core.pdf_text import normalize
+
+    doc = pymupdf.open(pdf)
+    if doc.page_count < 2:
+        return [pdf]
+
+    def first_line(text: str) -> str:
+        return next((" ".join(line.split()) for line in text.splitlines() if line.strip()), "")
+
+    texts = [normalize(page.get_text()) for page in doc]
+    course_line = first_line(texts[0])
+    parts: list[tuple[int | None, list[int]]] = []
+    for i, text in enumerate(texts):
+        m = SHEET_NUM_RE.search(text[:HEADER_CHARS])
+        number = int(m.group("num") or m.group("pre")) if m else None
+        if parts and first_line(text) == course_line and number != parts[-1][0]:
+            parts.append((number, [i]))
+        elif parts:
+            parts[-1][1].append(i)
+        else:
+            parts.append((number, [i]))
+    numbered = [(n, pages) for n, pages in parts if n is not None]
+    if len(numbered) < 2:
+        return [pdf]
+
+    out_dir = paths.DATA_DIR / "sheets"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    files = []
+    for number, pages in numbered:
+        target = out_dir / f"{pdf.stem}-sheet{number}.pdf"
+        if not target.exists() or target.stat().st_mtime < pdf.stat().st_mtime:
+            part = pymupdf.open()
+            for i in pages:
+                part.insert_pdf(doc, from_page=i, to_page=i)
+            part.save(target)
+        files.append(target)
+    return files
 
 
 def _course_script(cfg, course) -> Path | None:

@@ -61,6 +61,13 @@ DISCUSSION_DATE_RE = re.compile(r"Besprechung(?:stermin)?(?:\s+am)?:?\s*(?P<date
 SCRIPT_REF_RE = re.compile(
     r"(?:Programmier|Übungs)?[Aa]ufgabe\s*\(?(?P<ref>\d+(?:\.\d+)?)\)?\s*"
     r"(?:vom|aus\s+dem|im)\s*Skrip(?:-\s*)?t(?:um)?")
+# A task that is nothing but a reference: "(1) Exercise 11.1" (Advanced
+# Numerics - the exercises are in the book). Only the whole first line counts,
+# so "Exercise 2.4 shows ..." in a task's text is not taken for one. What
+# follows on the sheet is its next part ("Scripts. Presentation of programming
+# scripts ..."), not the task's text.
+LONE_REF_RE = re.compile(r"^(?:Exercise|Problem|Aufgabe|Übung)\s+(?P<ref>\d+\.\d+)\.?$")
+RUN_IN_HEADING_RE = re.compile(r"(?m)^[A-Z][a-z]+\.\s")
 # The page footer the PS Optimierung sheets carry; it would otherwise end up as
 # the last line of the last task.
 PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
@@ -70,7 +77,10 @@ PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
 #      or the file name; OT1 ligatures
 #   4: T1 "ÿ" read as ß (see core.pdf_text)
 #   5: a last task whose number stands alone above its "(a)"
-FORMAT = 5
+#   6: a task that only names an exercise ("Exercise 11.1") refers to the
+#      script; of equally long task runs, one whose numbering does not
+#      start again inside it
+FORMAT = 6
 
 # Looked for in the sheet's header only - further down, "Blatt 2" is a task
 # referring to an earlier sheet.
@@ -224,18 +234,33 @@ def _fill_gaps(run: list[re.Match], lone: list[re.Match]) -> list[re.Match]:
     return filled
 
 
+def _restarts(run: list[re.Match], matches: list[re.Match]) -> bool:
+    """Whether the numbering starts again inside the run: a heading with the
+    run's first number that the run steps over."""
+    return any(run[0].start() < m.start() < run[-1].start() and m not in run
+               and _num(m) == _num(run[0]) for m in matches)
+
+
 def find_tasks(text: str) -> list[re.Match]:
     """The task headings: of every style and every starting point, the longest
-    run of numbers going up. Ties go to the style listed first. A header line
-    "3. Übungsblatt" starts a run of its own and loses to the real one."""
+    run of numbers going up. A header line "3. Übungsblatt" starts a run of its
+    own and loses to the real one.
+
+    Of equally long runs, one in which the numbering does not start again wins,
+    then the style listed first. Advanced Numerics lists "(1) Banded systems"
+    under Summary, then "(1) Exercise 11.1", "(2) Exercise 11.2", ... under
+    Exercises: the run "(1) Banded systems, (2), (3)" is just as long, but
+    steps over the exercises' own "(1)" to be one."""
     best: list[re.Match] = []
+    best_key = (0, False)
     best_lone = None
     for style, lone in TASK_STYLES:
         matches = list(style.finditer(text))
         for first in range(len(matches)):
             run = _run_from(matches, first)
-            if len(run) > len(best):
-                best, best_lone = run, lone
+            key = (len(run), not _restarts(run, matches))
+            if key > best_key:
+                best, best_key, best_lone = run, key, lone
     if best and best_lone is not None:
         best = _fill_gaps(best, list(best_lone.finditer(text)))
     return best
@@ -260,6 +285,12 @@ def parse_assignment_sheet(pdf_path: Path) -> dict:
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         body = text[m.end():end].strip()
         script_refs = [rm.group("ref") for rm in SCRIPT_REF_RE.finditer(body)]
+        lone_ref = LONE_REF_RE.match(body.split("\n", 1)[0].strip())
+        if lone_ref and not script_refs:
+            script_refs = [lone_ref.group("ref")]
+            rest = RUN_IN_HEADING_RE.search(body)
+            if rest:
+                body = body[:rest.start()].strip()
         tasks.append({
             "number": int(m.group("num")),
             "title": guess_title(body),

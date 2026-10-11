@@ -38,7 +38,11 @@ EXERCISE_SECTION_RE = re.compile(
 EXERCISE_START_RE = re.compile(
     r"(?m)^(?:\((?P<paren>\d+(?:\.\d+)*)\)"
     r"|(?:Aufgabe|Übungsaufgabe|Übung|Exercise|Problem)\s*(?P<word>\d+(?:\.\d+)*)\.?"
-    r"|(?P<first>\d+(?:\.\d+)+)\s+(?:Problem|Exercise)\.)"
+    r"|(?P<first>\d+(?:\.\d+)+)\s+(?:Problem|Exercise)\."
+    # The number alone on its line, the text below it: "11.3" (Iserles, the
+    # Advanced Numerics book), a starred hard one "11.8⋆". Only in an exercise
+    # section, and only going up, so a stray "11.1" there is not taken.
+    r"|(?P<bare>\d+\.\d+)[ \t]*[⋆*]?[ \t]*$)"
     r"[ \t]*"
 )
 
@@ -81,8 +85,18 @@ def _running_headers(nodes: list[dict]) -> set[str]:
 
 def _clean_page(page: str, headers: set[str]) -> list[str]:
     lines = [line.rstrip() for line in page.splitlines()]
-    while lines and (not lines[0].strip()
-                     or " ".join(lines[0].split()).lower() in headers):
+    # A book puts the page number on top, beside a running head that shortens
+    # the chapter title: "248" / "Gaussian elimination" over exercise 11.7
+    # (Iserles, chapter "Gaussian elimination for sparse linear equations").
+    after_number = False
+    while lines:
+        line = " ".join(lines[0].split()).lower()
+        if PAGE_NUMBER_RE.match(line):
+            after_number = True
+        elif not (not line or line in headers
+                  or (after_number and line[:1].isalpha()
+                      and any(h.startswith(line + " ") for h in headers))):
+            break
         lines.pop(0)
     while lines and (not lines[-1].strip() or PAGE_NUMBER_RE.match(lines[-1].strip())):
         lines.pop()
@@ -131,13 +145,20 @@ def extract(pages: list[str], nodes: list[dict]) -> list[dict]:
                 page = num
             return page
 
+        # The first one starts near 1 too: a book's exercises can follow its
+        # bibliography on the same page, and "(1970)" at a line start there
+        # took the place of exercise 7.1 and, by the gap rule, of all after it.
         starts = []
-        previous = None
+        previous = 0
         for m in EXERCISE_START_RE.finditer(text):
-            number = m.group("paren") or m.group("word") or m.group("first")
+            number = m.group("paren") or m.group("word") or m.group("first") or m.group("bare")
+            if m.group("bare"):
+                # "1.1" over "Problems" is the section's own heading.
+                following = text[m.end():].lstrip("\n").split("\n", 1)[0]
+                if " ".join(following.split()).lower() in headers:
+                    continue
             last = _last_part(number)
-            if (previous is not None and not m.group("first")
-                    and not (0 < last - previous <= MAX_NUMBER_GAP)):
+            if not m.group("first") and not (0 < last - previous <= MAX_NUMBER_GAP):
                 continue
             starts.append((m, number))
             previous = last
@@ -151,7 +172,7 @@ def extract(pages: list[str], nodes: list[dict]) -> list[dict]:
             title = None
             # "1.1.1 Problem." has its heading already and no title; read as
             # one, "(a) Show ... under matrix multiplication:" lost its start.
-            t = None if m.group("first") else TITLE_RE.match(body)
+            t = None if m.group("first") or m.group("bare") else TITLE_RE.match(body)
             if t:
                 title = _join_title(t.group("title"))
                 body = body[t.end():].strip()

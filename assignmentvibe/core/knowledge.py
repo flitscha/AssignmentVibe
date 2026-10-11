@@ -119,7 +119,8 @@ PROOF_RE = re.compile(
 #      whose number the script uses twice (see set_ids)
 #   4: T1 "ÿ" read as ß (see core.pdf_text)
 #   5: number-first headers ("1.2.5 Proposition.", "1.1.1 Problem."), "Sketch of proof."
-FORMAT = 5
+#   6: exercises as a bare "11.3" (Iserles), no page head inside an exercise
+FORMAT = 6
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 
