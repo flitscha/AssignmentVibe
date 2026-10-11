@@ -68,6 +68,22 @@ NUMBERED_RE = re.compile(
     r"(?:\s*\((?P<name>[^)]{1,80})\)[ \t]*[.:]?)?"
 )
 
+# The number first: "1.2.5 Proposition. SO(3) is ..." (notes5.pdf, Lie Groups,
+# amsthm with swapnumbers). The dot after the type - or a name - is required:
+# without it "2.1 Definition of stochastic processes" in a running header would
+# count. The same group names as NUMBERED_RE, so both are read alike.
+NUMBER_FIRST_RE = re.compile(
+    r"(?m)^(?P<num>\d+\.\d+(?:\.\d+)?)\s+"
+    r"(?P<type>" + "|".join(re.escape(t) for t in NUMBERED_TYPES) + r")"
+    r"(?:\.|\s*\((?P<name>[^)]{1,80})\)[ \t]*[.:]?)"
+)
+
+# The same notes number their problems in the same sequence ("1.1.1 Problem.",
+# then "1.1.4 Definition.", then "1.1.5 Problem."). A problem is no knowledge
+# entry - core.exercises reads it - but it has to end the definition before it,
+# or the definition's text runs on through the next problem.
+NUMBERED_PROBLEM_RE = re.compile(r"(?m)^\d+\.\d+(?:\.\d+)?\s+(?:Problem|Exercise)\.")
+
 # How the corpus actually writes a proof header, all of which have to match:
 #   "Beweis."            everywhere            "Proof."       notes48, graphs
 #   "Beweis:"            complex_analysis, Stochastik
@@ -85,8 +101,9 @@ NUMBERED_RE = re.compile(
 # styled "Beweis." header, so the real proof right below it was then rejected
 # and stayed inside its theorem - five leaks in Algebra and Analysis_4_Notes
 # that the stricter form does not have. (?!\w) keeps "Beweise" out either way.
+#   "Sketch of proof."           notes5 (Lie Groups) - "Sketch" is the styled word
 PROOF_RE = re.compile(
-    r"(?m)^(?P<type>Beweis|Proof)(?!\w)"
+    r"(?m)^(?P<type>Beweis|Proof|Sketch of proof)(?!\w)"
     r"(?:"
     r"\s*\([^)]{1,80}\)\s*[.:]?"
     r"|(?:\s+(?:von\s+|of\s+)?(?P<ref>Satz|Lemma|Korollar|Proposition|Theorem|Corollary)"
@@ -101,7 +118,8 @@ PROOF_RE = re.compile(
 #   3: OT1 ligatures read as letters (see core.pdf_text); "id" on entries
 #      whose number the script uses twice (see set_ids)
 #   4: T1 "ÿ" read as ß (see core.pdf_text)
-FORMAT = 4
+#   5: number-first headers ("1.2.5 Proposition.", "1.1.1 Problem."), "Sketch of proof."
+FORMAT = 5
 
 PAGE_MARK_RE = re.compile(r"\x0cPAGE(\d+)\x0c")
 
@@ -190,9 +208,13 @@ def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> tupl
     raw_matches = []
     for m in NUMBERED_RE.finditer(text):
         raw_matches.append(("numbered", m))
+    for m in NUMBER_FIRST_RE.finditer(text):
+        raw_matches.append(("numbered", m))
     for m in PROOF_RE.finditer(text):
         raw_matches.append(("proof", m))
     for m in SECTION_BOUNDARY_RE.finditer(text):
+        raw_matches.append(("boundary", m))
+    for m in NUMBERED_PROBLEM_RE.finditer(text):
         raw_matches.append(("boundary", m))
     raw_matches.sort(key=lambda t: t[1].start())
 
@@ -215,7 +237,7 @@ def extract_knowledge(text: str, styled_words_per_page: list[list[str]]) -> tupl
         # which "wie im Beweis von Satz 3.2.5 gezeigt" does not.
         if kind == "proof" and m.group("ref"):
             matches.append((kind, m))
-        elif verifier.consume(page, m.group("type")):
+        elif verifier.consume(page, m.group("type").split()[0]):
             matches.append((kind, m))
         else:
             rejected += 1

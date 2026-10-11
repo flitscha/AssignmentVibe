@@ -47,6 +47,8 @@ TYPE_WORDS = [
     "Bemerkung", "Beispiel", "Algorithmus", "Beweis", "Konstruktion",
     "Theorem", "Corollary", "Remark", "Example", "Algorithm",
     "Proof", "Exercise", "Notation", "Claim", "Construction",
+    # "Sketch of proof." (Lie Groups notes): three spans, the first one counts.
+    "Sketch",
 ]
 
 # Usually there is a space between the type word and the number ("Definition

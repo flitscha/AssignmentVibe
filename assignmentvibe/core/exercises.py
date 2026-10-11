@@ -33,11 +33,22 @@ EXERCISE_SECTION_RE = re.compile(
     r"^(?:Aufgaben|Übungsaufgaben|Übungen|Exercises|Problems)$", re.IGNORECASE)
 
 # "(1.1) Title: ..." (VO3_Optimierung), "Aufgabe 1. ..." (Algebra,
-# Lineare_Algebra_I_II - "Aufgabe6." without the space too), "Exercise 2.4."
+# Lineare_Algebra_I_II - "Aufgabe6." without the space too), "Exercise 2.4.",
+# and the number first: "1.1.1 Problem." (Lie Groups notes).
 EXERCISE_START_RE = re.compile(
     r"(?m)^(?:\((?P<paren>\d+(?:\.\d+)*)\)"
-    r"|(?:Aufgabe|Übungsaufgabe|Übung|Exercise|Problem)\s*(?P<word>\d+(?:\.\d+)*)\.?)"
+    r"|(?:Aufgabe|Übungsaufgabe|Übung|Exercise|Problem)\s*(?P<word>\d+(?:\.\d+)*)\.?"
+    r"|(?P<first>\d+(?:\.\d+)+)\s+(?:Problem|Exercise)\.)"
     r"[ \t]*"
+)
+
+# The Lie Groups notes put definitions between their problems, numbered in the
+# same sequence: "1.1.4 Definition." ends problem 1.1.3 rather than being part
+# of it. That same sequence is why the number gap is not checked for the
+# number-first form - four definitions in a row are a gap of five.
+OTHER_HEADER_RE = re.compile(
+    r"(?m)^\d+(?:\.\d+)+\s+(?:Definition|Theorem|Lemma|Proposition|Corollary"
+    r"|Remark|Example|Notation)\."
 )
 
 # A title is the phrase before the first colon, if the exercise opens with one:
@@ -123,18 +134,24 @@ def extract(pages: list[str], nodes: list[dict]) -> list[dict]:
         starts = []
         previous = None
         for m in EXERCISE_START_RE.finditer(text):
-            number = m.group("paren") or m.group("word")
+            number = m.group("paren") or m.group("word") or m.group("first")
             last = _last_part(number)
-            if previous is not None and not (0 < last - previous <= MAX_NUMBER_GAP):
+            if (previous is not None and not m.group("first")
+                    and not (0 < last - previous <= MAX_NUMBER_GAP)):
                 continue
             starts.append((m, number))
             previous = last
 
         for j, (m, number) in enumerate(starts):
             stop = starts[j + 1][0].start() if j + 1 < len(starts) else len(text)
+            other = OTHER_HEADER_RE.search(text, m.end(), stop)
+            if other:
+                stop = other.start()
             body = text[m.end():stop].strip()
             title = None
-            t = TITLE_RE.match(body)
+            # "1.1.1 Problem." has its heading already and no title; read as
+            # one, "(a) Show ... under matrix multiplication:" lost its start.
+            t = None if m.group("first") else TITLE_RE.match(body)
             if t:
                 title = _join_title(t.group("title"))
                 body = body[t.end():].strip()
