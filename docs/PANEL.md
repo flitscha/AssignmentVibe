@@ -50,10 +50,15 @@ Omarchy plugins run unsandboxed, so, plainly:
   replaced files in the trash.
 - Network: only with an OpenRouter key in `openrouter.key`, and only when
   you press a Jev button - to `openrouter.ai`, with the task and the
-  statements of your notes. Nothing else leaves the machine.
+  statements of your notes - or when your handwritten attempt is read: then
+  the task and the machine reading of your lines go to Jev, to judge which
+  reading is right. Nothing else leaves the machine; the handwriting itself
+  is read locally (StrokeReader).
 - Starts other programs when asked: the clipboard (`wl-copy`), your PDF viewer
-  and browser, your editor for the config files, `tesseract` for
-  `assignmentvibe work`.
+  and browser, your editor for the config files, `tesseract` for the
+  pasted task statements in your notebooks, and StrokeReader (its own
+  checkout and Python, `strokereader_dir` in settings.json) to read your
+  handwriting; it caches what it read in `~/.cache/strokereader/`.
 
 ## How it is built
 
@@ -89,6 +94,22 @@ bar: longer and redder for more work. No number - a row already has the
 task's and often the exercise's - and since length and colour say the same,
 the colour never has to carry it alone. The tooltip has the value (of 10).
 
+**What the prompt carries** is chosen with three chips above "Copy prompt":
+*Task* (with the instruction to solve it), *Context* (the chosen notes and
+earlier tasks), *My attempt* (what I wrote for the task in its Xournal++
+notebook). All three for a fresh chat; the attempt alone - also "Copy attempt
+only" - as a follow-up in a chat that has the task already. The choice holds
+for every course.
+
+**My attempt** (Task tab, under the context): the task is found in the
+sheet's notebook by its pasted statement (core.worklog), everything written
+for it - up to the part asked for - is read by StrokeReader with both of its
+models, and Jev judges each reading: per line the more plausible one goes in,
+and a line Jev does not believe at all becomes `[unreadable]`. The card shows
+the lines as the prompt gets them, those from the second model in the accent
+colour. Copying reads the notebook again only if it changed; a page read before
+comes from StrokeReader's cache, Jev's answers from ours.
+
 Changes made elsewhere - `assignmentvibe jev` in a terminal, say - show up by
 themselves: the service watches `~/.local/state/assignmentvibe/context.json`.
 
@@ -103,7 +124,8 @@ themselves: the service watches `~/.local/state/assignmentvibe/context.json`.
 In the panel: `1`–`4` or Tab switch tabs, Enter copies the prompt, Esc
 closes. Task tab: ↑↓ task, ←→ sheet, `O` open the sheet, `N` open the
 lecture notes (at the page of the exercise the task points at), `A` ask Jev,
-`E` edit the context, `P` preview. Context tab: ↑↓ move, →/← open/close, Space
+`E` edit the context, `P` preview, `R` read my attempt again, `W` copy
+only my attempt. Context tab: ↑↓ move, →/← open/close, Space
 tick, `P` tick the proof, `O` open the script or slides at that page, `/`
 search. A line of "In the prompt" on the Task tab opens its page when clicked.
 

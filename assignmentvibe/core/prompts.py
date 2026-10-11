@@ -55,12 +55,21 @@ WHOLE_TASK = "the task below"
 # that part only, and names it again at the end.
 ONE_PART = "only part {label}) of the task below"
 EARLIER_PARTS = " The parts before it may be used as given."
+# With my attempt in the prompt the model should start from it, not beside it -
+# and it is a machine reading of handwriting (core.attempt), so a symbol that
+# makes no sense is more likely misread than meant.
+ATTEMPT_RULE = ("My attempt so far is at the end, read by machine from my handwriting. "
+                "Where it is on a sensible route, continue from it instead of starting "
+                "over; if it has a mistake, point to the first one. A symbol that makes no "
+                "sense there is more likely misread than meant.")
 
 
 def instruction(part: str | None = None, definitions: bool = False,
-                theorems: bool = False, earlier: bool = False) -> str:
+                theorems: bool = False, earlier: bool = False, attempt: bool = False) -> str:
     """The instruction a prompt opens with; see SOLVE_RULES above."""
     rules = list(SOLVE_RULES)
+    if attempt:
+        rules.append(ATTEMPT_RULE)
     if definitions:
         rules.append(DEFINITIONS_RULE)
     offered = [w for w, on in (("theorems", theorems), ("earlier exercises", earlier)) if on]
@@ -231,6 +240,8 @@ def build_prompt(
     statements: list[str] | None = None,
     earlier_tasks: list[tuple[str, dict]] | None = None,
     part: str | None = None,
+    include_task: bool = True,
+    include_context: bool = True,
 ) -> str:
     """`sections` selects script sections to include in full and `statements`
     single ones by id ("Satz 3.1.5", see core.selection); with neither, the
@@ -239,10 +250,12 @@ def build_prompt(
     (label, task) of earlier sheets the task builds on - their statement only,
     see core.selection.earlier_tasks. `part` ("b") asks for that part of the
     task only, see ONE_PART; a label the task does not have is
-    ignored."""
+    ignored.
+
+    `include_task` and `include_context` leave out the task (with the
+    instruction, which asks to solve it) or the context - for a follow-up in a
+    chat that has them already. My attempt is `partial_solution`."""
     from . import selection
-    from .assignments import title_of
-    from .toc import label as section_label
 
     section_titles = section_titles or {}
     sections = list(sections or ())
@@ -256,12 +269,36 @@ def build_prompt(
     _, parts = task_parts(task, exercises)
     asked = next((p for p in parts if p["label"] == part), None) if part else None
 
+    attempt = (partial_solution or "").strip()
+    if not include_context:
+        context, earlier_tasks = [], None
+    lines = []
+    if include_task:
+        lines += _task_block(task, sheet_meta, course_name, referenced, asked, context,
+                             earlier_tasks, attempt)
+    lines += _context_block(context, sections, section_titles, include_proofs, proof_of,
+                            earlier_tasks, exercises)
+    if include_task and asked:
+        lines.append(f"# Asked now: part {asked['label']})")
+        lines.append(asked["text"])
+        lines.append("")
+    if attempt:
+        lines.append("# My attempt so far")
+        lines.append(attempt)
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n" if lines else ""
+
+
+def _task_block(task, sheet_meta, course_name, referenced, asked, context,
+                earlier_tasks, attempt) -> list[str]:
+    from .assignments import title_of
+
     lines = []
     lines.append(instruction(
         part=asked["label"] if asked else None,
         definitions=any(kind_of(e) == "definition" for e in context),
         theorems=any(kind_of(e) == "result" for e in context),
-        earlier=bool(earlier_tasks)))
+        earlier=bool(earlier_tasks), attempt=bool(attempt)))
     lines.append("")
     lines.append(f"# Course: {course_name}")
     if sheet_meta.get("discussion_date"):
@@ -279,7 +316,15 @@ def build_prompt(
         lines.append(f"## Exercise {exercise['number']} from the lecture notes{title}")
         lines.append(exercise["text"])
         lines.append("")
+    return lines
 
+
+def _context_block(context, sections, section_titles, include_proofs, proof_of,
+                   earlier_tasks, exercises) -> list[str]:
+    from . import selection
+    from .toc import label as section_label
+
+    lines = []
     if earlier_tasks:
         lines.append("# Earlier exercises this task may build on")
         lines.append("(their statements only - their results may be used as given; "
@@ -326,18 +371,7 @@ def build_prompt(
             lines.append(format_knowledge_entry(
                 e, include_proof=proof_wanted(e, include_proofs, proof_of)))
         lines.append("")
-
-    if asked:
-        lines.append(f"# Asked now: part {asked['label']})")
-        lines.append(asked["text"])
-        lines.append("")
-
-    if partial_solution and partial_solution.strip():
-        lines.append("# My attempt so far")
-        lines.append(partial_solution.strip())
-        lines.append("")
-
-    return "\n".join(lines).rstrip() + "\n"
+    return lines
 
 
 if __name__ == "__main__":

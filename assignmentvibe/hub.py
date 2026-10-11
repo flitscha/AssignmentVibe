@@ -600,11 +600,18 @@ def selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
 # --- Acting on it --------------------------------------------------------------------
 
 def build_current_prompt(course: str, course_name: str, state: dict,
-                         solution: str | None = None) -> str:
+                         solution: str | None = None, read: bool = False) -> str:
+    """The prompt with the parts chosen (prompt_parts). My attempt is the one
+    read last for this task - or, with `read`, read now if the notebook
+    changed since."""
     from . import store
     from .core import selection
     from .core.prompts import build_prompt
 
+    parts = prompt_parts()
+    if solution is None and parts["work"]:
+        attempt = current_attempt(course, state) if read else cached_attempt(course, state)
+        solution = (attempt or {}).get("text") or None
     return build_prompt(
         task_of(state), state["sheet"], store.load_knowledge(course), solution, course_name,
         sections=state["sections"],
@@ -617,6 +624,8 @@ def build_current_prompt(course: str, course_name: str, state: dict,
         earlier_tasks=selection.earlier_tasks(state["sheets"], state["earlier"],
                                               state["sheet"]),
         part=state.get("part") or None,
+        include_task=parts["task"],
+        include_context=parts["context"],
     )
 
 
@@ -631,7 +640,14 @@ def copy_prompt(course: str, course_name: str, state: dict,
     if task is None:
         say("No task", "Pick a task first.", glyph="⚠")
         return None
+    if solution is None and prompt_parts()["work"]:
+        attempt = current_attempt(course, state)
+        attempt_message(attempt)
+        solution = attempt.get("text") or None
     prompt = build_current_prompt(course, course_name, state, solution)
+    if not prompt.strip():
+        say("Nothing to copy", "Tick at least one of task, context and attempt.", glyph="⚠")
+        return None
     ok, method = clipboard.copy(prompt)
     _, missing = resolve_exercises(task, state["exercises"])
     if missing:
@@ -903,6 +919,176 @@ def render_work(course: str, sheet: dict, task: int) -> tuple[Path | None, Path 
             slices.append((p, top, bottom, label if n == 0 else ""))
     out = paths.WORK_DIR / f"{sheet['sheet_id'].replace('/', '_')}-task{task}.png"
     return path, xournal.render(pages, slices, out), mine
+
+
+# --- My attempt as text (StrokeReader + Jev) --------------------------------------
+
+# What the prompt carries, chosen with the boxes beside "Copy prompt": the task,
+# the chosen context, my handwritten attempt. One setting for every course - it
+# is about how the prompt is used (a fresh chat, or a follow-up in one), not
+# about the course.
+PROMPT_PARTS = ("task", "context", "work")
+
+
+def prompt_parts() -> dict[str, bool]:
+    stored = context.get().get("prompt_parts") or {}
+    return {k: bool(stored.get(k, True)) for k in PROMPT_PARTS}
+
+
+def set_prompt_parts(**values: bool) -> None:
+    parts = prompt_parts()
+    parts.update({k: bool(v) for k, v in values.items() if k in PROMPT_PARTS})
+    context.set(prompt_parts=parts)
+
+
+def _attempt_key(state: dict) -> str:
+    return f"{state['sheet']['sheet_id']}#{state['task']}#{state.get('part') or ''}"
+
+
+def _attempt_file(state: dict) -> Path:
+    import hashlib
+
+    return paths.ATTEMPTS_DIR / (hashlib.sha1(_attempt_key(state).encode()).hexdigest() + ".json")
+
+
+def cached_attempt(course: str, state: dict) -> dict | None:
+    """The attempt last read for the current task and part, with "stale"
+    set when the notebook changed since - without reading anything."""
+    import json
+
+    if task_of(state) is None:
+        return None
+    try:
+        attempt = json.loads(_attempt_file(state).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    path = Path(attempt["notebook"]) if attempt.get("notebook") else notebook_for(course, state["sheet"])
+    attempt["stale"] = bool(path and path.exists()
+                            and path.stat().st_mtime_ns != attempt.get("mtime"))
+    return attempt
+
+
+def _judged(task_text: str, lines: list[dict]) -> list[dict]:
+    """Jev's judgement of the readings, cached by task and readings - asking
+    again for an unchanged notebook costs nothing."""
+    import hashlib
+    import json
+
+    from .integrations import jev
+
+    key = hashlib.sha1(json.dumps([task_text, jev.MODEL, [(l["a"], l["b"]) for l in lines]],
+                                  ensure_ascii=False).encode()).hexdigest()
+    f = paths.ATTEMPTS_DIR / "jev" / f"{key}.json"
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        pass
+    judged = jev.judge_readings(task_text, lines)
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(json.dumps(judged), encoding="utf-8")
+    return judged
+
+
+def read_attempt(course: str, state: dict) -> dict:
+    """Find the current task in its sheet's notebook, read what I wrote for it
+    (up to the part asked for) with StrokeReader, let Jev pick a reading per
+    line and drop what is unreadable. Stored for cached_attempt; returns
+    {"status": "ok"|"no-notebook"|"nothing"|"no-reader"|"failed", "text",
+    "notebook", "pages", "counts", "jev", "lines": [shown lines], ...}."""
+    import json
+
+    from .core import attempt as attempt_mod
+    from .core import worklog
+    from .core.prompts import task_query
+    from .integrations import jev, strokereader
+
+    task = task_of(state)
+    if task is None:
+        return {"status": "nothing", "text": ""}
+    out = {"status": "ok", "text": "", "notebook": None, "notebookName": "", "pages": [],
+           "counts": {}, "jev": False, "lines": [], "error": "", "mtime": None,
+           "task": state["task"], "part": state.get("part") or ""}
+    path = notebook_for(course, state["sheet"])
+    if path is None:
+        out["status"] = "no-notebook"
+        return out
+    out.update(notebook=str(path), notebookName=path.name, mtime=path.stat().st_mtime_ns)
+    _, _, found = read_notebook(course, state["sheet"], path)
+    mine = attempt_mod.up_to_part(worklog.work_on(found, task["number"]), state.get("part"))
+    slices = [s for stretch in mine for s in stretch["slices"]]
+    out["pages"] = sorted({p + 1 for p, _, _ in slices})
+    if not slices:
+        out["status"] = "nothing"
+    else:
+        try:
+            lines = strokereader.read(path, slices)
+        except strokereader.StrokeReaderUnavailable as e:
+            out.update(status="no-reader", error=str(e))
+            return out
+        judged = None
+        if jev.configured() and lines:
+            try:
+                judged = _judged(task_query(task, state["exercises"]), lines)
+                out["jev"] = True
+            except jev.JevUnavailable as e:
+                out["error"] = f"Jev: {e} - the main model's reading is used"
+        threshold = settings()["unreadable_below"]
+        out["text"], out["counts"] = attempt_mod.compose(lines, mine, judged, threshold)
+        for i, line in enumerate(lines):
+            pick = attempt_mod.choose(line, judged[i] if judged else None, threshold)
+            out["lines"].append({"text": pick["text"], "source": pick["source"],
+                                 "readable": pick["readable"], "unsure": pick["unsure"],
+                                 "note": line.get("kind") == "note",
+                                 "other": line["b" if pick["source"] == "a" else "a"],
+                                 "p": None if pick["p"] is None else round(pick["p"], 2),
+                                 "score": round(pick["score"], 2)})
+        if not out["text"]:
+            out["status"] = "nothing"
+    f = _attempt_file(state)
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    out["stale"] = False
+    return out
+
+
+def current_attempt(course: str, state: dict) -> dict | None:
+    """The attempt for the prompt: the cached one while the notebook is
+    unchanged, else read again (seconds; pages that did not change come from
+    StrokeReader's cache)."""
+    attempt = cached_attempt(course, state)
+    if attempt is None or attempt.get("stale"):
+        attempt = read_attempt(course, state)
+    return attempt
+
+
+def attempt_message(attempt: dict) -> None:
+    """Say what came of reading the attempt, where it is not plain success."""
+    status = attempt.get("status")
+    if status == "no-notebook":
+        say("No notebook", "No .xopp for this sheet in the course folder - "
+            "the prompt goes without my attempt.", glyph="⚠")
+    elif status == "nothing":
+        say("Nothing written yet", "The notebook has nothing for this task.", glyph="⚠")
+    elif status == "no-reader":
+        say("StrokeReader not available", attempt.get("error", ""), glyph="⚠")
+    elif attempt.get("error"):
+        say("Read without Jev", attempt["error"], glyph="⚠")
+
+
+def copy_attempt(course: str, state: dict) -> bool:
+    """Only my attempt, as a message of its own - for a chat that already has
+    the task."""
+    task = task_of(state)
+    if task is None:
+        say("No task", "Pick a task first.", glyph="⚠")
+        return False
+    attempt = current_attempt(course, state)
+    if not attempt.get("text"):
+        attempt_message(attempt)
+        return False
+    part = f" {state['part']})" if state.get("part") else ""
+    text = f"My attempt so far at task {task['number']}{part}:\n\n{attempt['text']}\n"
+    return copy_text(text, f"Attempt at task {task['number']}{part} copied")
 
 
 def ingest(cfg) -> dict:

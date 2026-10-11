@@ -100,17 +100,31 @@ assignmentvibe plan [--show]                        # let Jev plan the current s
 assignmentvibe sort [--apply]                       # file new downloads
 assignmentvibe followup [N]                         # the follow-ups
 assignmentvibe work [--task N] [--list]             # handwritten work, see below
+assignmentvibe attempt [--task N] [--part b]        # my attempt as the prompt gets it
 ```
 
 `assignmentvibe --help` lists the rest.
 
-## Experimental: handwritten work
+## My attempt, read from the notebook
 
 If you solve the sheets in Xournal++ and paste each task's statement in as a
-screenshot, `assignmentvibe work` finds the sheet's notebook, recognises the
-pasted statements (Tesseract) and draws your handwriting for a task as one
-PNG. Turning that into text for the prompt is not solved yet - see
-[docs/ROADMAP.md](docs/ROADMAP.md).
+screenshot, the panel finds the task in the sheet's notebook and puts what
+you have written so far into the prompt as text ("My attempt so far"). The
+handwriting is read locally by
+[StrokeReader](https://github.com/flitscha/StrokeReader) - a small recogniser
+trained on *my* handwriting, so for anyone else it needs training on theirs.
+It reads every line with two models; Jev, which knows the task and the lines
+around, picks the more plausible reading per line and drops the ones it
+cannot believe (`[unreadable]`), so misread letter salad does not reach the
+chat model.
+
+Chips above "Copy prompt" choose what the prompt carries - task, context, my
+attempt - and "Copy attempt only" copies just the attempt, as a follow-up in
+a chat that has the task already. Tables, diagrams and automata are not read
+yet (they come out as `[unreadable]`).
+
+`assignmentvibe work --list` shows how the pasted statements were matched to
+the tasks; `assignmentvibe work` draws a task's handwriting as one PNG.
 
 ## More
 

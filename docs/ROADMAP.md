@@ -181,17 +181,30 @@ pasted statement lands on its task or part; pasted excerpts of the lecture
 notes ("Satz 1.1.13. …", "Theorem …") are recognised as none. ~0.1s once the
 OCR is cached.
 
+**Done (2026-10-11), in the panel:** the attempt reaches the prompt as text
+(item 5): the task's stretches, up to the part asked for, read by
+StrokeReader, one reading per line picked by Jev, unreadable lines out
+(`core/attempt.py`). Chips choose what the prompt carries (task, context,
+attempt), "Copy attempt only" copies the attempt alone; the Task tab shows
+the lines read.
+
 Open:
-- [ ] How it reaches the chat. First try: "Copy my work" in the panel puts the
-      PNG on the clipboard, to paste right after the prompt - the chat model
-      reads this handwriting well, costs nothing, and cannot mistranscribe.
-      If two pastes turn out to be one too many: transcribe the PNG with a
-      vision model (OpenRouter) into "What I have so far".
-- [ ] A thumbnail in the panel, so a wrong match is seen before pasting.
-- [ ] Only the work up to the part asked for (today: the whole task).
+- [ ] A thumbnail of the ink in the panel, so a wrong match is seen before
+      pasting (the card shows the lines read, not the ink).
+- [ ] Short part statements ("(b) |x - y|") match nothing (too few
+      trigrams): a pasted "(b)" right after task N's statement could count as
+      N b) by its label alone.
 - [ ] `tesseract-data-deu` would read the statements better (not needed so far).
 
-## 5. ⚪ Handwriting OCR
+## 5. 🟢 Handwriting OCR
+
+Done with StrokeReader (2026-10-11): the "small model for this one
+handwriting" below was built - a BiLSTM-CTC on the pen strokes, ~10%
+character errors on held-out lines of mine (12% on the current hand),
+~3 s a page with both of its models on the laptop's CPU. Tables, cases and
+diagrams are not read yet. What follows is the reasoning from before.
+
+### Before (2026-09-29)
 
 `integrations/ocr.py` wraps Tesseract, which does not read handwriting. Only
 worth doing if item 4 shows that attaching an image is not good enough - and

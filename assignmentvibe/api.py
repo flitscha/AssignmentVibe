@@ -37,7 +37,9 @@ import traceback
 
 from . import context, hub
 
-SLOW_COMMANDS = {"jev", "plan", "ingest"}
+# Reading my handwriting takes seconds when the notebook changed (StrokeReader,
+# then Jev), and copy_prompt may have to do it first.
+SLOW_COMMANDS = {"jev", "plan", "ingest", "read_work", "copy_work", "copy_prompt"}
 
 
 class ApiError(Exception):
@@ -87,6 +89,8 @@ def state_payload() -> dict:
                         for name, about, path in hub.config_files()],
         "semester": None,
         "limit": hub.settings()["max_context_chars"],
+        "parts": hub.prompt_parts(),
+        "work": None,
     }
 
     cfg, error = _config()
@@ -125,11 +129,25 @@ def state_payload() -> dict:
     payload["summary"] = _summary(course, state)
 
     task = hub.task_of(state)
+    if task and sheet:
+        payload["work"] = _work_payload(course, state)
     picked = state.get("jev_pick") or {}
     if task and sheet and picked.get("task") == hub.task_ref(sheet["sheet_id"], task["number"]):
         payload["jev"]["picked"] = "edited" if picked.get("edited") else "jev"
         payload["jev"]["dropped"] = picked.get("dropped") or []
     return payload
+
+
+def _work_payload(course: str, state: dict) -> dict:
+    """My handwritten attempt at the current task: where its notebook is, and
+    what was read from it last - nothing is read here."""
+    from .integrations import strokereader
+
+    notebook = hub.notebook_for(course, state["sheet"])
+    attempt = hub.cached_attempt(course, state)
+    return {"reader": strokereader.available(),
+            "notebook": notebook.name if notebook else "",
+            "attempt": attempt}
 
 
 def _sheet_label(sheet: dict) -> str:
@@ -372,6 +390,14 @@ def handle(cmd: str, args: dict):
         hub.plan_sheet(course, state)
     elif cmd == "ingest":
         hub.ingest(cfg)
+    elif cmd == "read_work":
+        if hub.task_of(state) is None:
+            raise ApiError("No task chosen yet.")
+        hub.attempt_message(hub.read_attempt(course, state))
+    elif cmd == "copy_work":
+        return {"copied": hub.copy_attempt(course, state)}
+    elif cmd == "set_parts":
+        hub.set_prompt_parts(**{k: v for k, v in args.items() if k in hub.PROMPT_PARTS})
     elif cmd == "copy_prompt":
         return {"chars": hub.copy_prompt(course, course_name, state)}
     elif cmd == "prompt":

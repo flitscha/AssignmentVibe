@@ -23,6 +23,13 @@ DEFAULTS = {
     "jev_proof_threshold": 0.5,
     # Whether algorithms count as statements in a course not yet set otherwise.
     "algorithms_by_default": True,
+    # Where StrokeReader (reads my handwriting) is checked out; "" looks in
+    # $STROKEREADER_DIR, then ~/projects/StrokeReader.
+    "strokereader_dir": "",
+    # My handwritten attempt: how sure Jev and StrokeReader together must be
+    # that a line was read correctly to keep it; a line below becomes
+    # [unreadable]. See core.attempt for how 0.3 was measured.
+    "unreadable_below": 0.3,
 }
 
 TEMPLATE = """{
@@ -34,7 +41,13 @@ TEMPLATE = """{
   "jev_proof_threshold": 0.5,
 
   "_algorithms_by_default": "Whether algorithms (Algorithmus 4.1.7) count as statements, for courses where it has not been switched in the context picker.",
-  "algorithms_by_default": true
+  "algorithms_by_default": true,
+
+  "_strokereader_dir": "Where StrokeReader (reads your handwriting in the Xournal++ notebooks) is checked out. Empty: $STROKEREADER_DIR, then ~/projects/StrokeReader.",
+  "strokereader_dir": "",
+
+  "_unreadable_below": "From 0 to 1: how sure Jev and StrokeReader must be that a handwritten line was read correctly to put it into the prompt; below, it shows as [unreadable]. 0 keeps every line.",
+  "unreadable_below": 0.3
 }
 """
 
@@ -62,11 +75,15 @@ def load() -> dict:
     for key, value in values.items():
         default = DEFAULTS[key]
         # bool is an int to Python, and a threshold of 1 is a fine float.
-        ok = (isinstance(value, bool) if isinstance(default, bool)
-              else isinstance(value, (int, float)) and not isinstance(value, bool))
+        if isinstance(default, bool):
+            ok, wanted = isinstance(value, bool), "true or false"
+        elif isinstance(default, str):
+            ok, wanted = isinstance(value, str), "a string"
+        else:
+            ok = isinstance(value, (int, float)) and not isinstance(value, bool)
+            wanted = "a number"
         if not ok:
-            raise SettingsError(f"{paths.SETTINGS_FILE}: {key} should be "
-                                f"{'true or false' if isinstance(default, bool) else 'a number'}"
+            raise SettingsError(f"{paths.SETTINGS_FILE}: {key} should be {wanted}"
                                 f", not {json.dumps(value)}")
     return {**DEFAULTS, **values}
 

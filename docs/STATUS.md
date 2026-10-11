@@ -1,6 +1,6 @@
 # Status
 
-What exists right now, as of 2026-10-05. Three separate questions per row,
+What exists right now, as of 2026-10-11. Three separate questions per row,
 because they're genuinely different things:
 
 - **Implemented** - does the code exist and do what it's supposed to.
@@ -55,6 +55,8 @@ behind it moved from cli.py to `hub.py` unchanged; `api.py` serves it.
 | Effort as a bar per task (length and colour, green to red; value in the tooltip); "3 builds on 1" beside "Task" | ✅ new | ✅ on a sheet planned by you | ❌ |
 | Ask for one part a)/b)/c) of a task ("Ask for" in the Task tab, `build --part`) | ✅ new | ✅ prompt, remembered per task, panel | ❌ |
 | Handwritten work from the sheet's `.xopp`: statements matched to tasks and parts, the task's work as one PNG (`assignmentvibe work`) | ✅ new, terminal only | ✅ all 9 Optimierung notebooks | ❌ |
+| **My attempt as text in the prompt** (`core/attempt.py`, `integrations/strokereader.py`, `hub.read_attempt`): the task's stretches up to the part asked, read by StrokeReader with both models, Jev picks a reading per line, unreadable lines out; cached per page and per readings | ✅ new | ✅ Automata and Logic sheet 2 tasks 1-2 (m1 notebooks); Jev's pick measured on StrokeReader's 1142 held-out lines: 9.6% -> 9.3% CER (95% [-0.46, -0.15] pt), gate thresholds from the same lines; ~3 s a new page, 0.3 s cached, ~$0.0001 per read | ❌ |
+| **Prompt parts** (chips Task / Context / My attempt above "Copy prompt"), "Copy attempt only", the My attempt card on the Task tab (`R` read again, `W` copy attempt) | ✅ new | ✅ panel driven by IPC + `wtype`, screenshots; chips and "Copy attempt only" not clicked (no mouse), set through the backend instead | ❌ |
 | "Lecture notes" button: opens the script at the page of the task's exercise | ✅ new | ⚠️ command checked for firefox/zathura/evince/okular, not launched | ❌ |
 | Jev's progress and result where they land (card, task header), not in a banner | ✅ new | ⚠️ layout seen; not run again (costs a pick) | ❌ |
 | Copy prompt (Enter / button / middle click), panel closes, notification | ✅ new | ✅ Enter; clipboard checked | ❌ |

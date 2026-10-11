@@ -9,8 +9,9 @@ import "../controls"
 // what the prompt carries - with the buttons that change each right beside it.
 //
 // Keys: ↑↓ task, ←→ sheet, O open the sheet, N open the lecture notes,
-// A ask Jev, E edit the context, P preview the prompt. A line of the context
-// opens the script or slide deck at its page when clicked.
+// A ask Jev, E edit the context, P preview the prompt, R read my attempt
+// again, W copy only my attempt. A line of the context opens the script or
+// slide deck at its page when clicked.
 Flickable {
   id: root
 
@@ -20,6 +21,7 @@ Flickable {
 
   signal navigate(string target)
   signal copyRequested()
+  signal copyWorkRequested()
   signal closeRequested()
 
   readonly property var st: service ? service.state : null
@@ -68,6 +70,8 @@ Flickable {
     else if (t === "a" || t === "A") askJev()
     else if (t === "e" || t === "E") navigate("context")
     else if (t === "p" || t === "P") { if (currentTask) navigate("prompt") }
+    else if (t === "r" || t === "R") readWork()
+    else if (t === "w" || t === "W") copyWorkRequested()
   }
 
   // Opening a PDF races with nothing, so it works while Jev is busy too.
@@ -89,6 +93,29 @@ Flickable {
     if (service && target) service.request("open_source", { target: target }, function(r) {
       if (r.ok && r.result && r.result.opened) root.closeRequested()
     })
+  }
+
+  readonly property var work: st ? st.work : null
+  readonly property var attempt: work ? work.attempt : null
+
+  // Reading shows its result where it lands: the card scrolls to the top.
+  function readWork() {
+    if (!(work && work.notebook && currentTask)) return
+    revealTop(workTitle)
+    request("read_work", {}, function() { revealAfterLayout.restart() })
+  }
+
+  // The Column places the new lines a frame later; scrolling right away would
+  // clamp to the height of the card while it still said "Reading …".
+  Timer {
+    id: revealAfterLayout
+    interval: 60
+    onTriggered: root.revealTop(workTitle)
+  }
+
+  function revealTop(item) {
+    var p = item.mapToItem(column, 0, 0)
+    contentY = Math.max(0, Math.min(contentHeight - height, p.y - Style.space(8)))
   }
 
   function askJev() {
@@ -677,6 +704,155 @@ Flickable {
             fontFamily: root.look.font
             tooltipText: "The prompt then carries the task alone"
             onClicked: root.request("clear_selection")
+          }
+        }
+      }
+    }
+
+    // ---- My attempt -------------------------------------------------------------
+
+    Item { width: 1; height: Style.space(4); visible: workCard.visible }
+
+    SectionTitle {
+      id: workTitle
+      look: root.look
+      visible: workCard.visible
+      text: "My attempt"
+      detail: {
+        if (!root.work || !root.work.notebook) return ""
+        var a = root.attempt
+        var pages = a && a.pages && a.pages.length
+          ? " · p. " + (a.pages.length > 1 ? a.pages[0] + "-" + a.pages[a.pages.length - 1] : a.pages[0])
+          : ""
+        return root.work.notebook + pages
+      }
+    }
+
+    BorderSurface {
+      id: workCard
+      width: parent.width
+      visible: root.currentTask !== null && root.work !== null
+      implicitHeight: workColumn.implicitHeight + Style.space(22)
+      radius: Style.cornerRadius
+      color: Style.normalFillFor(root.look.fg, root.look.accent)
+      borderSpec: Border.controlSpec("normal", root.look.fg, root.look.accent)
+
+      readonly property bool reading: !!(root.service && (root.service.busy === "read_work"
+        || root.service.busy === "copy_work" || root.service.busy === "copy_prompt"))
+      // The lines as the prompt has them: a run of unreadable ones is one row.
+      readonly property var shown: {
+        var lines = root.attempt && root.attempt.lines ? root.attempt.lines : []
+        var rows = []
+        for (var i = 0; i < lines.length; i++) {
+          var l = lines[i], last = rows.length ? rows[rows.length - 1] : null
+          if (!l.readable && last && last.gap) last.gap++
+          else rows.push(l.readable ? l : { gap: 1 })
+        }
+        return rows
+      }
+      property bool allLines: false
+
+      Connections {
+        target: root
+        function onCurrentTaskChanged() { workCard.allLines = false }
+      }
+
+      Column {
+        id: workColumn
+        x: Style.space(12)
+        y: Style.space(11)
+        width: parent.width - Style.space(24)
+        spacing: Style.space(6)
+
+        Label {
+          width: parent.width
+          look: root.look
+          font.bold: true
+          color: workCard.reading ? root.look.accent : root.look.fg
+          wrapMode: Text.WordWrap
+          text: {
+            var w = root.work, a = root.attempt
+            if (!w) return ""
+            if (workCard.reading) return "Reading my handwriting …"
+            if (!w.notebook) return "No Xournal++ notebook for this sheet in the course folder"
+            if (!w.reader) return "StrokeReader not found - set strokereader_dir in settings.json"
+            if (!a) return "Not read yet - copying the prompt reads it"
+            if (a.status === "nothing") return "Nothing written for this task yet"
+            if (a.status === "no-reader") return "StrokeReader failed: " + a.error
+            var c = a.counts || {}
+            var parts = [Model.plural(c.lines || 0, "line")]
+            if (c.from_b) parts.push(c.from_b + " from the second model")
+            if (c.unreadable) parts.push(c.unreadable + " unreadable")
+            if (c.unsure) parts.push(c.unsure + " unsure")
+            return parts.join(" · ") + (a.stale ? " · notebook changed since" : "")
+          }
+        }
+
+        Label {
+          width: parent.width
+          visible: text !== "" && !workCard.reading
+          look: root.look
+          secondary: true
+          wrapMode: Text.WordWrap
+          text: {
+            var a = root.attempt
+            if (!a || a.status !== "ok") return ""
+            if (a.jev) return Glyphs.sparkle + " Jev chose between the two readings; what neither it nor the model believes is left out"
+            return a.error || "Without Jev: the main model's reading, unsure lines marked"
+          }
+        }
+
+        Column {
+          width: parent.width
+          visible: workCard.shown.length > 0 && !workCard.reading
+          spacing: Style.space(1)
+
+          Repeater {
+            model: workCard.allLines ? workCard.shown : workCard.shown.slice(0, 8)
+
+            Text {
+              required property var modelData
+              width: workColumn.width
+              textFormat: Text.PlainText
+              elide: Text.ElideRight
+              text: modelData.gap
+                ? (modelData.gap === 1 ? "[unreadable]" : "[unreadable: " + modelData.gap + " lines]")
+                : (modelData.note ? "[note] " : "") + (modelData.unsure ? "[unsure] " : "") + modelData.text
+              color: modelData.gap || modelData.unsure ? root.look.muted
+                     : modelData.source === "b" ? root.look.accent : root.look.fg
+              font.family: root.look.font
+              font.pixelSize: Style.font.caption
+              font.italic: !!modelData.gap
+            }
+          }
+        }
+
+        Row {
+          spacing: Style.space(6)
+
+          Button {
+            iconText: Glyphs.sync
+            text: root.attempt ? "Read again" : "Read now"
+            bordered: true
+            visible: !!(root.work && root.work.notebook && root.work.reader)
+            enabled: !root.busy
+            opacity: enabled ? 1 : 0.45
+            foreground: root.look.fg
+            fontFamily: root.look.font
+            tooltipText: "R · find this task in the notebook and read what is written for it"
+              + (root.part ? " (up to part " + root.part + ")" : "")
+            onClicked: root.readWork()
+          }
+
+          Button {
+            visible: workCard.shown.length > 8
+            text: workCard.allLines ? "Show less" : "… and " + (workCard.shown.length - 8) + " more"
+            fontSize: Style.font.caption
+            verticalPadding: Style.space(2)
+            horizontalPadding: Style.space(6)
+            foreground: root.look.muted
+            fontFamily: root.look.font
+            onClicked: workCard.allLines = !workCard.allLines
           }
         }
       }

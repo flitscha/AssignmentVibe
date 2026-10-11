@@ -53,7 +53,8 @@ Item {
   property int nextId: 1
   property var pending: ({})
 
-  readonly property var slowCommands: ({ jev: true, plan: true, ingest: true })
+  readonly property var slowCommands: ({ jev: true, plan: true, ingest: true,
+                                         read_work: true, copy_work: true, copy_prompt: true })
 
   function request(cmd, args, callback) {
     if (!backend.running) {

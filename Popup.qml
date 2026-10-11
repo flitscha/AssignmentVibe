@@ -47,9 +47,29 @@ KeyboardPanel {
   }
 
   function copyPrompt() {
-    if (!service || !hasTask || busy) return
+    if (!service || !hasTask || busy || !anyPart) return
     service.request("copy_prompt", {}, function(r) {
       if (r.ok) panel.closeRequested()
+    })
+  }
+
+  // What "Copy prompt" puts in: the task (with the instruction to solve it),
+  // the chosen context, my handwritten attempt - each can be left out, for a
+  // follow-up in a chat that has the rest already.
+  readonly property var parts: st && st.parts ? st.parts : ({ task: true, context: true, work: true })
+  readonly property bool anyPart: parts.task || parts.context || parts.work
+
+  function togglePart(key) {
+    if (!service || busy) return
+    var args = {}
+    args[key] = !parts[key]
+    service.request("set_parts", args)
+  }
+
+  function copyWork() {
+    if (!service || !hasTask || busy) return
+    service.request("copy_work", {}, function(r) {
+      if (r.ok && r.result && r.result.copied) panel.closeRequested()
     })
   }
 
@@ -168,6 +188,9 @@ KeyboardPanel {
             if (panel.busy) {
               if (panel.service.busy === "jev") return "Jev is picking the context"
               if (panel.service.busy === "plan") return "Jev is planning the sheet"
+              if (panel.service.busy === "read_work") return "Reading my handwriting"
+              if (panel.service.busy === "copy_work" || panel.service.busy === "copy_prompt")
+                return "Building the prompt"
               return "Reading in new PDFs"
             }
             return panel.st && panel.st.course
@@ -266,11 +289,64 @@ KeyboardPanel {
       visible: panel.showFooter
       anchors.bottom: parent.bottom
       width: parent.width
-      height: visible ? footerRow.implicitHeight + Style.space(10) : 0
+      height: visible ? partsRow.implicitHeight + footerRow.implicitHeight + Style.space(18) : 0
 
       PanelSeparator {
         anchors.top: parent.top
         foreground: panel.theme.fg
+      }
+
+      Row {
+        id: partsRow
+        anchors.bottom: footerRow.top
+        anchors.bottomMargin: Style.space(8)
+        anchors.left: parent.left
+        spacing: Style.space(6)
+
+        Label {
+          anchors.verticalCenter: parent.verticalCenter
+          look: panel.theme
+          secondary: true
+          font.pixelSize: Style.font.caption
+          text: "Prompt carries"
+        }
+
+        Repeater {
+          model: [
+            { key: "task", label: "Task", tip: "The task, and the instruction to solve it" },
+            { key: "context", label: "Context", tip: "The lecture notes and earlier tasks chosen above" },
+            { key: "work", label: "My attempt", tip: "What I wrote for this task in its Xournal++ notebook, read by StrokeReader" }
+          ]
+
+          Chip {
+            required property var modelData
+            look: panel.theme
+            text: (selected ? Glyphs.check + " " : "") + modelData.label
+            selected: !!panel.parts[modelData.key]
+            enabled: panel.hasTask && !panel.busy
+            fontSize: Style.font.caption
+            verticalPadding: Style.space(3)
+            tooltipText: modelData.tip
+            onClicked: panel.togglePart(modelData.key)
+          }
+        }
+
+        Item { width: Style.space(6); height: 1 }
+
+        Button {
+          anchors.verticalCenter: parent.verticalCenter
+          iconText: Glyphs.pencil
+          text: "Copy attempt only"
+          bordered: true
+          enabled: panel.hasTask && !panel.busy && !!(panel.st && panel.st.work && panel.st.work.notebook)
+          opacity: enabled ? 1 : 0.45
+          fontSize: Style.font.caption
+          verticalPadding: Style.space(3)
+          foreground: panel.theme.fg
+          fontFamily: panel.theme.font
+          tooltipText: "W · only my attempt, read from the notebook - for a chat that has the task already"
+          onClicked: panel.copyWork()
+        }
       }
 
       Row {
@@ -287,7 +363,7 @@ KeyboardPanel {
             : "Copy prompt"
           selected: true
           bordered: true
-          enabled: panel.hasTask && !panel.busy
+          enabled: panel.hasTask && !panel.busy && panel.anyPart
           opacity: enabled ? 1 : 0.45
           foreground: panel.theme.fg
           fontFamily: panel.theme.font
@@ -361,6 +437,7 @@ KeyboardPanel {
       look: panel.theme
       onNavigate: function(target) { panel.tab = target }
       onCopyRequested: panel.copyPrompt()
+      onCopyWorkRequested: panel.copyWork()
       onCloseRequested: panel.closeRequested()
     }
   }

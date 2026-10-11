@@ -19,6 +19,8 @@ Subcommands:
   jev [--usage]                                 let Jev pick statements + proofs for the task
   plan [--sheet ID] [--show]                    let Jev estimate each task's work and an order
   followup [N]                                 list the canned replies, or copy number N
+  work [--task N] [--list]                      the handwritten work on a task, as a PNG
+  attempt [--task N] [--part b] [--copy]         my attempt as text, read by StrokeReader
   open-browser [--provider ...]                   open the chat website
   serve                                            the panel's backend (JSON lines on stdin/stdout)
   api <cmd> [json-args]                             one panel request, from the terminal
@@ -264,6 +266,39 @@ def cmd_work(args):
         print(f"Nothing written for task {task} in {path.name}.", file=sys.stderr)
         sys.exit(1)
     _print(png)
+
+
+def cmd_attempt(args):
+    """My attempt at the current (or the given) task as the prompt carries it:
+    read from the notebook by StrokeReader, one reading per line by Jev."""
+    course = context.current_course()
+    state = hub.resolve_state(course) if course else None
+    if not state or not state["sheet"]:
+        print("No current sheet - pick one in the panel first.", file=sys.stderr)
+        sys.exit(1)
+    if args.task is not None:
+        state["task"] = args.task
+    if args.part is not None:
+        state["part"] = args.part
+    if hub.task_of(state) is None:
+        print(f"No task {state['task']} on this sheet.", file=sys.stderr)
+        sys.exit(1)
+    if args.copy:
+        if not hub.copy_attempt(course, state):
+            sys.exit(1)
+        return
+    attempt = hub.read_attempt(course, state)
+    hub.attempt_message(attempt)
+    if not attempt.get("text"):
+        sys.exit(1)
+    _print(attempt["text"])
+    if args.verbose:
+        _print("")
+        for line in attempt["lines"]:
+            mark = "  " if line["readable"] else "x "
+            p = f"{line['score']:.2f}"
+            _print(f"{mark}{line['source']} {p:>4}  {line['text']}"
+                   + (f"\n          other: {line['other']}" if line["other"] != line["text"] else ""))
 
 
 def cmd_serve(args):
@@ -684,6 +719,14 @@ def build_arg_parser():
     p_work.add_argument("--list", action="store_true",
                         help="show how the pasted statements were matched")
     p_work.set_defaults(func=cmd_work)
+
+    p_att = sub.add_parser("attempt", help="my attempt at a task as text, read by StrokeReader")
+    p_att.add_argument("--task", type=int, default=None)
+    p_att.add_argument("--part", default=None, help='a part label ("b"), "" for the whole task')
+    p_att.add_argument("--copy", action="store_true", help="onto the clipboard, as 'Copy attempt only'")
+    p_att.add_argument("-v", "--verbose", action="store_true",
+                       help="every line with both readings and Jev's judgement")
+    p_att.set_defaults(func=cmd_attempt)
 
     p_serve = sub.add_parser("serve", help="the panel's backend: JSON lines on stdin/stdout")
     p_serve.set_defaults(func=cmd_serve)

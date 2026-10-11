@@ -299,6 +299,77 @@ def _probability(answers: dict, qid: str, item_id: str) -> float:
     return float(value)
 
 
+# --- Readings of my handwriting ------------------------------------------------
+
+# StrokeReader reads each line of my handwritten attempt with two models
+# (core.attempt). Jev cannot see the ink, but it knows the task and the lines
+# around, and garbled readings look garbled: letter salad, broken LaTeX, a
+# formula that fits nothing. One question per reading - how plausible it is -
+# answers both "which of the two?" and "keep it at all?".
+READING_QUESTION = {
+    "instructions": ("{id} is a machine transcription (LaTeX in $...$) of one handwritten "
+                     "line of my attempt at the task; the other lines of the attempt are "
+                     "given for context. Is it a faithful, legible reading of what I wrote?"),
+    "criteria": {
+        "true": "It reads as meaningful text or well-formed maths that fits the task "
+                "and the lines around it.",
+        "false": "It has garbled or misspelled words, letter salad, broken LaTeX, or "
+                 "symbols that make no sense there.",
+    },
+}
+
+
+def judge_readings(task: str, lines: list[dict], model: str = MODEL) -> list[dict]:
+    """Per line {"a": P(reading a is right), "b": P(reading b is right)} - "b"
+    only where the two readings differ. `lines` are StrokeReader's, with "a"
+    and "b"; the attempt goes to Jev as the lines in order, a line read two
+    ways under both its readings. One pick, split into requests if long."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    def ids(n: int, line: dict) -> list[tuple[str, str]]:
+        if line["b"] == line["a"]:
+            return [(f"L{n + 1}", "a")]
+        return [(f"L{n + 1}_A", "a"), (f"L{n + 1}_B", "b")]
+
+    # Lines are kept whole and in order; a request takes as many as fit,
+    # with the task, so every line is judged with the task in view.
+    room = MAX_REQUEST_CHARS - len(task) - 400
+    batches, current, used = [], [], 0
+    for n, line in enumerate(lines):
+        size = sum(len(line[k]) + len(json.dumps(READING_QUESTION)) + 40 for _, k in ids(n, line))
+        if current and used + size > room:
+            batches.append(current)
+            current, used = [], 0
+        current.append(n)
+        used += size
+    if current:
+        batches.append(current)
+
+    def ask(batch: list[int]) -> dict:
+        attempt, questions = {}, {}
+        for n in batch:
+            for item_id, k in ids(n, lines[n]):
+                attempt[item_id] = lines[n][k]
+                questions[f"q{len(questions)}"] = _question(READING_QUESTION, item_id)
+        return decide({"task": task, "my_attempt": attempt}, questions, model)
+
+    if not batches:
+        return []
+    with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as pool:
+        responses = list(pool.map(ask, batches))
+    record([response.get("usage") or {} for response in responses])
+
+    out: list[dict] = [{} for _ in lines]
+    for batch, response in zip(batches, responses):
+        answers = response.get("answers") or {}
+        q = 0
+        for n in batch:
+            for item_id, k in ids(n, lines[n]):
+                out[n][k] = _probability(answers, f"q{q}", item_id)
+                q += 1
+    return out
+
+
 # --- Usage counter ------------------------------------------------------------
 
 def usage() -> dict:

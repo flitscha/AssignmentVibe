@@ -27,6 +27,8 @@ PLANS_DIR = DATA_DIR / "plans"
 RAW_TEXT_CACHE_DIR = CACHE_DIR / "raw_text"
 OCR_CACHE_DIR = CACHE_DIR / "ocr"
 WORK_DIR = CACHE_DIR / "work"
+# My attempts as read by StrokeReader, and Jev's judgement of the readings.
+ATTEMPTS_DIR = CACHE_DIR / "attempts"
 COURSES_FILE = DATA_DIR / "courses.json"
 
 # The one file the user edits, once per semester. See assignmentvibe/uniconfig.py.
