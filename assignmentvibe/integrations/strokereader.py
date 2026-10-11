@@ -1,12 +1,12 @@
 """
 Read my handwriting with StrokeReader (github.com/flitscha/StrokeReader): a
-small local recogniser trained on my own notes, two models of it.
+small local recogniser trained on my own notes.
 
 StrokeReader is a separate checkout with its own virtualenv (torch). It is run
 as a process - `python -m strokereader.work FILE.xopp PAGE:TOP:BOTTOM ...` -
-and answers with JSON: every line of those stretches with the reading of
-both models and how sure each was. It caches per page, so asking again for a
-notebook that has not changed costs well under a second and loads no model.
+and answers with JSON: every line of those stretches as its main model reads
+it. It caches per page, so asking again for a notebook that has not changed
+costs well under a second and loads no model.
 
 Where the checkout is: `strokereader_dir` in settings.json, else
 $STROKEREADER_DIR, else ~/projects/StrokeReader. Its Python is the checkout's
@@ -21,8 +21,8 @@ import subprocess
 from pathlib import Path
 
 DEFAULT_DIR = Path("~/projects/StrokeReader").expanduser()
-# A page is ~3 s with both models on the laptop's CPU, and the models take ~4 s
-# to load; a long task is ten pages.
+# A page is ~1.5 s on the laptop's CPU, and the model takes ~3 s to load; a
+# long task is ten pages.
 TIMEOUT_S = 300
 
 
@@ -57,8 +57,7 @@ def _python(root: Path) -> str:
 def read(notebook: Path, stretches: list[tuple[int, float, float]]) -> list[dict]:
     """The lines written in the (page, top, bottom) stretches of a notebook:
     [{"page", "box", "kind" ("text" or "note": another colour than the
-    page's), "a", "conf_a", "b", "conf_b"}] - "a" the main model's reading,
-    "b" the second model's, each in StrokeReader's LaTeX."""
+    page's), "text" (StrokeReader's LaTeX)}]."""
     root = checkout()
     if root is None:
         raise StrokeReaderUnavailable(

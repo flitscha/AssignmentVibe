@@ -292,13 +292,6 @@ def cmd_attempt(args):
     if not attempt.get("text"):
         sys.exit(1)
     _print(attempt["text"])
-    if args.verbose:
-        _print("")
-        for line in attempt["lines"]:
-            mark = "  " if line["readable"] else "x "
-            p = f"{line['score']:.2f}"
-            _print(f"{mark}{line['source']} {p:>4}  {line['text']}"
-                   + (f"\n          other: {line['other']}" if line["other"] != line["text"] else ""))
 
 
 def cmd_serve(args):
@@ -724,8 +717,6 @@ def build_arg_parser():
     p_att.add_argument("--task", type=int, default=None)
     p_att.add_argument("--part", default=None, help='a part label ("b"), "" for the whole task')
     p_att.add_argument("--copy", action="store_true", help="onto the clipboard, as 'Copy attempt only'")
-    p_att.add_argument("-v", "--verbose", action="store_true",
-                       help="every line with both readings and Jev's judgement")
     p_att.set_defaults(func=cmd_attempt)
 
     p_serve = sub.add_parser("serve", help="the panel's backend: JSON lines on stdin/stdout")

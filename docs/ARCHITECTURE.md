@@ -26,9 +26,8 @@ assignmentvibe/
                             only what was chosen; also turns Jev's answers into a pick
     worklog.py             which stretch of a handwritten notebook belongs to
                             which task/part, from the OCR of the pasted statements
-    attempt.py             my handwritten attempt as prompt text: one of the two
-                            StrokeReader readings per line (by Jev's judgement),
-                            unreadable lines out, parts labelled
+    attempt.py             my handwritten attempt as prompt text: StrokeReader's
+                            lines as read, other colours out, parts labelled
     prompts.py               task + exercises + knowledge -> prompt string
                              (depends on selection, toc, exercises - all pure)
 
@@ -59,8 +58,8 @@ assignmentvibe/
     xournal.py               .xopp -> pages/images/strokes; OCR of the pasted
                               images (Tesseract, cached); render a stretch to PNG
     strokereader.py          runs StrokeReader (a separate checkout with its own
-                              venv and torch) on stretches of a notebook: two
-                              readings per line. Missing -> StrokeReaderUnavailable
+                              venv and torch) on stretches of a notebook.
+                              Missing -> StrokeReaderUnavailable
     editor.py                omarchy-launch-config-editor / xdg-terminal-exec
                               $EDITOR -> False (caller shows the path)
 
@@ -98,7 +97,7 @@ controls/, Model.js repo root because Omarchy plugins keep manifest.json there.
 core.pdf_text  <---  core.font_styles  <---  core.knowledge  --->  core.toc, core.exercises
 core.pdf_text  <---  core.assignments
 core.prompts   --->  core.selection, core.toc, core.exercises   (all pure)
-core.attempt              (pure: StrokeReader's lines + Jev's answers -> text)
+core.attempt              (pure: StrokeReader's lines -> text)
 
 core.pdf_text  <---  organizer.classify  <---  organizer.organize
 

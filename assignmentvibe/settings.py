@@ -26,10 +26,6 @@ DEFAULTS = {
     # Where StrokeReader (reads my handwriting) is checked out; "" looks in
     # $STROKEREADER_DIR, then ~/projects/StrokeReader.
     "strokereader_dir": "",
-    # My handwritten attempt: how sure Jev and StrokeReader together must be
-    # that a line was read correctly to keep it; a line below becomes
-    # [unreadable]. See core.attempt for how 0.3 was measured.
-    "unreadable_below": 0.3,
 }
 
 TEMPLATE = """{
@@ -44,10 +40,7 @@ TEMPLATE = """{
   "algorithms_by_default": true,
 
   "_strokereader_dir": "Where StrokeReader (reads your handwriting in the Xournal++ notebooks) is checked out. Empty: $STROKEREADER_DIR, then ~/projects/StrokeReader.",
-  "strokereader_dir": "",
-
-  "_unreadable_below": "From 0 to 1: how sure Jev and StrokeReader must be that a handwritten line was read correctly to put it into the prompt; below, it shows as [unreadable]. 0 keeps every line.",
-  "unreadable_below": 0.3
+  "strokereader_dir": ""
 }
 """
 

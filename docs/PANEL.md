@@ -50,9 +50,7 @@ Omarchy plugins run unsandboxed, so, plainly:
   replaced files in the trash.
 - Network: only with an OpenRouter key in `openrouter.key`, and only when
   you press a Jev button - to `openrouter.ai`, with the task and the
-  statements of your notes - or when your handwritten attempt is read: then
-  the task and the machine reading of your lines go to Jev, to judge which
-  reading is right. Nothing else leaves the machine; the handwriting itself
+  statements of your notes. Nothing else leaves the machine; the handwriting
   is read locally (StrokeReader).
 - Starts other programs when asked: the clipboard (`wl-copy`), your PDF viewer
   and browser, your editor for the config files, `tesseract` for the
@@ -103,12 +101,11 @@ for every course.
 
 **My attempt** (Task tab, under the context): the task is found in the
 sheet's notebook by its pasted statement (core.worklog), everything written
-for it - up to the part asked for - is read by StrokeReader with both of its
-models, and Jev judges each reading: per line the more plausible one goes in,
-and a line Jev does not believe at all becomes `[unreadable]`. The card shows
-the lines as the prompt gets them, those from the second model in the accent
-colour. Copying reads the notebook again only if it changed; a page read before
-comes from StrokeReader's cache, Jev's answers from ours.
+for it - up to the part asked for - is read by StrokeReader's main model and
+goes in exactly as it reads it: nothing marked, nothing left out, except lines
+in another colour than the page's (side remarks, simplifications in green).
+The card shows the lines as the prompt gets them. Copying reads the notebook again only if it changed; a page read before
+comes from StrokeReader's cache.
 
 Changes made elsewhere - `assignmentvibe jev` in a terminal, say - show up by
 themselves: the service watches `~/.local/state/assignmentvibe/context.json`.

@@ -739,17 +739,7 @@ Flickable {
 
       readonly property bool reading: !!(root.service && (root.service.busy === "read_work"
         || root.service.busy === "copy_work" || root.service.busy === "copy_prompt"))
-      // The lines as the prompt has them: a run of unreadable ones is one row.
-      readonly property var shown: {
-        var lines = root.attempt && root.attempt.lines ? root.attempt.lines : []
-        var rows = []
-        for (var i = 0; i < lines.length; i++) {
-          var l = lines[i], last = rows.length ? rows[rows.length - 1] : null
-          if (!l.readable && last && last.gap) last.gap++
-          else rows.push(l.readable ? l : { gap: 1 })
-        }
-        return rows
-      }
+      readonly property var shown: root.attempt && root.attempt.lines ? root.attempt.lines : []
       property bool allLines: false
 
       Connections {
@@ -779,26 +769,8 @@ Flickable {
             if (!a) return "Not read yet - copying the prompt reads it"
             if (a.status === "nothing") return "Nothing written for this task yet"
             if (a.status === "no-reader") return "StrokeReader failed: " + a.error
-            var c = a.counts || {}
-            var parts = [Model.plural(c.lines || 0, "line")]
-            if (c.from_b) parts.push(c.from_b + " from the second model")
-            if (c.unreadable) parts.push(c.unreadable + " unreadable")
-            if (c.unsure) parts.push(c.unsure + " unsure")
-            return parts.join(" · ") + (a.stale ? " · notebook changed since" : "")
-          }
-        }
-
-        Label {
-          width: parent.width
-          visible: text !== "" && !workCard.reading
-          look: root.look
-          secondary: true
-          wrapMode: Text.WordWrap
-          text: {
-            var a = root.attempt
-            if (!a || a.status !== "ok") return ""
-            if (a.jev) return Glyphs.sparkle + " Jev chose between the two readings; what neither it nor the model believes is left out"
-            return a.error || "Without Jev: the main model's reading, unsure lines marked"
+            return Model.plural(workCard.shown.length, "line") + " read"
+              + (a.stale ? " · notebook changed since" : "")
           }
         }
 
@@ -815,14 +787,10 @@ Flickable {
               width: workColumn.width
               textFormat: Text.PlainText
               elide: Text.ElideRight
-              text: modelData.gap
-                ? (modelData.gap === 1 ? "[unreadable]" : "[unreadable: " + modelData.gap + " lines]")
-                : (modelData.note ? "[note] " : "") + (modelData.unsure ? "[unsure] " : "") + modelData.text
-              color: modelData.gap || modelData.unsure ? root.look.muted
-                     : modelData.source === "b" ? root.look.accent : root.look.fg
+              text: modelData
+              color: root.look.fg
               font.family: root.look.font
               font.pixelSize: Style.font.caption
-              font.italic: !!modelData.gap
             }
           }
         }

@@ -113,18 +113,17 @@ you have written so far into the prompt as text ("My attempt so far"). The
 handwriting is read locally by
 [StrokeReader](https://github.com/flitscha/StrokeReader) - a small recogniser
 trained on *my* handwriting, so for anyone else it needs training on theirs.
-It reads every line with two models; Jev, which knows the task and the lines
-around, picks the more plausible reading per line and drops the ones it
-cannot believe (`[unreadable]`), so misread letter salad does not reach the
-chat model.
+The lines go in exactly as it reads them (the instruction tells the chat model
+they were read by machine); lines in another colour - side remarks - are left
+out. Tables, diagrams and automata are not read well yet.
 
 Chips above "Copy prompt" choose what the prompt carries - task, context, my
 attempt - and "Copy attempt only" copies just the attempt, as a follow-up in
-a chat that has the task already. Tables, diagrams and automata are not read
-yet (they come out as `[unreadable]`).
+a chat that has the task already.
 
-`assignmentvibe work --list` shows how the pasted statements were matched to
-the tasks; `assignmentvibe work` draws a task's handwriting as one PNG.
+`assignmentvibe attempt` prints the attempt; `assignmentvibe work --list`
+shows how the pasted statements were matched to the tasks, `assignmentvibe
+work` draws a task's handwriting as one PNG.
 
 ## More
 

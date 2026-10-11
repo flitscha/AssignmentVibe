@@ -183,8 +183,12 @@ OCR is cached.
 
 **Done (2026-10-11), in the panel:** the attempt reaches the prompt as text
 (item 5): the task's stretches, up to the part asked for, read by
-StrokeReader, one reading per line picked by Jev, unreadable lines out
-(`core/attempt.py`). Chips choose what the prompt carries (task, context,
+StrokeReader's main model, exactly as read, other colours left out
+(`core/attempt.py`). A first version picked between StrokeReader's two models
+per line with Jev and dropped lines neither believed (9.6% -> 9.3% character
+errors - StrokeReader docs/experiments.md); taken out again the same day:
+too little gain for the machinery, and a dropped line is worse than a
+misread one. Chips choose what the prompt carries (task, context,
 attempt), "Copy attempt only" copies the attempt alone; the Task tab shows
 the lines read.
 
@@ -201,7 +205,7 @@ Open:
 Done with StrokeReader (2026-10-11): the "small model for this one
 handwriting" below was built - a BiLSTM-CTC on the pen strokes, ~10%
 character errors on held-out lines of mine (12% on the current hand),
-~3 s a page with both of its models on the laptop's CPU. Tables, cases and
+~1.5 s a page on the laptop's CPU. Tables, cases and
 diagrams are not read yet. What follows is the reasoning from before.
 
 ### Before (2026-09-29)

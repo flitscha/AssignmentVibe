@@ -921,7 +921,7 @@ def render_work(course: str, sheet: dict, task: int) -> tuple[Path | None, Path 
     return path, xournal.render(pages, slices, out), mine
 
 
-# --- My attempt as text (StrokeReader + Jev) --------------------------------------
+# --- My attempt as text (StrokeReader) ---------------------------------------------
 
 # What the prompt carries, chosen with the boxes beside "Copy prompt": the task,
 # the chosen context, my handwritten attempt. One setting for every course - it
@@ -968,45 +968,23 @@ def cached_attempt(course: str, state: dict) -> dict | None:
     return attempt
 
 
-def _judged(task_text: str, lines: list[dict]) -> list[dict]:
-    """Jev's judgement of the readings, cached by task and readings - asking
-    again for an unchanged notebook costs nothing."""
-    import hashlib
-    import json
-
-    from .integrations import jev
-
-    key = hashlib.sha1(json.dumps([task_text, jev.MODEL, [(l["a"], l["b"]) for l in lines]],
-                                  ensure_ascii=False).encode()).hexdigest()
-    f = paths.ATTEMPTS_DIR / "jev" / f"{key}.json"
-    try:
-        return json.loads(f.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        pass
-    judged = jev.judge_readings(task_text, lines)
-    f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(json.dumps(judged), encoding="utf-8")
-    return judged
-
-
 def read_attempt(course: str, state: dict) -> dict:
-    """Find the current task in its sheet's notebook, read what I wrote for it
-    (up to the part asked for) with StrokeReader, let Jev pick a reading per
-    line and drop what is unreadable. Stored for cached_attempt; returns
-    {"status": "ok"|"no-notebook"|"nothing"|"no-reader"|"failed", "text",
-    "notebook", "pages", "counts", "jev", "lines": [shown lines], ...}."""
+    """Find the current task in its sheet's notebook and read what I wrote for
+    it (up to the part asked for) with StrokeReader. Stored for
+    cached_attempt; returns {"status": "ok"|"no-notebook"|"nothing"|
+    "no-reader", "text", "notebook", "pages", "lines": [the lines in the
+    prompt], ...}."""
     import json
 
     from .core import attempt as attempt_mod
     from .core import worklog
-    from .core.prompts import task_query
-    from .integrations import jev, strokereader
+    from .integrations import strokereader
 
     task = task_of(state)
     if task is None:
         return {"status": "nothing", "text": ""}
     out = {"status": "ok", "text": "", "notebook": None, "notebookName": "", "pages": [],
-           "counts": {}, "jev": False, "lines": [], "error": "", "mtime": None,
+           "lines": [], "error": "", "mtime": None,
            "task": state["task"], "part": state.get("part") or ""}
     path = notebook_for(course, state["sheet"])
     if path is None:
@@ -1025,23 +1003,8 @@ def read_attempt(course: str, state: dict) -> dict:
         except strokereader.StrokeReaderUnavailable as e:
             out.update(status="no-reader", error=str(e))
             return out
-        judged = None
-        if jev.configured() and lines:
-            try:
-                judged = _judged(task_query(task, state["exercises"]), lines)
-                out["jev"] = True
-            except jev.JevUnavailable as e:
-                out["error"] = f"Jev: {e} - the main model's reading is used"
-        threshold = settings()["unreadable_below"]
-        out["text"], out["counts"] = attempt_mod.compose(lines, mine, judged, threshold)
-        for i, line in enumerate(lines):
-            pick = attempt_mod.choose(line, judged[i] if judged else None, threshold)
-            out["lines"].append({"text": pick["text"], "source": pick["source"],
-                                 "readable": pick["readable"], "unsure": pick["unsure"],
-                                 "note": line.get("kind") == "note",
-                                 "other": line["b" if pick["source"] == "a" else "a"],
-                                 "p": None if pick["p"] is None else round(pick["p"], 2),
-                                 "score": round(pick["score"], 2)})
+        out["text"] = attempt_mod.compose(lines, mine)
+        out["lines"] = [line["text"] for line in attempt_mod.kept(lines)]
         if not out["text"]:
             out["status"] = "nothing"
     f = _attempt_file(state)
@@ -1071,8 +1034,6 @@ def attempt_message(attempt: dict) -> None:
         say("Nothing written yet", "The notebook has nothing for this task.", glyph="⚠")
     elif status == "no-reader":
         say("StrokeReader not available", attempt.get("error", ""), glyph="⚠")
-    elif attempt.get("error"):
-        say("Read without Jev", attempt["error"], glyph="⚠")
 
 
 def copy_attempt(course: str, state: dict) -> bool:
