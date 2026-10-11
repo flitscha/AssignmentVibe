@@ -97,13 +97,19 @@ def _slides_path(course_slug: str) -> Path:
     return paths.KNOWLEDGE_DIR / f"{course_slug}.slides.json"
 
 
+def _extra_path(course_slug: str) -> Path:
+    return paths.KNOWLEDGE_DIR / f"{course_slug}.extra.json"
+
+
 def load_sections(course_slug: str) -> list[dict]:
     """A course's section tree: [{"key", "level", "title", "page"}, ...] in
     reading order - the script's, then its slide decks' ("S1", "S1.3", with
-    the deck's "pdf"). Empty for a script ingested before the tree existed."""
+    the deck's "pdf"), then its extra scripts' ("Z1", "Z1.3.1", see
+    ingest_extra). Empty for a script ingested before the tree existed."""
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
     return (_load_json(path, {}).get("sections", [])
-            + _load_json(_slides_path(course_slug), {}).get("sections", []))
+            + _load_json(_slides_path(course_slug), {}).get("sections", [])
+            + _load_json(_extra_path(course_slug), {}).get("sections", []))
 
 
 def load_section_titles(course_slug: str) -> dict[str, str]:
@@ -201,12 +207,60 @@ def load_plan(sheet_id: str) -> dict | None:
 
 
 def load_knowledge(course_slug: str) -> list[dict]:
-    """The script's statements and the slides of the course's decks (see
-    core.slides), as one list: everything downstream - Jev, the context
-    editor, the prompt - treats a slide as one more statement."""
+    """The script's statements, the slides of the course's decks (see
+    core.slides) and the statements of its extra scripts (see ingest_extra),
+    as one list: everything downstream - Jev, the context editor, the prompt -
+    treats a slide or another script's theorem as one more statement. Whether
+    the extra scripts are wanted right now is the hub's to say (hub.knowledge)."""
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
     return (_load_json(path, {}).get("entries", [])
-            + _load_json(_slides_path(course_slug), {}).get("entries", []))
+            + _load_json(_slides_path(course_slug), {}).get("entries", [])
+            + _load_json(_extra_path(course_slug), {}).get("entries", []))
+
+
+def ingest_extra(scripts: list[tuple[str, Path]], course_name: str) -> dict:
+    """A course's extra scripts ("zusatzskript" in uni.json) -> their
+    statements, beside the course's own knowledge base.
+
+    Each is read like a script of its own, then put under a node of its own:
+    sections "Z1", "Z1.3.1" (core.toc sorts them after the slides), ids
+    "Stochastik I+II: Satz 3.2" - the course's own script has a "Satz 3.2" too
+    - and the "pdf" it came from, so a click opens that script at the page."""
+    from .core import knowledge as knowledge_core
+    from .core.prompts import entry_id
+
+    paths.ensure_dirs()
+    slug = _slugify(course_name)
+    sections, entries = [], []
+    for i, (name, pdf) in enumerate(scripts, start=1):
+        own = _slugify(f"extra {pdf.parent.name} {pdf.stem}")
+        raw_path = paths.RAW_TEXT_CACHE_DIR / f"{own}.json"
+        knowledge_path = paths.KNOWLEDGE_DIR / "extra" / f"{own}.json"
+        if (not knowledge_path.exists()
+                or knowledge_path.stat().st_mtime < pdf.stat().st_mtime
+                or _load_json(knowledge_path, {}).get("format", 1) < knowledge_core.FORMAT):
+            from .core import pdf_text
+
+            pdf_text.extract_to_json(pdf, raw_path)
+            knowledge_core.run(raw_path, knowledge_path, pdf)
+        saved = _load_json(knowledge_path, {})
+        root = f"Z{i}"
+        sections.append({"key": root, "level": 1, "title": name, "page": 1, "pdf": str(pdf)})
+        for n in saved.get("sections", []):
+            sections.append({**n, "key": f"{root}.{n['key']}", "level": n["level"] + 1,
+                             "pdf": str(pdf)})
+        for e in saved.get("entries", []):
+            entries.append({**e, "id": f"{name}: {entry_id(e)}", "source": name,
+                            "section": f"{root}.{e['section']}" if e.get("section") else root,
+                            "pdf": str(pdf)})
+    _save_json(_extra_path(slug), {
+        "format": knowledge_core.FORMAT, "scripts": _extra_stamps(scripts),
+        "sections": sections, "entries": entries})
+    return {"course": course_name, "scripts": len(scripts), "entries": len(entries)}
+
+
+def _extra_stamps(scripts: list[tuple[str, Path]]) -> list[list]:
+    return [[name, str(pdf), pdf.stat().st_mtime] for name, pdf in scripts]
 
 
 def ingest_slides(pdfs: list[Path], course_name: str) -> dict:
@@ -310,6 +364,23 @@ def ingest_missing(cfg, progress=None) -> dict:
                 result["errors"].append(f"{course.name} slides: {e}")
         elif not decks and stored:
             _slides_path(slug).unlink()
+
+        extra = [(name, pdf) for name, pdf in course.zusatzskripte if pdf.exists()]
+        for name, pdf in course.zusatzskripte:
+            if not pdf.exists():
+                result["errors"].append(f"{course.name}: extra script {pdf} not found")
+        stored = _load_json(_extra_path(slug), {})
+        if extra and (stored.get("scripts") != _extra_stamps(extra)
+                      or stored.get("format", 0) < KNOWLEDGE_FORMAT):
+            if progress:
+                progress(f"Extra script: {course.name}")
+            try:
+                ingest_extra(extra, course.name)
+                result["scripts"].append(f"{course.name} (extra)")
+            except Exception as e:
+                result["errors"].append(f"{course.name} extra script: {e}")
+        elif not extra and stored:
+            _extra_path(slug).unlink()
 
         sheets = []
         for pdf in _matching_pdfs(cfg, course, "blaetter"):

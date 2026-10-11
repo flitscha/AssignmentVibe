@@ -137,6 +137,13 @@ function nodeLabel(node) {
   // A slide deck's parts are keyed "S1.3" (core/slides.py) - nothing a
   // reader knows; the title says it all.
   if (node.key.charAt(0) === "S") return node.title || node.key
+  // Another course's script: "Z1" is its name, "Z1.4.3.3" its section 4.3.3
+  // (store.ingest_extra) - the "Z1." is only there to keep the keys apart.
+  if (node.key.charAt(0) === "Z") {
+    var inner = node.key.replace(/^Z\d+\.?/, "")
+    if (!inner) return node.title || node.key
+    return node.title ? inner + " " + node.title : inner
+  }
   if (node.title) return node.key + " " + node.title
   return (node.level === 1 ? "Kapitel " : "Abschnitt ") + node.key
 }

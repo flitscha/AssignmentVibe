@@ -57,6 +57,10 @@ class Course:
     # Optional texts of which one must appear on the first page, for courses
     # whose filenames alone are not enough. Empty: the filename decides.
     inhalt: list[str] = field(default_factory=list)
+    # Scripts of other courses to look things up in as well: (name, pdf).
+    # Higher Stochastics builds on Stochastik I+II, and a task there needs
+    # that script's definitions as often as its own.
+    zusatzskripte: list[tuple[str, Path]] = field(default_factory=list)
 
     def match(self, filename: str) -> tuple[str, str] | None:
         """(category, pattern) this filename falls into, or None if not ours.
@@ -129,6 +133,23 @@ class Config:
         return self.course_dir(course) / sub if sub else self.course_dir(course)
 
 
+def _extra_scripts(value, where: str) -> list[tuple[str, Path]]:
+    """"zusatzskript": a path, {"name": ..., "pfad": ...}, or a list of them."""
+    if not value:
+        return []
+    out = []
+    for item in value if isinstance(value, list) else [value]:
+        if isinstance(item, str):
+            item = {"pfad": item}
+        if not isinstance(item, dict) or not item.get("pfad"):
+            raise ConfigError(f'{where}: "zusatzskript" needs a path - '
+                              '"~/Uni/s5/stochastik 2/Stochastik.pdf" or '
+                              '{"name": "Stochastik I+II", "pfad": "..."}.')
+        pdf = Path(item["pfad"]).expanduser().resolve()
+        out.append((item.get("name") or pdf.stem, pdf))
+    return out
+
+
 def parse(raw: dict, path: Path) -> Config:
     active = raw.get("active")
     if not active:
@@ -148,7 +169,7 @@ def parse(raw: dict, path: Path) -> Config:
             # a note and ignored - both as a course name and inside a course.
             if folder.startswith("_"):
                 continue
-            allowed = {"name", "unterordner", "inhalt", *CATEGORIES}
+            allowed = {"name", "unterordner", "inhalt", "zusatzskript", *CATEGORIES}
             unknown = {k for k in spec if not k.startswith("_")} - allowed
             if unknown:
                 raise ConfigError(f'{semester}/{folder}: unknown fields '
@@ -173,6 +194,7 @@ def parse(raw: dict, path: Path) -> Config:
                 patterns=patterns,
                 unterordner={k: str(v) for k, v in subfolders.items()},
                 inhalt=[inhalt] if isinstance(inhalt, str) else list(inhalt),
+                zusatzskripte=_extra_scripts(spec.get("zusatzskript"), f"{semester}/{folder}"),
             ))
 
     # Absolute, because generated .desktop entries embed these paths and are

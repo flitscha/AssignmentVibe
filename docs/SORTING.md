@@ -89,6 +89,30 @@ another course. Only files that match such a course's pattern are opened
 A download that is byte-identical to a file already filed under another name
 counts as already filed.
 
+## A script from another course: `zusatzskript`
+
+A course that builds on an earlier one can look things up in that course's
+script too - Higher Stochastics in Stochastik I+II:
+
+```jsonc
+"stochastic_processes": {
+  "name": "Stochastic Processes",
+  "skript": ["Stochastic_processes-lecture-notes*.pdf"],
+  "zusatzskript": {"name": "Stochastik I+II", "pfad": "~/Uni/s5/stochastik 2/Stochastik.pdf"}
+}
+```
+
+A path alone or a list of them works too. *Read in new PDFs* reads it like a
+script of its own; in the panel it is a part of its own - a node in the
+context tree, a group "From Stochastik I+II" in the prompt card, a section
+"# From another script, Stochastik I+II" in the prompt - and its statements
+are named with it ("Stochastik I+II: Satz 10.15"), since both scripts have a
+"Satz 10.15". Jev picks from both. The box "Stochastik I+II" (Task tab, under
+the context; Context tab, beside "All proofs") switches it off for the
+course: Jev no longer looks in it, the prompt no longer carries it, and what
+was picked there comes back when it is switched on again. The file is not
+filed or moved - it stays where it is.
+
 ## All sheets in one PDF
 
 Some lecturers hand out every sheet of the term in one file and re-upload it

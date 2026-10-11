@@ -606,50 +606,76 @@ Flickable {
           visible: !contextCard.asking
 
           Repeater {
-            model: contextCard.allItems ? contextCard.items : contextCard.items.slice(0, 5)
+            id: itemRepeater
+            readonly property var shown: contextCard.allItems ? contextCard.items
+                                                              : contextCard.items.slice(0, 5)
+            model: shown
 
-            Rectangle {
-              id: itemRow
+            Column {
+              id: itemBlock
               required property var modelData
-              readonly property bool openable: !!modelData.target
+              required property int index
+              // An extra script's lines come together, after the course's own
+              // (hub.selection_items); its name heads them.
+              readonly property bool startsExtra: !!modelData.extra
+                && (index === 0 || itemRepeater.shown[index - 1].extra !== modelData.extra)
 
               width: contextColumn.width
-              height: itemLabel.implicitHeight + Style.space(6)
-              radius: Style.cornerRadius
-              color: itemMouse.containsMouse ? Style.hoverFillFor(root.look.fg, root.look.accent)
-                                             : "transparent"
-
-              MouseArea {
-                id: itemMouse
-                anchors.fill: parent
-                enabled: itemRow.openable
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.openSource(itemRow.modelData.target)
-              }
 
               Label {
-                id: itemLabel
-                x: Style.space(8)
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - x - openIcon.width - Style.space(12)
+                visible: itemBlock.startsExtra
+                topPadding: Style.space(4)
+                bottomPadding: Style.space(2)
                 look: root.look
-                secondary: !itemMouse.containsMouse
+                secondary: true
+                font.bold: true
                 font.pixelSize: Style.font.caption
-                text: "·  " + itemRow.modelData.text
+                text: "From " + itemBlock.modelData.extra
               }
 
-              Text {
-                id: openIcon
-                visible: itemRow.openable
-                anchors.right: parent.right
-                anchors.rightMargin: Style.space(6)
-                anchors.verticalCenter: parent.verticalCenter
-                textFormat: Text.PlainText
-                text: Glyphs.openExternal
-                color: itemMouse.containsMouse ? root.look.accent : root.look.muted
-                font.family: root.look.font
-                font.pixelSize: Style.font.bodySmall
+              Rectangle {
+                id: itemRow
+                readonly property var modelData: itemBlock.modelData
+                readonly property bool openable: !!modelData.target
+
+                width: contextColumn.width
+                height: itemLabel.implicitHeight + Style.space(6)
+                radius: Style.cornerRadius
+                color: itemMouse.containsMouse ? Style.hoverFillFor(root.look.fg, root.look.accent)
+                                               : "transparent"
+
+                MouseArea {
+                  id: itemMouse
+                  anchors.fill: parent
+                  enabled: itemRow.openable
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.openSource(itemRow.modelData.target)
+                }
+
+                Label {
+                  id: itemLabel
+                  x: Style.space(8)
+                  anchors.verticalCenter: parent.verticalCenter
+                  width: parent.width - x - openIcon.width - Style.space(12)
+                  look: root.look
+                  secondary: !itemMouse.containsMouse
+                  font.pixelSize: Style.font.caption
+                  text: "·  " + itemRow.modelData.text
+                }
+
+                Text {
+                  id: openIcon
+                  visible: itemRow.openable
+                  anchors.right: parent.right
+                  anchors.rightMargin: Style.space(6)
+                  anchors.verticalCenter: parent.verticalCenter
+                  textFormat: Text.PlainText
+                  text: Glyphs.openExternal
+                  color: itemMouse.containsMouse ? root.look.accent : root.look.muted
+                  font.family: root.look.font
+                  font.pixelSize: Style.font.bodySmall
+                }
               }
             }
           }
@@ -665,6 +691,19 @@ Flickable {
             fontFamily: root.look.font
             onClicked: contextCard.allItems = !contextCard.allItems
           }
+        }
+
+        // The course's extra scripts (uni.json "zusatzskript"): off, Jev does
+        // not look in them and the prompt does not carry what was picked there.
+        OptionRow {
+          visible: !contextCard.asking && !!contextCard.summary
+                   && (contextCard.summary.extraNames || []).length > 0
+          look: root.look
+          text: "Also " + (contextCard.summary ? (contextCard.summary.extraNames || []).join(", ") : "")
+          hint: "Let Jev pick from this script too, and put what is picked there into the prompt"
+          checked: !!(contextCard.summary && contextCard.summary.extra)
+          enabled: !root.busy
+          onToggled: root.request("set_extra", { on: !checked })
         }
 
         Item { width: 1; height: Style.space(2) }

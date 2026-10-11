@@ -308,6 +308,16 @@ Item {
       }
 
       OptionRow {
+        visible: !!(root.ctx && (root.ctx.extraNames || []).length)
+        look: root.look
+        text: root.ctx ? (root.ctx.extraNames || []).join(", ") : ""
+        hint: "The script of another course this one builds on - off, Jev does not look in it and the prompt does not carry it"
+        checked: !!(root.ctx && root.ctx.extra)
+        enabled: !root.busy
+        onToggled: root.reloadWith("set_extra", { on: !checked })
+      }
+
+      OptionRow {
         // Slides have no proofs of their own to add.
         visible: !!(root.ctx && root.ctx.statements.some(function(s) { return s.proofSize > 0 }))
         look: root.look

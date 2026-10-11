@@ -104,6 +104,8 @@ console.log("effort: all passed")
 // knows - the label is the title alone. A row opens at a section or a statement.
 assert.strictEqual(M.nodeLabel({ key: "S1.3", title: "Pairing", level: 2 }), "Pairing")
 assert.strictEqual(M.nodeLabel({ key: "3.1", title: "Konvexe Funktionen", level: 2 }), "3.1 Konvexe Funktionen")
+assert.strictEqual(M.nodeLabel({ key: "Z1", title: "Stochastik I+II", level: 1 }), "Stochastik I+II")
+assert.strictEqual(M.nodeLabel({ key: "Z1.4.3.3", title: "Lp Konvergenz", level: 4 }), "4.3.3 Lp Konvergenz")
 assert.strictEqual(M.target({ kind: "node", key: "S1.3" }), "section:S1.3")
 assert.strictEqual(M.target({ kind: "statement", id: "Lecture 1, slide 16" }), "Lecture 1, slide 16")
 assert.strictEqual(M.sourceName(ctx), "Lecture notes")

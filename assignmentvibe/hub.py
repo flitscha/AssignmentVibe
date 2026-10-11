@@ -154,9 +154,37 @@ def resolve_state(course: str) -> dict:
         "earlier": list(saved.get("earlier_tasks") or []),
         "jev_pick": saved.get("jev_pick"),
         "algorithms": bool(saved.get("algorithms", settings()["algorithms_by_default"])),
+        # The course's extra scripts (uni.json "zusatzskript"): on until
+        # switched off - they are configured because they are wanted.
+        "extra": bool(saved.get("extra", True)),
         "sheets": sheets,
         "exercises": store.load_exercises(course),
     }
+
+
+def course_knowledge(course: str, state: dict) -> list[dict]:
+    """What the course knows right now: its script and slides, and its extra
+    scripts while they are switched on. Off, Jev does not judge them (nor pay
+    for it), the editor does not list them and the prompt does not carry
+    them - but what was picked from them is kept for when they are on again."""
+    from . import store
+    from .core import toc
+
+    entries = store.load_knowledge(course)
+    if state.get("extra", True):
+        return entries
+    return [e for e in entries if not toc.is_extra(e.get("section") or "")]
+
+
+def has_extra(course: str) -> bool:
+    from . import store
+    from .core import toc
+
+    return any(toc.is_extra(n["key"]) for n in store.load_sections(course))
+
+
+def set_extra(course: str, on: bool) -> None:
+    context.set_course(course, extra=on)
 
 
 def task_of(state: dict) -> dict | None:
@@ -259,11 +287,21 @@ def set_selection(course: str, ids: set[str], proof_of: list[str], proofs: bool,
     from . import store
     from .core import selection
 
+    from .core import toc
+    from .core.prompts import entry_id
+
     state = resolve_state(course)
     entries = store.load_knowledge(course)
     if algorithms is None:
         algorithms = state["algorithms"]
-    sections, singles = selection.compress(entries, set(ids), algorithms)
+    ids = set(ids)
+    if not state["extra"]:
+        # The editor does not list the extra scripts while they are off, so
+        # what was picked there is not in `ids` - and is not unpicked either.
+        ids |= {entry_id(e) for e in selection.chosen(entries, state["sections"],
+                                                      state["statements"], algorithms)
+                if toc.is_extra(e.get("section") or "")}
+    sections, singles = selection.compress(entries, ids, algorithms)
     before = selection_key(entries, state)
     context.set_course(course, sections=sections, statements=singles, proofs=bool(proofs),
                        algorithms=algorithms, proof_of=list(proof_of),
@@ -380,7 +418,7 @@ def jev_into_state(course: str, state: dict) -> bool:
     from .core.prompts import context_size
     from .integrations import jev
 
-    knowledge = store.load_knowledge(course)
+    knowledge = course_knowledge(course, state)
     # Without lecture notes there are still the earlier sheets to look at -
     # Numerik and Statistik hand out sheets but no script.
     if not knowledge and not selection.earlier_sheets(state["sheets"], state["sheet"]):
@@ -450,7 +488,7 @@ def plan_sheet(course: str, state: dict) -> dict | None:
     name = sheet.get("sheet_number") or sheet["sheet_id"]
     say("Asking Jev", f"The context of every task of sheet {name}, how much "
         "work each is, and what builds on what.", glyph="⟳")
-    knowledge = store.load_knowledge(course)
+    knowledge = course_knowledge(course, state)
     algorithms = state["algorithms"]
     items = selection.judgement_items(knowledge, algorithms)
     candidates = earlier_candidates(state["sheets"], sheet, exercises)
@@ -561,26 +599,55 @@ def selection_items(course: str, state: dict) -> list[dict]:
     from .core import selection, toc
     from .core.prompts import entry_id
 
-    knowledge = store.load_knowledge(course)
+    knowledge = course_knowledge(course, state)
     titles = store.load_section_titles(course)
-    items = [{"text": (toc.label(titles, k) if toc.is_slides(k)
-                       else f"Section {toc.label(titles, k)}"),
-              "target": SECTION_TARGET + k}
-             for k in state.get("sections") or []]
+
+    def extra_of(key: str) -> str:
+        """The extra script a section is in, by its name - "" for the course's own."""
+        return titles.get(key.split(".")[0], "") if toc.is_extra(key) else ""
+
+    def section_text(key: str) -> str:
+        if toc.is_slides(key):
+            return toc.label(titles, key)
+        if toc.is_extra(key):
+            # Under the script's name in the panel: "Section 4.3.3 Lp Konvergenz".
+            inner = key.partition(".")[2]
+            if not inner:
+                return "the whole script"
+            return f"Section {inner} {titles.get(key, '')}".rstrip()
+        return f"Section {toc.label(titles, key)}"
+
+    items = [{"text": section_text(k),
+              "target": SECTION_TARGET + k, "extra": extra_of(k)}
+             for k in state.get("sections") or []
+             if state.get("extra", True) or not toc.is_extra(k)]
     by_id = {entry_id(e): e for e in selection.statements(knowledge, True)}
     proofs = set(state.get("proof_of") or ())
     singles = state.get("statements") or []
+    # Picked from an extra script that is switched off: kept, but not in use.
+    hidden = {entry_id(e) for e in store.load_knowledge(course)
+              if toc.is_extra(e.get("section") or "")} - set(by_id)
     for i in singles:
+        if i in hidden:
+            continue
         label = statement_label(by_id[i]) if i in by_id else i
+        extra = by_id[i].get("source", "") if i in by_id else ""
+        if extra:
+            # Shown under the script's name already.
+            label = label.removeprefix(f"{extra}: ")
         items.append({"text": label + ("  + proof" if i in proofs else ""),
-                      "target": i if i in by_id else None})
+                      "target": i if i in by_id else None, "extra": extra})
     # Proofs of statements inside a whole section have no line of their own.
     if state.get("proofs"):
         items.append({"text": "+ all their proofs", "target": None})
     else:
         inside = selection.entries_in(knowledge, state.get("sections") or [], True)
-        items += [{"text": f"+ proof of {entry_id(e)}", "target": entry_id(e)}
+        items += [{"text": f"+ proof of {entry_id(e)}", "target": entry_id(e),
+                   "extra": e.get("source", "")}
                   for e in inside if entry_id(e) in proofs and entry_id(e) not in singles]
+    # The extra scripts' lines together, after the course's own: the panel
+    # puts the script's name above them.
+    items = [i for i in items if not i.get("extra")] + [i for i in items if i.get("extra")]
     earlier = state.get("earlier") or state.get("earlier_tasks") or []
     if earlier:
         found = selection.earlier_tasks(store.list_sheets(course), earlier)
@@ -591,7 +658,11 @@ def selection_items(course: str, state: dict) -> list[dict]:
 def selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
     """selection_items as text, for the tooltip and notifications. `limit`
     cuts it with an "… and N more" line."""
-    lines = [item["text"] for item in selection_items(course, state)]
+    # Without the panel's heading above them, an extra script's lines name it.
+    lines = [f"{item['extra']}: {item['text']}"
+             if item.get("extra") and not item["text"].startswith(item["extra"])
+             else item["text"]
+             for item in selection_items(course, state)]
     if limit and len(lines) > limit:
         lines = lines[:limit - 1] + [f"… and {len(lines) - limit + 1} more"]
     return lines
@@ -605,7 +676,7 @@ def build_current_prompt(course: str, course_name: str, state: dict,
     read last for this task - or, with `read`, read now if the notebook
     changed since."""
     from . import store
-    from .core import selection
+    from .core import selection, toc
     from .core.prompts import build_prompt
 
     parts = prompt_parts()
@@ -613,8 +684,9 @@ def build_current_prompt(course: str, course_name: str, state: dict,
         attempt = current_attempt(course, state) if read else cached_attempt(course, state)
         solution = (attempt or {}).get("text") or None
     return build_prompt(
-        task_of(state), state["sheet"], store.load_knowledge(course), solution, course_name,
-        sections=state["sections"],
+        task_of(state), state["sheet"], course_knowledge(course, state), solution, course_name,
+        sections=[k for k in state["sections"]
+                  if state["extra"] or not toc.is_extra(k)],
         statements=state["statements"],
         include_proofs=state["proofs"],
         include_algorithms=state["algorithms"],

@@ -235,7 +235,7 @@ def _summary(course: str, state: dict) -> dict:
     from .core import selection
     from .core.prompts import context_size, proof_wanted
 
-    knowledge = store.load_knowledge(course)
+    knowledge = hub.course_knowledge(course, state)
     entries = selection.chosen(knowledge, state["sections"], state["statements"],
                                state["algorithms"])
     with_proof = [e for e in entries if e.get("proof")]
@@ -258,7 +258,20 @@ def _summary(course: str, state: dict) -> dict:
         "hasNotes": bool(knowledge),
         "hasEarlier": bool(selection.earlier_sheets(state["sheets"], state["sheet"])),
         "algorithms": state["algorithms"],
+        # The course's extra scripts: their names for the switch, whether it
+        # is on, and how many of the chosen statements are theirs.
+        "extraNames": _extra_names(course),
+        "extra": state["extra"],
+        "extraStatements": sum(1 for e in entries if e.get("source")),
     }
+
+
+def _extra_names(course: str) -> list[str]:
+    from . import store
+    from .core import toc
+
+    return [n["title"] for n in store.load_sections(course)
+            if toc.is_extra(n["key"]) and "." not in n["key"]]
 
 
 def context_payload() -> dict | None:
@@ -277,7 +290,7 @@ def context_payload() -> dict | None:
     if course is None:
         return None
     state = hub.resolve_state(course)
-    knowledge = store.load_knowledge(course)
+    knowledge = hub.course_knowledge(course, state)
     algorithms = state["algorithms"]
 
     statements = []
@@ -324,6 +337,8 @@ def context_payload() -> dict | None:
         "allProofs": state["proofs"],
         "algorithms": algorithms,
         "hasAlgorithms": any(s["algorithm"] for s in statements),
+        "extraNames": _extra_names(course),
+        "extra": state["extra"],
         "earlier": earlier,
         "earlierSelected": [r for r in state["earlier"]
                             if r in {e["ref"] for e in earlier}],
@@ -382,6 +397,8 @@ def handle(cmd: str, args: dict):
                           bool(args.get("allProofs")), args.get("earlier", []))
     elif cmd == "set_algorithms":
         hub.set_algorithms(course, bool(args["on"]))
+    elif cmd == "set_extra":
+        hub.set_extra(course, bool(args["on"]))
     elif cmd == "clear_selection":
         hub.clear_selection(course)
     elif cmd == "jev":

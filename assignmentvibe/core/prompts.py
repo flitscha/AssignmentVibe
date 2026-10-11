@@ -321,9 +321,6 @@ def _task_block(task, sheet_meta, course_name, referenced, asked, context,
 
 def _context_block(context, sections, section_titles, include_proofs, proof_of,
                    earlier_tasks, exercises) -> list[str]:
-    from . import selection
-    from .toc import label as section_label
-
     lines = []
     if earlier_tasks:
         lines.append("# Earlier exercises this task may build on")
@@ -335,42 +332,68 @@ def _context_block(context, sections, section_titles, include_proofs, proof_of,
             lines.append(task_query(earlier, exercises))
             lines.append("")
 
-    if context:
-        # Naming the sections lets the reader (and the model) see what the
-        # context covers - and, just as usefully, what it does not.
-        singles = [entry_id(e) for e in context
-                   if not any(selection.covers(k, selection.section_of(e) or "")
-                              for k in sections)]
-        where = []
-        if sections:
-            where.append("section " + ", ".join(section_label(section_titles, k)
-                                                 for k in sections))
-        if singles:
-            where.append(", ".join(singles))
-        lines.append(f"# From the {source_name(context)}: {'; '.join(where)}")
-        if all(e.get("type") == "Slide" for e in context):
-            contents = ("every slide of these sections" if sections
-                        else "the slides chosen for this task")
-        else:
-            contents = ("every definition and theorem of these sections" if sections
-                        else "the definitions and theorems chosen for this task")
-        if sections and singles:
-            contents += ", plus the single statements named"
-        if any(e.get("type") in selection.ALGORITHM_TYPES for e in context):
-            contents += ", algorithms included"
-        with_proof = [entry_id(e) for e in context
-                      if not include_proofs and e.get("proof") and entry_id(e) in proof_of]
-        if with_proof:
-            contents += ", proofs only for " + ", ".join(with_proof)
-        elif not include_proofs and any(e.get("type") != "Slide" for e in context):
-            # A slide has no separate proof to leave out: it shows what it shows.
-            contents += ", proofs omitted"
-        lines.append(f"({contents})")
-        for e in context:
-            lines.append("")
-            lines.append(format_knowledge_entry(
-                e, include_proof=proof_wanted(e, include_proofs, proof_of)))
+    # The course's own script and slides first, then each extra script under
+    # a heading of its own - the model should know which course a theorem is
+    # from, and the numbers alone collide ("Satz 3.2" is in both).
+    own = [e for e in context if not e.get("source")]
+    if own:
+        lines += _statements_block(f"the {source_name(own)}", own, sections,
+                                   section_titles, include_proofs, proof_of)
+    for name in dict.fromkeys(e["source"] for e in context if e.get("source")):
+        group = [e for e in context if e.get("source") == name]
+        lines += _statements_block(f"another script, {name}", group, sections,
+                                   section_titles, include_proofs, proof_of)
+    return lines
+
+
+def _statements_block(source, context, sections, section_titles, include_proofs,
+                      proof_of) -> list[str]:
+    """One source's statements: which sections they are, then each of them."""
+    from . import selection
+    from .toc import label as section_label
+
+    # Only the sections this source's statements are in.
+    sections = [k for k in sections
+                if any(selection.covers(k, selection.section_of(e) or "") for e in context)]
+    lines = []
+    # Naming the sections lets the reader (and the model) see what the
+    # context covers - and, just as usefully, what it does not.
+    # An extra script's ids carry its name ("Stochastik I+II: Satz 3.2"),
+    # which the heading says once already.
+    singles = [entry_id(e).removeprefix(f"{e['source']}: ") if e.get("source") else entry_id(e)
+               for e in context
+               if not any(selection.covers(k, selection.section_of(e) or "")
+                          for k in sections)]
+    where = []
+    if sections:
+        where.append("section " + ", ".join(section_label(section_titles, k)
+                                             for k in sections))
+    if singles:
+        where.append(", ".join(singles))
+    lines.append(f"# From {source}: {'; '.join(where)}")
+    if all(e.get("type") == "Slide" for e in context):
+        contents = ("every slide of these sections" if sections
+                    else "the slides chosen for this task")
+    else:
+        contents = ("every definition and theorem of these sections" if sections
+                    else "the definitions and theorems chosen for this task")
+    if sections and singles:
+        contents += ", plus the single statements named"
+    if any(e.get("type") in selection.ALGORITHM_TYPES for e in context):
+        contents += ", algorithms included"
+    with_proof = [entry_id(e) for e in context
+                  if not include_proofs and e.get("proof") and entry_id(e) in proof_of]
+    if with_proof:
+        contents += ", proofs only for " + ", ".join(with_proof)
+    elif not include_proofs and any(e.get("type") != "Slide" for e in context):
+        # A slide has no separate proof to leave out: it shows what it shows.
+        contents += ", proofs omitted"
+    lines.append(f"({contents})")
+    for e in context:
         lines.append("")
+        lines.append(format_knowledge_entry(
+            e, include_proof=proof_wanted(e, include_proofs, proof_of)))
+    lines.append("")
     return lines
 
 
