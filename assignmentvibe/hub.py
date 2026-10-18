@@ -1128,8 +1128,12 @@ def ingest(cfg) -> dict:
     from . import store
 
     say("Reading in", "Processing new lecture notes and sheets.", glyph="⟳")
+    filed = _file_downloads(cfg)
     result = store.ingest_missing(cfg)
+    result["filed"] = filed
     parts = []
+    if filed:
+        parts.append(f"{len(filed)} download(s) filed")
     if result["scripts"]:
         parts.append(f"{len(result['scripts'])} lecture note(s)")
     if result.get("slides"):
@@ -1143,6 +1147,24 @@ def ingest(cfg) -> dict:
     else:
         say("Nothing new", "Every sheet this semester has already been read in.")
     return result
+
+
+def _file_downloads(cfg) -> list[str]:
+    """Move the downloads the config names into ~/Uni first, as the sorter
+    (Super+Shift+U) would - a freshly downloaded sheet is what one reads in.
+    Ambiguous files are left for the sorter; names of the moved ones come back."""
+    from .integrations import launcher
+    from .organizer import sort as sorter
+
+    if not cfg.downloads.is_dir():
+        return []
+    items, _ = sorter.plan(cfg)
+    items = [i for i in items if i.status != sorter.AMBIGUOUS]
+    if not items:
+        return []
+    sorter.apply(items)
+    launcher.sync(cfg)
+    return [i.source.name for i in items if i.status in (sorter.NEW, sorter.REPLACE)]
 
 
 # --- Config files ------------------------------------------------------------------
