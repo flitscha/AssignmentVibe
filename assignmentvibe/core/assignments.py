@@ -80,7 +80,8 @@ PAGE_FOOTER_RE = re.compile(r"(?m)^\s*Seite\s+\d+\s+von\s+\d+\s*$\n?")
 #   6: a task that only names an exercise ("Exercise 11.1") refers to the
 #      script; of equally long task runs, one whose numbering does not
 #      start again inside it
-FORMAT = 6
+#   7: a page's own number alone on its last line dropped
+FORMAT = 7
 
 # Looked for in the sheet's header only - further down, "Blatt 2" is a task
 # referring to an earlier sheet.
@@ -95,7 +96,18 @@ def extract_pdf_text(pdf_path: Path) -> str:
     import pymupdf
 
     doc = pymupdf.open(pdf_path)
-    return "\n".join(normalize(p.get_text("text")) for p in doc)
+    return "\n".join(_drop_page_number(normalize(p.get_text("text")), i + 1)
+                     for i, p in enumerate(doc))
+
+
+def _drop_page_number(text: str, page: int) -> str:
+    """The page's own number alone on its last line (Probabilistic ML: "1" at
+    the foot of page 1) - it would otherwise end up as the last line of the
+    task running over it."""
+    lines = text.rstrip().split("\n")
+    if lines and lines[-1].strip() == str(page):
+        return "\n".join(lines[:-1]) + "\n"
+    return text
 
 
 # --- Task titles ----------------------------------------------------------------

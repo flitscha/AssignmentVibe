@@ -34,7 +34,8 @@ from .pdf_text import normalize
 from .toc import LEADING_NUMBER_RE
 
 # Bumped whenever what an ingest writes changes; see core.knowledge.FORMAT.
-FORMAT = 1
+#   2: a slide's title first when the PDF stores it after the body (see _heading)
+FORMAT = 2
 
 # "16/37", "16 / 37" - the page counter in a Beamer footer.
 COUNTER_RE = re.compile(r"^\d+\s*/\s*\d+$")
@@ -42,6 +43,8 @@ OUTLINE_TITLES = {"outline", "overview", "agenda", "contents", "table of content
                   "inhalt", "inhaltsverzeichnis", "gliederung", "übersicht"}
 # A line on this share of the pages or more is the deck's furniture, not content.
 FOOTER_SHARE = 0.6
+# A title starts in the top fifth of the slide.
+HEADING_TOP = 0.2
 DECK_NUMBER_RE = re.compile(r"^(\d+)|(\d+)(?!.*\d)")
 
 
@@ -85,6 +88,7 @@ def extract(pdf_path: Path, number: int) -> tuple[list[dict], list[dict]]:
 
     with pymupdf.open(pdf_path) as doc:
         pages = [normalize(p.get_text("text")) for p in doc]
+        heads = [_heading(p) for p in doc]
         outline = doc.get_toc()
 
     # A deck's outline usually wraps everything in one entry ("lecture 1");
@@ -117,6 +121,10 @@ def extract(pdf_path: Path, number: int) -> tuple[list[dict], list[dict]]:
         if page < first:
             continue
         lines = _strip_furniture(raw, furniture, titles)
+        head, tops = heads[index]
+        if head in lines[1:] and tops[head] < tops.get(lines[0], 0):
+            lines.remove(head)
+            lines.insert(0, head)
         if not lines or _is_outline(lines, titles):
             continue
         part = sum(1 for _, p in parts if p <= page)
@@ -135,6 +143,28 @@ def extract(pdf_path: Path, number: int) -> tuple[list[dict], list[dict]]:
         })
 
     return sections, _drop_overlay_steps(entries)
+
+
+def _heading(page) -> tuple[str | None, dict[str, float]]:
+    """The slide's title when the PDF does not hand it over first, and how far
+    down each line starts. Decks exported from PowerPoint or Impress
+    (Probabilistic ML) store the title after the slide's body, which would
+    name "The EM Meta-Algorithm" "compute". The title is the line in the
+    largest type, if it is near the top - and it only goes first when it
+    stands above the line that is first now, so a Beamer deck, whose frame
+    title already comes first, stays as it is."""
+    lines, tops = [], {}
+    for block in page.get_text("dict")["blocks"]:
+        for line in block.get("lines", []):
+            text = normalize("".join(s["text"] for s in line["spans"])).strip()
+            if text:
+                lines.append((max(s["size"] for s in line["spans"]), line["bbox"][1], text))
+                tops[text] = min(tops.get(text, line["bbox"][1]), line["bbox"][1])
+    if not lines:
+        return None, tops
+    biggest = max(size for size, _, _ in lines)
+    _, top, text = min((l for l in lines if l[0] == biggest), key=lambda l: l[1])
+    return (text if top < HEADING_TOP * page.rect.height else None), tops
 
 
 def _drop_overlay_steps(entries: list[dict]) -> list[dict]:
