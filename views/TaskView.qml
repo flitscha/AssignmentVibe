@@ -194,6 +194,21 @@ Flickable {
         onClicked: root.openSheet()
       }
 
+      // The course's extra scripts (uni.json "zusatzskript"): off, Jev does
+      // not look in them and the prompt does not carry what was picked there.
+      // Beside the plan, which picks from them for every task at once.
+      OptionRow {
+        readonly property var names: root.st && root.st.summary ? (root.st.summary.extraNames || []) : []
+        visible: names.length > 0
+        anchors.verticalCenter: parent.verticalCenter
+        look: root.look
+        text: "Also " + names.join(", ")
+        hint: "Let Jev pick from this script too, and put what is picked there into the prompt"
+        checked: !!(root.st && root.st.summary && root.st.summary.extra)
+        enabled: !root.busy
+        onToggled: root.request("set_extra", { on: !checked })
+      }
+
       SmallButton {
         visible: !!(root.st && root.st.sheet && root.st.jev.configured)
         look: root.look
@@ -691,19 +706,6 @@ Flickable {
             fontFamily: root.look.font
             onClicked: contextCard.allItems = !contextCard.allItems
           }
-        }
-
-        // The course's extra scripts (uni.json "zusatzskript"): off, Jev does
-        // not look in them and the prompt does not carry what was picked there.
-        OptionRow {
-          visible: !contextCard.asking && !!contextCard.summary
-                   && (contextCard.summary.extraNames || []).length > 0
-          look: root.look
-          text: "Also " + (contextCard.summary ? (contextCard.summary.extraNames || []).join(", ") : "")
-          hint: "Let Jev pick from this script too, and put what is picked there into the prompt"
-          checked: !!(contextCard.summary && contextCard.summary.extra)
-          enabled: !root.busy
-          onToggled: root.request("set_extra", { on: !checked })
         }
 
         Item { width: 1; height: Style.space(2) }
