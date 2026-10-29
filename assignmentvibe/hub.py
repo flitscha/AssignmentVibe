@@ -143,15 +143,28 @@ def resolve_state(course: str) -> dict:
                           for p in task_parts(task, store.load_exercises(course))[1]):
             part = wanted
 
+    # Lines of the selection unticked on the context card: still chosen and
+    # still shown, but not in the prompt (see set_item). Everything below
+    # works on what is left; "chosen" keeps it all, for showing.
+    off = set(saved.get("off") or [])
+    chosen = {"sections": saved.get("sections") or [],
+              "statements": list(saved.get("statements") or []),
+              "proof_of": list(saved.get("proof_of") or []),
+              "proofs": bool(saved.get("proofs")),
+              "earlier": list(saved.get("earlier_tasks") or [])}
+
     return {
         "sheet": sheet,
         "task": task_num,
         "part": part,
-        "sections": saved.get("sections") or [],
-        "statements": list(saved.get("statements") or []),
-        "proofs": bool(saved.get("proofs")),
-        "proof_of": list(saved.get("proof_of") or []),
-        "earlier": list(saved.get("earlier_tasks") or []),
+        "sections": [k for k in chosen["sections"] if line_key("section", k) not in off],
+        "statements": [i for i in chosen["statements"] if line_key("statement", i) not in off],
+        "proofs": chosen["proofs"] and line_key("proofs", "") not in off,
+        "proof_of": [i for i in chosen["proof_of"]
+                     if not {line_key("proof", i), line_key("statement", i)} & off],
+        "earlier": [r for r in chosen["earlier"] if line_key("earlier", r) not in off],
+        "chosen": chosen,
+        "off": off,
         "jev_pick": saved.get("jev_pick"),
         "algorithms": bool(saved.get("algorithms", settings()["algorithms_by_default"])),
         # The course's extra scripts (uni.json "zusatzskript"): on until
@@ -164,6 +177,11 @@ def resolve_state(course: str) -> dict:
         "sheets": sheets,
         "exercises": store.load_exercises(course),
     }
+
+
+def line_key(kind: str, item_id: str) -> str:
+    """A line of the context card, as the "off" list remembers it."""
+    return f"{kind}|{item_id}"
 
 
 def switched_off(state: dict, key: str) -> bool:
@@ -236,7 +254,7 @@ def select_task(course: str, sheet_id: str, task: int | None) -> None:
     plan = store.load_plan(sheet_id)
     planned = (plan or {}).get("tasks", {}).get(str(task))
     if planned and planned.get("selection"):
-        context.set_course(course, **planned["selection"])
+        context.set_course(course, **{"off": [], **planned["selection"]})
 
 
 def select_part(course: str, state: dict, label: str) -> None:
@@ -261,7 +279,7 @@ def select_sheet(course: str, sheet: dict) -> None:
 # what goes in when a key was never set. "jev_pick" says which task Jev picked
 # the selection for, and whether it was changed by hand since.
 SELECTION_KEYS = {"sections": [], "statements": [], "proof_of": [], "proofs": False,
-                  "earlier_tasks": [], "jev_pick": None}
+                  "earlier_tasks": [], "off": [], "jev_pick": None}
 
 
 def selection_key(entries: list[dict], state: dict) -> tuple:
@@ -312,36 +330,56 @@ def set_selection(course: str, ids: set[str], proof_of: list[str], proofs: bool,
                                                             state["statements"], algorithms)
                       if switched_off(state, e.get("section") or "")}
     sections, singles = selection.compress(entries, ids, algorithms)
+    proof_of, earlier = list(proof_of), list(earlier)
+    # The editor shows what goes into the prompt, so the unticked lines are
+    # not in what it hands back. They stay chosen, and unticked - unless the
+    # editor chose them now, which ticks them again.
+    chosen, off = state["chosen"], set(state["off"])
+    covered = {entry_id(e) for e in selection.chosen(entries, sections, singles, True)}
+    for key in sorted(off):
+        kind, _, item = key.partition("|")
+        if kind == "section" and item in sections:
+            off.discard(key)
+        elif kind == "section" and item in chosen["sections"]:
+            sections.append(item)
+        elif kind == "statement" and item in covered:
+            off.discard(key)
+        elif kind == "statement" and item in chosen["statements"]:
+            singles.append(item)
+            if item in chosen["proof_of"] and item not in proof_of:
+                proof_of.append(item)
+        elif kind == "proof" and item in proof_of:
+            off.discard(key)
+        elif kind == "proof" and item in chosen["proof_of"]:
+            proof_of.append(item)
+        elif kind == "earlier" and item in earlier:
+            off.discard(key)
+        elif kind == "earlier" and item in chosen["earlier"]:
+            earlier.append(item)
+        elif kind == "proofs" and proofs:
+            off.discard(key)
+        elif kind == "proofs" and chosen["proofs"]:
+            proofs = True
+        else:
+            off.discard(key)
     before = selection_key(entries, state)
     context.set_course(course, sections=sections, statements=singles, proofs=bool(proofs),
-                       algorithms=algorithms, proof_of=list(proof_of),
-                       earlier_tasks=list(earlier))
+                       algorithms=algorithms, proof_of=proof_of,
+                       earlier_tasks=earlier, off=sorted(off))
     jev_pick = state.get("jev_pick")
     if jev_pick and before != selection_key(entries, resolve_state(course)):
         context.set_course(course, jev_pick={**jev_pick, "edited": True})
     remember_selection(course)
 
 
-def set_item(course: str, kind: str, item_id: str, on: bool, proof: bool = False) -> None:
+def set_item(course: str, kind: str, item_id: str, on: bool) -> None:
     """One line of the context card (selection_items) in or out of the prompt,
-    by its box - without going through the editor. A line taken out can be
-    put back as it was: `proof` says whether a single statement came with it."""
+    by its box. Out, it stays chosen and shown - Jev picked it, and it may be
+    worth reading even when the model is better off without it."""
     saved = context.course_state(course)
-    lists = {"section": "sections", "statement": "statements",
-             "proof": "proof_of", "earlier": "earlier_tasks"}
-    changes: dict = {}
-    if kind == "proofs":
-        changes["proofs"] = on
-    elif kind in lists:
-        key = lists[kind]
-        values = [v for v in saved.get(key) or [] if v != item_id]
-        changes[key] = values + [item_id] if on else values
-        if kind == "statement" and (proof or not on):
-            proof_of = [v for v in saved.get("proof_of") or [] if v != item_id]
-            changes["proof_of"] = proof_of + [item_id] if on and proof else proof_of
-    else:
-        raise ValueError(f"No kind of context line '{kind}'.")
-    context.set_course(course, **changes)
+    off = set(saved.get("off") or [])
+    (off.discard if on else off.add)(line_key(kind, item_id))
+    context.set_course(course, off=sorted(off))
     jev_pick = saved.get("jev_pick")
     if jev_pick:
         context.set_course(course, jev_pick={**jev_pick, "edited": True})
@@ -364,6 +402,7 @@ def set_algorithms(course: str, on: bool) -> None:
 
 
 def clear_selection(course: str) -> None:
+    context.set_course(course, off=[])
     set_selection(course, set(), [], False, [])
 
 
@@ -475,7 +514,7 @@ def jev_into_state(course: str, state: dict) -> bool:
                                            state["algorithms"])
     sheet_id = state["sheet"]["sheet_id"] if state.get("sheet") else None
     context.set_course(course, sections=sections, statements=singles,
-                       proof_of=proofs, proofs=False, earlier_tasks=earlier,
+                       proof_of=proofs, proofs=False, earlier_tasks=earlier, off=[],
                        jev_pick={"task": task_ref(sheet_id, state.get("task")),
                                  "edited": False, "dropped": dropped})
     remember_selection(course)
@@ -632,12 +671,15 @@ def selection_items(course: str, state: dict) -> list[dict]:
     """One line per chosen section and per single statement, "+ proof" where
     its proof goes in too - the exact list. Each with the `target` that
     open_source opens it at ("section:3.1", "Satz 3.1.5", "Lecture 1, slide
-    16"), None for a line that is not in a PDF of the course."""
+    16"), None for a line that is not in a PDF of the course. A line
+    unticked on the card is listed too, with "off" (see set_item)."""
     from . import store
     from .core import selection, toc
     from .core.prompts import entry_id
 
     knowledge = course_knowledge(course, state)
+    off = state.get("off") or set()
+    state = {**state, **(state.get("chosen") or {})}
     titles = store.load_section_titles(course)
 
     def extra_of(key: str) -> str:
@@ -696,7 +738,22 @@ def selection_items(course: str, state: dict) -> list[dict]:
         items += [{"text": f"Earlier: {label}", "kind": "earlier", "id": refs[label],
                    "target": EARLIER_TARGET + refs[label]}
                   for label, _ in selection.earlier_tasks(sheets, earlier)]
+    for item in items:
+        # A statement's proof goes with it, and a section's proofs with it.
+        item["off"] = (line_key(item["kind"], item["id"]) in off
+                       or (item["kind"] == "proof"
+                           and not any(selection.covers(k, section_of_id(knowledge, item["id"]))
+                                       for k in state["sections"]
+                                       if line_key("section", k) not in off)))
     return items
+
+
+def section_of_id(knowledge: list[dict], item_id: str) -> str:
+    from .core import selection
+    from .core.prompts import entry_id
+
+    entry = next((e for e in knowledge if entry_id(e) == item_id), None)
+    return (selection.section_of(entry) or "") if entry else ""
 
 
 def selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
@@ -706,7 +763,7 @@ def selection_lines(course: str, state: dict, limit: int = 0) -> list[str]:
     lines = [f"{item['extra']}: {item['text']}"
              if item.get("extra") and not item["text"].startswith(item["extra"])
              else item["text"]
-             for item in selection_items(course, state)]
+             for item in selection_items(course, state) if not item.get("off")]
     if limit and len(lines) > limit:
         lines = lines[:limit - 1] + [f"… and {len(lines) - limit + 1} more"]
     return lines

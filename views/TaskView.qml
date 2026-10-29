@@ -90,19 +90,10 @@ Flickable {
     })
   }
 
-  function lineKey(line) { return line.kind + "|" + line.id }
-
-  // A line of the context card in or out of the prompt, by its box.
-  function toggleLine(line, index) {
-    if (!line.kind || busy) return
-    var key = lineKey(line)
-    if (line.off) {
-      contextCard.removed = contextCard.removed.filter(function(r) { return lineKey(r.line) !== key })
-      request("set_item", { kind: line.kind, id: line.id, on: true, proof: !!line.proof })
-    } else {
-      contextCard.removed = contextCard.removed.concat([{ line: line, index: index }])
-      request("set_item", { kind: line.kind, id: line.id, on: false })
-    }
+  // A line of the context card in or out of the prompt, by its box. Out, it
+  // stays on the card (hub.set_item).
+  function toggleLine(line) {
+    if (line.kind && !busy) request("set_item", { kind: line.kind, id: line.id, on: !!line.off })
   }
 
   function openNewestDeck() {
@@ -163,16 +154,11 @@ Flickable {
     width: root.width
     spacing: Style.space(8)
 
-    // ---- Course -----------------------------------------------------------------
+    // ---- Course, material, sheet, plan: a line each, labelled on the left ------
 
-    HeaderRow {
+    FieldRow {
       look: root.look
       text: "Course"
-    }
-
-    Flow {
-      width: parent.width
-      spacing: Style.space(6)
 
       Repeater {
         model: root.st ? root.st.courses : []
@@ -181,6 +167,9 @@ Flickable {
           required property var modelData
           look: root.look
           text: modelData.name
+          fontSize: Style.font.caption
+          horizontalPadding: Style.space(8)
+          verticalPadding: Style.space(3)
           selected: root.st.course && root.st.course.slug === modelData.slug
           dimmed: modelData.sheets === 0 && !modelData.hasNotes
           enabled: !root.busy
@@ -192,20 +181,11 @@ Flickable {
     }
 
     // What there is to read for the course: the script, and every slide deck
-    // by its number - one click each, the newest marked.
-    Flow {
-      width: parent.width
-      spacing: Style.space(4)
+    // by its number - one click each, the newest in the accent colour.
+    FieldRow {
+      look: root.look
+      text: "Material"
       visible: notesButton.visible || root.decks.length > 0
-
-      Label {
-        height: notesButton.visible ? notesButton.height : (root.decks.length ? Style.space(24) : 0)
-        verticalAlignment: Text.AlignVCenter
-        rightPadding: Style.space(4)
-        look: root.look
-        secondary: true
-        text: "Material"
-      }
 
       SmallButton {
         id: notesButton
@@ -220,6 +200,9 @@ Flickable {
         onClicked: root.openNotes()
       }
 
+      // A gap between the script and the slides.
+      Item { width: Style.space(6); height: 1; visible: notesButton.visible && root.decks.length > 0 }
+
       Repeater {
         model: root.decks
 
@@ -227,25 +210,19 @@ Flickable {
           required property var modelData
           required property int index
           look: root.look
-          iconText: index === 0 ? Glyphs.slides : ""
           text: String(index + 1)
           foreground: modelData.newest ? root.look.accent : root.look.fg
-          tooltipText: modelData.title + " · " + modelData.path.split("/").pop()
+          tooltipText: "Slides: " + modelData.title + " · " + modelData.path.split("/").pop()
             + (modelData.newest ? " · the newest (S)" : "")
           onClicked: root.openDeck(modelData.path)
         }
       }
     }
 
-    Item { width: 1; height: Style.space(4) }
-
-    // ---- Sheet ------------------------------------------------------------------
-
-    HeaderRow {
+    FieldRow {
       look: root.look
       text: "Sheet"
-      note: root.st && root.st.sheet && root.st.sheet.discussion
-        ? "discussed " + root.st.sheet.discussion : ""
+      visible: !!(root.st && root.st.sheets.length)
 
       SmallButton {
         visible: !!(root.st && root.st.sheet)
@@ -256,51 +233,7 @@ Flickable {
         onClicked: root.openSheet()
       }
 
-      // The course's extra scripts (uni.json "zusatzskript"): off, Jev does
-      // not look in them and the prompt does not carry what was picked there.
-      // Beside the plan, which picks from them for every task at once.
-      OptionRow {
-        readonly property var names: root.st && root.st.summary ? (root.st.summary.extraNames || []) : []
-        visible: names.length > 0
-        anchors.verticalCenter: parent.verticalCenter
-        small: true
-        look: root.look
-        text: names.join(", ")
-        hint: "Let Jev pick from this script too, and put what is picked there into the prompt"
-        checked: !!(root.st && root.st.summary && root.st.summary.extra)
-        enabled: !root.busy
-        onToggled: root.request("set_extra", { on: !checked })
-      }
-
-      // The slides, the same way. Off by default where there is a script.
-      OptionRow {
-        visible: !!(root.st && root.st.summary && root.st.summary.hasSlides)
-        anchors.verticalCenter: parent.verticalCenter
-        small: true
-        look: root.look
-        text: "Slides"
-        hint: "Let Jev pick slides too, and put what is picked there into the prompt"
-        checked: !!(root.st && root.st.summary && root.st.summary.slidesOn)
-        enabled: !root.busy
-        onToggled: root.request("set_slides", { on: !checked })
-      }
-
-      SmallButton {
-        visible: !!(root.st && root.st.sheet && root.st.jev.configured)
-        look: root.look
-        iconText: Glyphs.sparkle
-        text: root.st && root.st.sheet && root.st.sheet.plan ? "Plan again" : "Plan with Jev"
-        enabled: !root.busy
-        tooltipText: "Jev picks every task's context at once, rates how much work each is, "
-          + "and finds which task builds on which"
-        onClicked: root.request("plan")
-      }
-    }
-
-    Flow {
-      width: parent.width
-      spacing: Style.space(6)
-      visible: !!(root.st && root.st.sheets.length)
+      Item { width: Style.space(6); height: 1 }
 
       Repeater {
         model: root.st ? root.st.sheets : []
@@ -309,14 +242,66 @@ Flickable {
           required property var modelData
           look: root.look
           text: modelData.label
+          fontSize: Style.font.caption
+          horizontalPadding: Style.space(8)
+          verticalPadding: Style.space(3)
           selected: !!(root.st.sheet && root.st.sheet.id === modelData.id)
           dot: modelData.newest
           enabled: !root.busy
-          horizontalPadding: Style.space(9)
           tooltipText: "Sheet " + modelData.label + " · " + modelData.tasks + " tasks"
             + (modelData.newest ? " · the newest" : "") + (modelData.planned ? " · planned by Jev" : "")
           onClicked: if (!selected) root.request("select_sheet", { id: modelData.id })
         }
+      }
+    }
+
+    // Jev's plan, and what it may pick from: the course's extra scripts
+    // (uni.json "zusatzskript") and its slides. Off, Jev does not look there
+    // and the prompt does not carry what was picked there.
+    FieldRow {
+      id: jevRow
+      look: root.look
+      text: "Jev"
+      readonly property var extraNames: root.st && root.st.summary ? (root.st.summary.extraNames || []) : []
+      readonly property bool hasSlides: !!(root.st && root.st.summary && root.st.summary.hasSlides)
+      visible: planButton.visible || extraNames.length > 0 || hasSlides
+
+      SmallButton {
+        id: planButton
+        visible: !!(root.st && root.st.sheet && root.st.jev.configured)
+        look: root.look
+        iconText: Glyphs.sparkle
+        text: root.st && root.st.sheet && root.st.sheet.plan ? "Plan again" : "Plan with Jev"
+        enabled: !root.busy
+        tooltipText: "Jev picks every task's context at once, rates how much work each is, "
+          + "and finds which task builds on which"
+          + (root.st && root.st.jev.usage ? "\nJev so far: " + root.st.jev.usage : "")
+        onClicked: root.request("plan")
+      }
+
+      Item { width: Style.space(6); height: 1 }
+
+      OptionRow {
+        visible: jevRow.extraNames.length > 0
+        small: true
+        look: root.look
+        text: jevRow.extraNames.join(", ")
+        hint: "Let Jev pick from this script too, and put what is picked there into the prompt"
+        checked: !!(root.st && root.st.summary && root.st.summary.extra)
+        enabled: !root.busy
+        onToggled: root.request("set_extra", { on: !checked })
+      }
+
+      OptionRow {
+        visible: jevRow.hasSlides
+        small: true
+        look: root.look
+        text: "Slides"
+        hint: "Let Jev pick slides too, and put what is picked there into the prompt. "
+          + "Off by default where the course has a script"
+        checked: !!(root.st && root.st.summary && root.st.summary.slidesOn)
+        enabled: !root.busy
+        onToggled: root.request("set_slides", { on: !checked })
       }
     }
 
@@ -354,10 +339,16 @@ Flickable {
       look: root.look
       visible: root.tasks.length > 0
       text: "Task"
+      // The sheet's date here rather than beside its chips: fourteen of them
+      // fill that line.
       note: {
         if (root.service && root.service.busy === "plan") return "Jev is planning this sheet …"
-        if (!root.st || !root.st.sheet || !root.st.sheet.plan) return ""
-        return Model.dependencyText(root.tasks) || "no task builds on another"
+        var parts = []
+        if (root.st && root.st.sheet && root.st.sheet.discussion)
+          parts.push("discussed " + root.st.sheet.discussion)
+        if (root.st && root.st.sheet && root.st.sheet.plan)
+          parts.push(Model.dependencyText(root.tasks) || "no task builds on another")
+        return parts.join("  ·  ")
       }
       noteColor: root.service && root.service.busy === "plan" ? root.look.accent : root.look.fg
       spinning: !!(root.service && root.service.busy === "plan")
@@ -384,7 +375,7 @@ Flickable {
           readonly property bool hot: taskMouse.containsMouse
 
           width: parent.width
-          implicitHeight: Math.max(Style.space(30), taskText.implicitHeight + Style.space(10))
+          implicitHeight: Math.max(Style.space(24), taskText.implicitHeight + Style.space(6))
           radius: Style.cornerRadius
           color: current ? Style.selectedFillFor(root.look.fg, root.look.accent)
             : (hot ? Style.hoverFillFor(root.look.fg, root.look.accent) : "transparent")
@@ -406,7 +397,7 @@ Flickable {
             x: Style.space(4)
             anchors.verticalCenter: parent.verticalCenter
             width: Style.space(3)
-            height: parent.height - Style.space(14)
+            height: parent.height - Style.space(10)
             radius: width / 2
             color: root.look.accent
           }
@@ -588,18 +579,53 @@ Flickable {
 
     // ---- Context ----------------------------------------------------------------
 
-    SectionTitle {
+    HeaderRow {
       look: root.look
       visible: root.currentTask !== null
       text: "In the prompt"
-      detail: root.st && root.st.jev.usage ? "Jev: " + root.st.jev.usage : ""
+      spinning: contextCard.asking
+      noteColor: contextCard.asking ? root.look.accent : root.look.fg
+      note: {
+        if (contextCard.asking) return "Jev is reading the task and the lecture notes …"
+        var s = contextCard.summary
+        if (!s) return ""
+        if (contextCard.empty) return "the task alone"
+        var parts = []
+        var slides = s.slides || 0
+        if (s.statements - slides) parts.push(Model.plural(s.statements - slides, "statement"))
+        if (slides) parts.push(Model.plural(slides, "slide"))
+        if (s.proofs) parts.push(Model.plural(s.proofs, "proof"))
+        if (s.earlier) parts.push(Model.plural(s.earlier, "earlier task"))
+        var picked = root.st.jev.picked === "jev" ? "  ·  " + Glyphs.sparkle + " picked by Jev"
+          : root.st.jev.picked === "edited" ? "  ·  " + Glyphs.sparkle + " by Jev, changed by hand" : ""
+        return parts.join(" · ") + picked
+      }
+
+      SmallButton {
+        look: root.look
+        iconText: Glyphs.pencil
+        text: contextCard.empty && !contextCard.items.length ? "Choose" : "Edit"
+        tooltipText: "E · tick chapters, statements, proofs and earlier tasks"
+        onClicked: root.navigate("context")
+      }
+
+      SmallButton {
+        visible: contextCard.items.length > 0
+        look: root.look
+        iconText: Glyphs.close
+        text: "Clear"
+        enabled: !root.busy
+        tooltipText: "The prompt then carries the task alone"
+        onClicked: root.request("clear_selection")
+      }
     }
 
     BorderSurface {
       id: contextCard
       width: parent.width
-      visible: root.currentTask !== null
-      implicitHeight: contextColumn.implicitHeight + Style.space(22)
+      // Only when there is something to list: counts and buttons are above.
+      visible: root.currentTask !== null && !asking && (lines.length > 0 || infoLabel.text !== "")
+      implicitHeight: contextColumn.implicitHeight + Style.space(16)
       radius: Style.cornerRadius
       color: Style.normalFillFor(root.look.fg, root.look.accent)
       borderSpec: Border.controlSpec("normal", root.look.fg, root.look.accent)
@@ -609,82 +635,24 @@ Flickable {
       readonly property bool asking: !!(root.service && root.service.busy === "jev")
       readonly property var items: summary && summary.items ? summary.items : []
       property bool allItems: false
-      // Lines unticked here: out of the prompt, but still shown, unticked,
-      // where they were - so a slip of the mouse is one click to undo. Until
-      // the task changes. [{line, index}]
-      property var removed: []
-      readonly property var lines: {
-        var out = items.slice()
-        var present = {}
-        for (var i = 0; i < items.length; i++) present[root.lineKey(items[i])] = true
-        for (var r = 0; r < removed.length; r++) {
-          var gone = removed[r]
-          if (present[root.lineKey(gone.line)]) continue
-          out.splice(Math.min(gone.index, out.length), 0, Object.assign({}, gone.line, { off: true }))
-        }
-        return out
-      }
+      // Every line chosen, the unticked ones too: they stay, Jev's pick is
+      // worth reading even where the prompt is better off without it.
+      readonly property var lines: items
 
       Connections {
         target: root
-        function onCurrentTaskChanged() { contextCard.allItems = false; contextCard.removed = [] }
+        function onCurrentTaskChanged() { contextCard.allItems = false }
       }
 
       Column {
         id: contextColumn
-        x: Style.space(12)
-        y: Style.space(11)
-        width: parent.width - Style.space(24)
-        spacing: Style.space(6)
-
-        // While Jev picks, the card says so right where its pick will appear.
-        Row {
-          visible: contextCard.asking
-          spacing: Style.space(8)
-
-          Text {
-            anchors.verticalCenter: parent.verticalCenter
-            textFormat: Text.PlainText
-            text: Glyphs.loading
-            color: root.look.accent
-            font.family: root.look.font
-            font.pixelSize: Style.font.icon
-            RotationAnimation on rotation {
-              running: contextCard.asking
-              from: 0; to: 360; duration: 900
-              loops: Animation.Infinite
-            }
-          }
-
-          Label {
-            anchors.verticalCenter: parent.verticalCenter
-            look: root.look
-            color: root.look.accent
-            font.bold: true
-            text: "Jev is reading the task and the lecture notes …"
-          }
-        }
+        x: Style.space(10)
+        y: Style.space(8)
+        width: parent.width - Style.space(20)
+        spacing: Style.space(4)
 
         Label {
-          width: parent.width
-          visible: !contextCard.asking
-          look: root.look
-          font.bold: true
-          text: {
-            var s = contextCard.summary
-            if (!s) return ""
-            if (contextCard.empty) return "No lecture notes - the prompt carries the task alone"
-            var parts = []
-            var slides = s.slides || 0
-            if (s.statements - slides) parts.push(Model.plural(s.statements - slides, "statement"))
-            if (slides) parts.push(Model.plural(slides, "slide"))
-            if (s.proofs) parts.push(Model.plural(s.proofs, "proof"))
-            if (s.earlier) parts.push(Model.plural(s.earlier, "earlier task"))
-            return parts.join(" · ")
-          }
-        }
-
-        Label {
+          id: infoLabel
           width: parent.width
           look: root.look
           secondary: true
@@ -694,13 +662,10 @@ Flickable {
           text: {
             if (!root.st) return ""
             var dropped = root.st.jev.dropped || []
-            var left = dropped.length
-              ? " · " + Model.plural(dropped.length, "proof") + " left out to stay under "
+            if (root.st.jev.picked === "jev" && dropped.length)
+              return Model.plural(dropped.length, "proof") + " left out to stay under "
                 + Math.round(root.st.limit / 1000) + "k characters: " + dropped.slice(0, 3).join(", ")
                 + (dropped.length > 3 ? " …" : "")
-              : ""
-            if (root.st.jev.picked === "jev") return Glyphs.sparkle + " Picked by Jev" + left
-            if (root.st.jev.picked === "edited") return Glyphs.sparkle + " Picked by Jev, changed by hand"
             if (contextCard.empty && contextCard.summary && !contextCard.summary.hasNotes)
               return "No lecture notes read in for this course."
             return ""
@@ -775,7 +740,7 @@ Flickable {
                   anchors.margins: -Style.space(4)
                   enabled: itemBox.visible && !root.busy
                   cursorShape: Qt.PointingHandCursor
-                  onClicked: root.toggleLine(itemRow.modelData, itemBlock.index)
+                  onClicked: root.toggleLine(itemRow.modelData)
                 }
 
                 Label {
@@ -816,33 +781,6 @@ Flickable {
             foreground: root.look.muted
             fontFamily: root.look.font
             onClicked: contextCard.allItems = !contextCard.allItems
-          }
-        }
-
-        Item { width: 1; height: Style.space(2) }
-
-        Row {
-          spacing: Style.space(6)
-
-          Button {
-            iconText: Glyphs.pencil
-            text: contextCard.empty ? "Choose context" : "Edit context"
-            bordered: true
-            foreground: root.look.fg
-            fontFamily: root.look.font
-            tooltipText: "E · tick chapters, statements, proofs and earlier tasks"
-            onClicked: root.navigate("context")
-          }
-
-          Button {
-            visible: !contextCard.empty
-            iconText: Glyphs.close
-            text: "Clear"
-            enabled: !root.busy
-            foreground: root.look.muted
-            fontFamily: root.look.font
-            tooltipText: "The prompt then carries the task alone"
-            onClicked: root.request("clear_selection")
           }
         }
       }

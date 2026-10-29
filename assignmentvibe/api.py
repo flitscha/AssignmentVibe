@@ -406,8 +406,7 @@ def handle(cmd: str, args: dict):
     elif cmd == "set_extra":
         hub.set_extra(course, bool(args["on"]))
     elif cmd == "set_item":
-        hub.set_item(course, args["kind"], args.get("id") or "", bool(args["on"]),
-                     bool(args.get("proof")))
+        hub.set_item(course, args["kind"], args.get("id") or "", bool(args["on"]))
     elif cmd == "set_slides":
         hub.set_slides(course, bool(args["on"]))
     elif cmd == "clear_selection":
