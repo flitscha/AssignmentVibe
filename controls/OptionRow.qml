@@ -11,11 +11,13 @@ Item {
   property string text: ""
   property string hint: ""
   property bool checked: false
+  // Caption-sized, to sit among the small buttons of a header line.
+  property bool small: false
 
   signal toggled()
 
-  implicitWidth: row.implicitWidth + Style.space(12)
-  implicitHeight: row.implicitHeight + Style.space(8)
+  implicitWidth: row.implicitWidth + Style.space(small ? 8 : 12)
+  implicitHeight: row.implicitHeight + Style.space(small ? 6 : 8)
   opacity: enabled ? 1 : 0.45
 
   Rectangle {
@@ -27,7 +29,7 @@ Item {
   Row {
     id: row
     anchors.centerIn: parent
-    spacing: Style.space(8)
+    spacing: Style.space(root.small ? 6 : 8)
 
     CheckBox {
       anchors.verticalCenter: parent.verticalCenter
@@ -39,6 +41,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       look: root.look
       text: root.text
+      font.pixelSize: root.small ? Style.font.caption : Style.font.body
     }
   }
 

@@ -264,6 +264,9 @@ def _summary(course: str, state: dict) -> dict:
         "extraNames": _extra_names(course),
         "extra": state["extra"],
         "extraStatements": sum(1 for e in entries if e.get("source")),
+        # Its slides, the same way: whether there are any, whether they are on.
+        "hasSlides": bool(store.load_decks(course)),
+        "slidesOn": state["slides"],
     }
 
 
@@ -340,6 +343,8 @@ def context_payload() -> dict | None:
         "hasAlgorithms": any(s["algorithm"] for s in statements),
         "extraNames": _extra_names(course),
         "extra": state["extra"],
+        "hasSlides": bool(store.load_decks(course)),
+        "slidesOn": state["slides"],
         "earlier": earlier,
         "earlierSelected": [r for r in state["earlier"]
                             if r in {e["ref"] for e in earlier}],
@@ -400,6 +405,11 @@ def handle(cmd: str, args: dict):
         hub.set_algorithms(course, bool(args["on"]))
     elif cmd == "set_extra":
         hub.set_extra(course, bool(args["on"]))
+    elif cmd == "set_item":
+        hub.set_item(course, args["kind"], args.get("id") or "", bool(args["on"]),
+                     bool(args.get("proof")))
+    elif cmd == "set_slides":
+        hub.set_slides(course, bool(args["on"]))
     elif cmd == "clear_selection":
         hub.clear_selection(course)
     elif cmd == "jev":

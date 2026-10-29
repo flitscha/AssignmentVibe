@@ -9,10 +9,10 @@ import "../controls"
 // what the prompt carries - with the buttons that change each right beside it.
 //
 // Keys: ↑↓ task, ←→ sheet, O open the sheet, N open the lecture notes,
-// S the slide decks, A ask Jev, E edit the context, P preview the prompt,
-// R read my attempt again, W copy only my attempt. A line of the context
-// opens the script or slide deck at its page when clicked, an earlier task
-// its sheet.
+// S the newest slide deck, A ask Jev, E edit the context, P preview the
+// prompt, R read my attempt again, W copy only my attempt. A line of the
+// context opens the script or slide deck at its page when clicked, an
+// earlier task its sheet; its box takes it out of the prompt.
 Flickable {
   id: root
 
@@ -29,8 +29,6 @@ Flickable {
   readonly property bool busy: !!(service && service.busy !== "")
   readonly property var tasks: st ? st.tasks : []
   readonly property var decks: st && st.course ? (st.course.decks || []) : []
-  // The decks' row under the courses, unfolded by the Slides button.
-  property bool decksShown: false
   readonly property var parts: currentTask && currentTask.parts ? currentTask.parts : []
   readonly property string part: st && st.part ? st.part : ""
   readonly property var chosenPart: {
@@ -71,7 +69,7 @@ Flickable {
   function key(t) {
     if (t === "o" || t === "O") openSheet()
     else if (t === "n" || t === "N") openNotes()
-    else if (t === "s" || t === "S") toggleDecks()
+    else if (t === "s" || t === "S") openNewestDeck()
     else if (t === "a" || t === "A") askJev()
     else if (t === "e" || t === "E") navigate("context")
     else if (t === "p" || t === "P") { if (currentTask) navigate("prompt") }
@@ -92,10 +90,23 @@ Flickable {
     })
   }
 
-  // One deck opens at once; several unfold, newest marked, to pick from.
-  function toggleDecks() {
-    if (decks.length === 1) openDeck(decks[0].path)
-    else if (decks.length) decksShown = !decksShown
+  function lineKey(line) { return line.kind + "|" + line.id }
+
+  // A line of the context card in or out of the prompt, by its box.
+  function toggleLine(line, index) {
+    if (!line.kind || busy) return
+    var key = lineKey(line)
+    if (line.off) {
+      contextCard.removed = contextCard.removed.filter(function(r) { return lineKey(r.line) !== key })
+      request("set_item", { kind: line.kind, id: line.id, on: true, proof: !!line.proof })
+    } else {
+      contextCard.removed = contextCard.removed.concat([{ line: line, index: index }])
+      request("set_item", { kind: line.kind, id: line.id, on: false })
+    }
+  }
+
+  function openNewestDeck() {
+    for (var i = 0; i < decks.length; i++) if (decks[i].newest) openDeck(decks[i].path)
   }
 
   function openDeck(path) {
@@ -157,29 +168,6 @@ Flickable {
     HeaderRow {
       look: root.look
       text: "Course"
-
-      SmallButton {
-        visible: !!(root.st && root.st.course && root.st.course.notesPdf)
-        look: root.look
-        iconText: Glyphs.book
-        text: root.currentTask && root.currentTask.page ? "Lecture notes · p. " + root.currentTask.page
-                                                       : "Lecture notes"
-        tooltipText: root.currentTask && root.currentTask.page
-          ? "N · the script, at the exercise this task points at"
-          : "N · the script of this course"
-        onClicked: root.openNotes()
-      }
-
-      SmallButton {
-        visible: root.decks.length > 0
-        look: root.look
-        iconText: root.decks.length > 1 ? (root.decksShown ? Glyphs.chevronDown : Glyphs.chevronRight)
-                                        : Glyphs.slides
-        text: root.decks.length > 1 ? "Slides · " + root.decks.length : "Slides"
-        tooltipText: root.decks.length > 1 ? "S · the slide decks of this course, to open one"
-                                           : "S · the slide deck of this course"
-        onClicked: root.toggleDecks()
-      }
     }
 
     Flow {
@@ -198,29 +186,52 @@ Flickable {
           enabled: !root.busy
           tooltipText: (modelData.sheets === 1 ? "1 sheet" : modelData.sheets + " sheets")
             + (modelData.hasNotes ? " · lecture notes read in" : " · no lecture notes")
-          onClicked: if (!selected) {
-            root.decksShown = false
-            root.request("select_course", { slug: modelData.slug })
-          }
+          onClicked: if (!selected) root.request("select_course", { slug: modelData.slug })
         }
       }
     }
 
+    // What there is to read for the course: the script, and every slide deck
+    // by its number - one click each, the newest marked.
     Flow {
       width: parent.width
-      spacing: Style.space(6)
-      visible: root.decksShown && root.decks.length > 1
+      spacing: Style.space(4)
+      visible: notesButton.visible || root.decks.length > 0
+
+      Label {
+        height: notesButton.visible ? notesButton.height : (root.decks.length ? Style.space(24) : 0)
+        verticalAlignment: Text.AlignVCenter
+        rightPadding: Style.space(4)
+        look: root.look
+        secondary: true
+        text: "Material"
+      }
+
+      SmallButton {
+        id: notesButton
+        visible: !!(root.st && root.st.course && root.st.course.notesPdf)
+        look: root.look
+        iconText: Glyphs.book
+        text: root.currentTask && root.currentTask.page ? "Lecture notes · p. " + root.currentTask.page
+                                                       : "Lecture notes"
+        tooltipText: root.currentTask && root.currentTask.page
+          ? "N · the script, at the exercise this task points at"
+          : "N · the script of this course"
+        onClicked: root.openNotes()
+      }
 
       Repeater {
-        model: root.decksShown ? root.decks : []
+        model: root.decks
 
-        Chip {
+        SmallButton {
           required property var modelData
+          required property int index
           look: root.look
-          iconText: Glyphs.slides
-          text: modelData.title
-          dot: modelData.newest
-          tooltipText: modelData.path.split("/").pop() + (modelData.newest ? " · the newest" : "")
+          iconText: index === 0 ? Glyphs.slides : ""
+          text: String(index + 1)
+          foreground: modelData.newest ? root.look.accent : root.look.fg
+          tooltipText: modelData.title + " · " + modelData.path.split("/").pop()
+            + (modelData.newest ? " · the newest (S)" : "")
           onClicked: root.openDeck(modelData.path)
         }
       }
@@ -252,12 +263,26 @@ Flickable {
         readonly property var names: root.st && root.st.summary ? (root.st.summary.extraNames || []) : []
         visible: names.length > 0
         anchors.verticalCenter: parent.verticalCenter
+        small: true
         look: root.look
-        text: "Also " + names.join(", ")
+        text: names.join(", ")
         hint: "Let Jev pick from this script too, and put what is picked there into the prompt"
         checked: !!(root.st && root.st.summary && root.st.summary.extra)
         enabled: !root.busy
         onToggled: root.request("set_extra", { on: !checked })
+      }
+
+      // The slides, the same way. Off by default where there is a script.
+      OptionRow {
+        visible: !!(root.st && root.st.summary && root.st.summary.hasSlides)
+        anchors.verticalCenter: parent.verticalCenter
+        small: true
+        look: root.look
+        text: "Slides"
+        hint: "Let Jev pick slides too, and put what is picked there into the prompt"
+        checked: !!(root.st && root.st.summary && root.st.summary.slidesOn)
+        enabled: !root.busy
+        onToggled: root.request("set_slides", { on: !checked })
       }
 
       SmallButton {
@@ -584,10 +609,25 @@ Flickable {
       readonly property bool asking: !!(root.service && root.service.busy === "jev")
       readonly property var items: summary && summary.items ? summary.items : []
       property bool allItems: false
+      // Lines unticked here: out of the prompt, but still shown, unticked,
+      // where they were - so a slip of the mouse is one click to undo. Until
+      // the task changes. [{line, index}]
+      property var removed: []
+      readonly property var lines: {
+        var out = items.slice()
+        var present = {}
+        for (var i = 0; i < items.length; i++) present[root.lineKey(items[i])] = true
+        for (var r = 0; r < removed.length; r++) {
+          var gone = removed[r]
+          if (present[root.lineKey(gone.line)]) continue
+          out.splice(Math.min(gone.index, out.length), 0, Object.assign({}, gone.line, { off: true }))
+        }
+        return out
+      }
 
       Connections {
         target: root
-        function onCurrentTaskChanged() { contextCard.allItems = false }
+        function onCurrentTaskChanged() { contextCard.allItems = false; contextCard.removed = [] }
       }
 
       Column {
@@ -673,8 +713,8 @@ Flickable {
 
           Repeater {
             id: itemRepeater
-            readonly property var shown: contextCard.allItems ? contextCard.items
-                                                              : contextCard.items.slice(0, 5)
+            readonly property var shown: contextCard.allItems ? contextCard.lines
+                                                              : contextCard.lines.slice(0, 5)
             model: shown
 
             Column {
@@ -719,15 +759,35 @@ Flickable {
                   onClicked: root.openSource(itemRow.modelData.target)
                 }
 
+                CheckBox {
+                  id: itemBox
+                  x: Style.space(6)
+                  anchors.verticalCenter: parent.verticalCenter
+                  visible: !!itemRow.modelData.kind
+                  look: root.look
+                  value: itemRow.modelData.off ? 0 : 2
+                }
+
+                // Above the row's own area: the box takes the click, the
+                // rest of the line opens it.
+                MouseArea {
+                  anchors.fill: itemBox
+                  anchors.margins: -Style.space(4)
+                  enabled: itemBox.visible && !root.busy
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.toggleLine(itemRow.modelData, itemBlock.index)
+                }
+
                 Label {
                   id: itemLabel
-                  x: Style.space(8)
+                  x: itemBox.visible ? itemBox.x + itemBox.width + Style.space(8) : Style.space(8)
                   anchors.verticalCenter: parent.verticalCenter
                   width: parent.width - x - openIcon.width - Style.space(12)
                   look: root.look
-                  secondary: !itemMouse.containsMouse
+                  secondary: !itemMouse.containsMouse || !!itemRow.modelData.off
                   font.pixelSize: Style.font.caption
-                  text: "·  " + itemRow.modelData.text
+                  font.strikeout: !!itemRow.modelData.off
+                  text: (itemBox.visible ? "" : "·  ") + itemRow.modelData.text
                 }
 
                 Text {
@@ -747,9 +807,9 @@ Flickable {
           }
 
           Button {
-            visible: contextCard.items.length > 5
+            visible: contextCard.lines.length > 5
             text: contextCard.allItems ? "Show less"
-                                       : "… and " + (contextCard.items.length - 5) + " more"
+                                       : "… and " + (contextCard.lines.length - 5) + " more"
             fontSize: Style.font.caption
             verticalPadding: Style.space(2)
             horizontalPadding: Style.space(6)
@@ -772,19 +832,6 @@ Flickable {
             fontFamily: root.look.font
             tooltipText: "E · tick chapters, statements, proofs and earlier tasks"
             onClicked: root.navigate("context")
-          }
-
-          Button {
-            visible: !!(root.st && root.st.jev.configured)
-            iconText: Glyphs.sparkle
-            text: root.st && root.st.jev.picked ? "Ask Jev again" : "Let Jev pick"
-            bordered: true
-            enabled: !root.busy
-            opacity: enabled ? 1 : 0.45
-            foreground: root.look.fg
-            fontFamily: root.look.font
-            tooltipText: "A · Jev reads the task and picks the statements, proofs and earlier tasks it needs"
-            onClicked: root.askJev()
           }
 
           Button {

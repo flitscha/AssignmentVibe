@@ -143,50 +143,47 @@ def resolve_state(course: str) -> dict:
                           for p in task_parts(task, store.load_exercises(course))[1]):
             part = wanted
 
-    sections = saved.get("sections") or []
-    statements = list(saved.get("statements") or [])
-    proof_of = list(saved.get("proof_of") or [])
-    if not store.slides_are_context(course):
-        # Slides picked before the course had a script, by hand or by a plan:
-        # gone from the editor, so gone from the selection too.
-        from .core import toc
-
-        slides = store.slide_ids(course)
-        sections = [k for k in sections if not toc.is_slides(k)]
-        statements = [i for i in statements if i not in slides]
-        proof_of = [i for i in proof_of if i not in slides]
-
     return {
         "sheet": sheet,
         "task": task_num,
         "part": part,
-        "sections": sections,
-        "statements": statements,
+        "sections": saved.get("sections") or [],
+        "statements": list(saved.get("statements") or []),
         "proofs": bool(saved.get("proofs")),
-        "proof_of": proof_of,
+        "proof_of": list(saved.get("proof_of") or []),
         "earlier": list(saved.get("earlier_tasks") or []),
         "jev_pick": saved.get("jev_pick"),
         "algorithms": bool(saved.get("algorithms", settings()["algorithms_by_default"])),
         # The course's extra scripts (uni.json "zusatzskript"): on until
         # switched off - they are configured because they are wanted.
         "extra": bool(saved.get("extra", True)),
+        # Its slides: off unless they are all the course has. A script says
+        # what the slides say, worked out and with the proofs, and a slide
+        # picked beside it only repeats it.
+        "slides": bool(saved.get("slides", not store.has_script(course))),
         "sheets": sheets,
         "exercises": store.load_exercises(course),
     }
 
 
+def switched_off(state: dict, key: str) -> bool:
+    """Whether a section key ("S1.3", "Z1.2") lies in slides or an extra script
+    that are switched off right now."""
+    from .core import toc
+
+    return ((toc.is_extra(key) and not state.get("extra", True))
+            or (toc.is_slides(key) and not state.get("slides", True)))
+
+
 def course_knowledge(course: str, state: dict) -> list[dict]:
-    """What the course knows right now: its script and slides, and its extra
+    """What the course knows right now: its script, and its slides and extra
     scripts while they are switched on. Off, Jev does not judge them (nor pay
     for it), the editor does not list them and the prompt does not carry
     them - but what was picked from them is kept for when they are on again."""
     from . import store
-    from .core import toc
 
-    entries = store.load_knowledge(course)
-    if state.get("extra", True):
-        return entries
-    return [e for e in entries if not toc.is_extra(e.get("section") or "")]
+    return [e for e in store.load_knowledge(course)
+            if not switched_off(state, e.get("section") or "")]
 
 
 def has_extra(course: str) -> bool:
@@ -198,6 +195,10 @@ def has_extra(course: str) -> bool:
 
 def set_extra(course: str, on: bool) -> None:
     context.set_course(course, extra=on)
+
+
+def set_slides(course: str, on: bool) -> None:
+    context.set_course(course, slides=on)
 
 
 def task_of(state: dict) -> dict | None:
@@ -299,21 +300,17 @@ def set_selection(course: str, ids: set[str], proof_of: list[str], proofs: bool,
     hand when it really changed."""
     from . import store
     from .core import selection
-
-    from .core import toc
     from .core.prompts import entry_id
 
     state = resolve_state(course)
     entries = store.load_knowledge(course)
     if algorithms is None:
         algorithms = state["algorithms"]
-    ids = set(ids)
-    if not state["extra"]:
-        # The editor does not list the extra scripts while they are off, so
-        # what was picked there is not in `ids` - and is not unpicked either.
-        ids |= {entry_id(e) for e in selection.chosen(entries, state["sections"],
-                                                      state["statements"], algorithms)
-                if toc.is_extra(e.get("section") or "")}
+    # The editor does not list slides and extra scripts while they are off,
+    # so what was picked there is not in `ids` - and is not unpicked either.
+    ids = set(ids) | {entry_id(e) for e in selection.chosen(entries, state["sections"],
+                                                            state["statements"], algorithms)
+                      if switched_off(state, e.get("section") or "")}
     sections, singles = selection.compress(entries, ids, algorithms)
     before = selection_key(entries, state)
     context.set_course(course, sections=sections, statements=singles, proofs=bool(proofs),
@@ -321,6 +318,32 @@ def set_selection(course: str, ids: set[str], proof_of: list[str], proofs: bool,
                        earlier_tasks=list(earlier))
     jev_pick = state.get("jev_pick")
     if jev_pick and before != selection_key(entries, resolve_state(course)):
+        context.set_course(course, jev_pick={**jev_pick, "edited": True})
+    remember_selection(course)
+
+
+def set_item(course: str, kind: str, item_id: str, on: bool, proof: bool = False) -> None:
+    """One line of the context card (selection_items) in or out of the prompt,
+    by its box - without going through the editor. A line taken out can be
+    put back as it was: `proof` says whether a single statement came with it."""
+    saved = context.course_state(course)
+    lists = {"section": "sections", "statement": "statements",
+             "proof": "proof_of", "earlier": "earlier_tasks"}
+    changes: dict = {}
+    if kind == "proofs":
+        changes["proofs"] = on
+    elif kind in lists:
+        key = lists[kind]
+        values = [v for v in saved.get(key) or [] if v != item_id]
+        changes[key] = values + [item_id] if on else values
+        if kind == "statement" and (proof or not on):
+            proof_of = [v for v in saved.get("proof_of") or [] if v != item_id]
+            changes["proof_of"] = proof_of + [item_id] if on and proof else proof_of
+    else:
+        raise ValueError(f"No kind of context line '{kind}'.")
+    context.set_course(course, **changes)
+    jev_pick = saved.get("jev_pick")
+    if jev_pick:
         context.set_course(course, jev_pick={**jev_pick, "edited": True})
     remember_selection(course)
 
@@ -632,16 +655,16 @@ def selection_items(course: str, state: dict) -> list[dict]:
             return f"Section {inner} {titles.get(key, '')}".rstrip()
         return f"Section {toc.label(titles, key)}"
 
-    items = [{"text": section_text(k),
+    items = [{"text": section_text(k), "kind": "section", "id": k,
               "target": SECTION_TARGET + k, "extra": extra_of(k)}
-             for k in state.get("sections") or []
-             if state.get("extra", True) or not toc.is_extra(k)]
+             for k in sorted(state.get("sections") or [], key=toc.sort_key)
+             if not switched_off(state, k)]
     by_id = {entry_id(e): e for e in selection.statements(knowledge, True)}
     proofs = set(state.get("proof_of") or ())
     singles = state.get("statements") or []
-    # Picked from an extra script that is switched off: kept, but not in use.
+    # Picked from slides or an extra script switched off: kept, not in use.
     hidden = {entry_id(e) for e in store.load_knowledge(course)
-              if toc.is_extra(e.get("section") or "")} - set(by_id)
+              if switched_off(state, e.get("section") or "")}
     for i in singles:
         if i in hidden:
             continue
@@ -651,14 +674,16 @@ def selection_items(course: str, state: dict) -> list[dict]:
             # Shown under the script's name already.
             label = label.removeprefix(f"{extra}: ")
         items.append({"text": label + ("  + proof" if i in proofs else ""),
+                      "kind": "statement", "id": i, "proof": i in proofs,
                       "target": i if i in by_id else None, "extra": extra})
     # Proofs of statements inside a whole section have no line of their own.
     if state.get("proofs"):
-        items.append({"text": "+ all their proofs", "target": None})
+        items.append({"text": "+ all their proofs", "kind": "proofs", "id": "",
+                      "target": None})
     else:
         inside = selection.entries_in(knowledge, state.get("sections") or [], True)
-        items += [{"text": f"+ proof of {entry_id(e)}", "target": entry_id(e),
-                   "extra": e.get("source", "")}
+        items += [{"text": f"+ proof of {entry_id(e)}", "kind": "proof", "id": entry_id(e),
+                   "target": entry_id(e), "extra": e.get("source", "")}
                   for e in inside if entry_id(e) in proofs and entry_id(e) not in singles]
     # The extra scripts' lines together, after the course's own: the panel
     # puts the script's name above them.
@@ -668,7 +693,8 @@ def selection_items(course: str, state: dict) -> list[dict]:
         sheets = store.list_sheets(course)
         refs = {selection.earlier_task_label(sh, t): selection.earlier_task_ref(sh, t)
                 for sh in sheets for t in sh.get("tasks", [])}
-        items += [{"text": f"Earlier: {label}", "target": EARLIER_TARGET + refs[label]}
+        items += [{"text": f"Earlier: {label}", "kind": "earlier", "id": refs[label],
+                   "target": EARLIER_TARGET + refs[label]}
                   for label, _ in selection.earlier_tasks(sheets, earlier)]
     return items
 
@@ -703,8 +729,7 @@ def build_current_prompt(course: str, course_name: str, state: dict,
         solution = (attempt or {}).get("text") or None
     return build_prompt(
         task_of(state), state["sheet"], course_knowledge(course, state), solution, course_name,
-        sections=[k for k in state["sections"]
-                  if state["extra"] or not toc.is_extra(k)],
+        sections=[k for k in state["sections"] if not switched_off(state, k)],
         statements=state["statements"],
         include_proofs=state["proofs"],
         include_algorithms=state["algorithms"],

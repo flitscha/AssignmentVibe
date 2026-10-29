@@ -318,6 +318,16 @@ Item {
       }
 
       OptionRow {
+        visible: !!(root.ctx && root.ctx.hasSlides)
+        look: root.look
+        text: "Slides"
+        hint: "The course's slide decks - off, Jev does not look in them and the prompt does not carry them"
+        checked: !!(root.ctx && root.ctx.slidesOn)
+        enabled: !root.busy
+        onToggled: root.reloadWith("set_slides", { on: !checked })
+      }
+
+      OptionRow {
         // Slides have no proofs of their own to add.
         visible: !!(root.ctx && root.ctx.statements.some(function(s) { return s.proofSize > 0 }))
         look: root.look
