@@ -26,6 +26,7 @@ var alert = g(0xF0026)
 var info = g(0xF02FC)
 var list = g(0xF0279)
 var book = g(0xF0B64)          // md-book_open_page_variant
+var slides = g(0xF0428)        // md-presentation
 var tasks = g(0xF0756)         // md-format_list_checks
 var pencil = g(0xF03EB)
 var keyboard = g(0xF030C)

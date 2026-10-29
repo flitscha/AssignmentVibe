@@ -101,15 +101,46 @@ def _extra_path(course_slug: str) -> Path:
     return paths.KNOWLEDGE_DIR / f"{course_slug}.extra.json"
 
 
+def slides_are_context(course_slug: str) -> bool:
+    """Whether a course's slides are something to pick context from: only
+    while it has no script. A script says what the slides say, worked out and
+    with the proofs - Probabilistic ML's slides were all it had until its
+    skriptum was written from them, and then picking a slide only meant
+    picking the same thing twice. The slides are still read in, for their
+    titles in the panel's deck list (load_decks)."""
+    path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
+    return not _load_json(path, {}).get("entries")
+
+
+def _slides_part(course_slug: str, what: str) -> list[dict]:
+    if not slides_are_context(course_slug):
+        return []
+    return _load_json(_slides_path(course_slug), {}).get(what, [])
+
+
 def load_sections(course_slug: str) -> list[dict]:
     """A course's section tree: [{"key", "level", "title", "page"}, ...] in
     reading order - the script's, then its slide decks' ("S1", "S1.3", with
-    the deck's "pdf"), then its extra scripts' ("Z1", "Z1.3.1", see
-    ingest_extra). Empty for a script ingested before the tree existed."""
+    the deck's "pdf") if they are context (slides_are_context), then its extra
+    scripts' ("Z1", "Z1.3.1", see ingest_extra). Empty for a script ingested
+    before the tree existed."""
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
     return (_load_json(path, {}).get("sections", [])
-            + _load_json(_slides_path(course_slug), {}).get("sections", [])
+            + _slides_part(course_slug, "sections")
             + _load_json(_extra_path(course_slug), {}).get("sections", []))
+
+
+def slide_ids(course_slug: str) -> set[str]:
+    """The ids of every slide read in ("Lecture 1, slide 16"), context or not."""
+    return {e["id"] for e in _load_json(_slides_path(course_slug), {}).get("entries", [])}
+
+
+def load_decks(course_slug: str) -> dict[str, str]:
+    """pdf path -> the title its deck was read in under ("Lecture 3"), for
+    every deck of the course, context or not."""
+    return {n["pdf"]: n["title"]
+            for n in _load_json(_slides_path(course_slug), {}).get("sections", [])
+            if n.get("level") == 1 and n.get("pdf")}
 
 
 def load_section_titles(course_slug: str) -> dict[str, str]:
@@ -208,13 +239,14 @@ def load_plan(sheet_id: str) -> dict | None:
 
 def load_knowledge(course_slug: str) -> list[dict]:
     """The script's statements, the slides of the course's decks (see
-    core.slides) and the statements of its extra scripts (see ingest_extra),
-    as one list: everything downstream - Jev, the context editor, the prompt -
-    treats a slide or another script's theorem as one more statement. Whether
-    the extra scripts are wanted right now is the hub's to say (hub.knowledge)."""
+    core.slides; only for a course without a script, see slides_are_context)
+    and the statements of its extra scripts (see ingest_extra), as one list:
+    everything downstream - Jev, the context editor, the prompt - treats a
+    slide or another script's theorem as one more statement. Whether the
+    extra scripts are wanted right now is the hub's to say (hub.knowledge)."""
     path = paths.KNOWLEDGE_DIR / f"{course_slug}.json"
     return (_load_json(path, {}).get("entries", [])
-            + _load_json(_slides_path(course_slug), {}).get("entries", [])
+            + _slides_part(course_slug, "entries")
             + _load_json(_extra_path(course_slug), {}).get("entries", []))
 
 

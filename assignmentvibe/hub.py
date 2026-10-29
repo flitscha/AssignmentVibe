@@ -143,14 +143,27 @@ def resolve_state(course: str) -> dict:
                           for p in task_parts(task, store.load_exercises(course))[1]):
             part = wanted
 
+    sections = saved.get("sections") or []
+    statements = list(saved.get("statements") or [])
+    proof_of = list(saved.get("proof_of") or [])
+    if not store.slides_are_context(course):
+        # Slides picked before the course had a script, by hand or by a plan:
+        # gone from the editor, so gone from the selection too.
+        from .core import toc
+
+        slides = store.slide_ids(course)
+        sections = [k for k in sections if not toc.is_slides(k)]
+        statements = [i for i in statements if i not in slides]
+        proof_of = [i for i in proof_of if i not in slides]
+
     return {
         "sheet": sheet,
         "task": task_num,
         "part": part,
-        "sections": saved.get("sections") or [],
-        "statements": list(saved.get("statements") or []),
+        "sections": sections,
+        "statements": statements,
         "proofs": bool(saved.get("proofs")),
-        "proof_of": list(saved.get("proof_of") or []),
+        "proof_of": proof_of,
         "earlier": list(saved.get("earlier_tasks") or []),
         "jev_pick": saved.get("jev_pick"),
         "algorithms": bool(saved.get("algorithms", settings()["algorithms_by_default"])),
@@ -588,6 +601,8 @@ def statement_label(e: dict, width: int = 48) -> str:
 
 
 SECTION_TARGET = "section:"
+# An earlier task: "task:analysis-4/Blatt7#1", opened on its sheet.
+EARLIER_TARGET = "task:"
 
 
 def selection_items(course: str, state: dict) -> list[dict]:
@@ -650,8 +665,11 @@ def selection_items(course: str, state: dict) -> list[dict]:
     items = [i for i in items if not i.get("extra")] + [i for i in items if i.get("extra")]
     earlier = state.get("earlier") or state.get("earlier_tasks") or []
     if earlier:
-        found = selection.earlier_tasks(store.list_sheets(course), earlier)
-        items += [{"text": f"Earlier: {label}", "target": None} for label, _ in found]
+        sheets = store.list_sheets(course)
+        refs = {selection.earlier_task_label(sh, t): selection.earlier_task_ref(sh, t)
+                for sh in sheets for t in sh.get("tasks", [])}
+        items += [{"text": f"Earlier: {label}", "target": EARLIER_TARGET + refs[label]}
+                  for label, _ in selection.earlier_tasks(sheets, earlier)]
     return items
 
 
@@ -818,6 +836,33 @@ def notes_pdf(course_slug: str) -> Path | None:
     return None
 
 
+def course_decks(cfg, course_slug: str) -> list[dict]:
+    """The course's slide decks as they lie in its folder, in lecture order:
+    [{"title", "path", "newest"}]. Titled as read in ("Lecture 3"), else by
+    file name - a deck downloaded a minute ago is listed before it is read in."""
+    from . import store
+
+    course = next((c for c in cfg.courses if store.slug_for(c.name) == course_slug), None)
+    if course is None:
+        return []
+    found = store._matching_pdfs(cfg, course, "folien")
+    if not found:
+        return []
+    titles = store.load_decks(course_slug)
+    newest = max(found, key=lambda p: p.stat().st_mtime)
+    return [{"title": titles.get(str(p)) or p.stem, "path": str(p), "newest": p == newest}
+            for p in found]
+
+
+def open_deck(cfg, course_slug: str, path: str) -> bool:
+    """One of course_decks, from its first slide."""
+    if not any(d["path"] == path for d in course_decks(cfg, course_slug)):
+        say("Slides not found", f"{Path(path).name} is not a slide deck of this "
+            "course any more. Read in new PDFs, then try again.", glyph="⚠")
+        return False
+    return open_pdf(Path(path))
+
+
 def task_page(task: dict | None, exercises: list[dict]) -> int | None:
     """The page of the lecture notes a task points at ("Aufgabe (1.1) vom
     Skriptum"), to open the notes right there."""
@@ -870,6 +915,8 @@ def source_of(course: str, target: str) -> tuple[Path | None, int | None, str]:
     from .core import selection
     from .core.prompts import entry_id
 
+    if target.startswith(EARLIER_TARGET):
+        return earlier_task_source(course, target[len(EARLIER_TARGET):])
     if target.startswith(SECTION_TARGET):
         key = target[len(SECTION_TARGET):]
         node = next((n for n in store.load_sections(course) if n["key"] == key), None)
@@ -887,6 +934,44 @@ def source_of(course: str, target: str) -> tuple[Path | None, int | None, str]:
         path = Path(found)
         return (path if path.exists() else None), page, what
     return notes_pdf(course), page, what
+
+
+def earlier_task_source(course: str, ref: str) -> tuple[Path | None, int | None, str]:
+    """(sheet PDF, page, label) of an earlier task ("ex01#3"): its sheet, at
+    the page the task starts on."""
+    from . import store
+    from .core import selection
+
+    sheet_id, _, number = ref.rpartition("#")
+    sheet = next((s for s in store.list_sheets(course) if s["sheet_id"] == sheet_id), None)
+    task = next((t for t in (sheet or {}).get("tasks", []) if str(t["number"]) == number), None)
+    if task is None:
+        return None, None, ref
+    path = sheet_pdf(sheet)
+    page = _page_of_task(path, task) if path else None
+    return path, page, selection.earlier_task_label(sheet, task)
+
+
+def _page_of_task(pdf: Path, task: dict) -> int | None:
+    """The page of the sheet a task starts on, found by its first line - a
+    task read in does not know its page. None (the first page) if not found."""
+    import pymupdf
+
+    first = next((l.strip() for l in task.get("text", "").split("\n") if l.strip()), "")
+    if not first:
+        return None
+    # The whole line, else its first words: a formula further on is read
+    # differently by the search than by the extraction.
+    needles = [first[:60], " ".join(first.split()[:3])]
+    try:
+        with pymupdf.open(pdf) as doc:
+            for needle in needles:
+                for i, page in enumerate(doc):
+                    if page.search_for(needle):
+                        return i + 1
+    except Exception:
+        pass
+    return None
 
 
 def open_source(course: str, target: str) -> bool:

@@ -111,7 +111,8 @@ def state_payload() -> dict:
                           for slug, name in courses.items()]
     payload["course"] = {"slug": course, "name": courses[course],
                          "short": courses[course].split()[0],
-                         "notesPdf": bool(hub.notes_pdf(course))}
+                         "notesPdf": bool(hub.notes_pdf(course)),
+                         "decks": hub.course_decks(cfg, course)}
 
     state = hub.resolve_state(course)
     sheet = state["sheet"]
@@ -429,6 +430,8 @@ def handle(cmd: str, args: dict):
         return {"opened": hub.open_sheet(state["sheet"])}
     elif cmd == "open_source":
         return {"opened": hub.open_source(course, args["target"])}
+    elif cmd == "open_deck":
+        return {"opened": hub.open_deck(cfg, course, args["path"])}
     elif cmd == "open_notes":
         return {"opened": hub.open_notes(course, state)}
     elif cmd == "open_chat":

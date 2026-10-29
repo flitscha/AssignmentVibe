@@ -9,9 +9,10 @@ import "../controls"
 // what the prompt carries - with the buttons that change each right beside it.
 //
 // Keys: ↑↓ task, ←→ sheet, O open the sheet, N open the lecture notes,
-// A ask Jev, E edit the context, P preview the prompt, R read my attempt
-// again, W copy only my attempt. A line of the context opens the script or
-// slide deck at its page when clicked.
+// S the slide decks, A ask Jev, E edit the context, P preview the prompt,
+// R read my attempt again, W copy only my attempt. A line of the context
+// opens the script or slide deck at its page when clicked, an earlier task
+// its sheet.
 Flickable {
   id: root
 
@@ -27,6 +28,9 @@ Flickable {
   readonly property var st: service ? service.state : null
   readonly property bool busy: !!(service && service.busy !== "")
   readonly property var tasks: st ? st.tasks : []
+  readonly property var decks: st && st.course ? (st.course.decks || []) : []
+  // The decks' row under the courses, unfolded by the Slides button.
+  property bool decksShown: false
   readonly property var parts: currentTask && currentTask.parts ? currentTask.parts : []
   readonly property string part: st && st.part ? st.part : ""
   readonly property var chosenPart: {
@@ -67,6 +71,7 @@ Flickable {
   function key(t) {
     if (t === "o" || t === "O") openSheet()
     else if (t === "n" || t === "N") openNotes()
+    else if (t === "s" || t === "S") toggleDecks()
     else if (t === "a" || t === "A") askJev()
     else if (t === "e" || t === "E") navigate("context")
     else if (t === "p" || t === "P") { if (currentTask) navigate("prompt") }
@@ -83,6 +88,18 @@ Flickable {
 
   function openNotes() {
     if (service && st && st.course && st.course.notesPdf) service.request("open_notes", {}, function(r) {
+      if (r.ok && r.result && r.result.opened) root.closeRequested()
+    })
+  }
+
+  // One deck opens at once; several unfold, newest marked, to pick from.
+  function toggleDecks() {
+    if (decks.length === 1) openDeck(decks[0].path)
+    else if (decks.length) decksShown = !decksShown
+  }
+
+  function openDeck(path) {
+    if (service) service.request("open_deck", { path: path }, function(r) {
       if (r.ok && r.result && r.result.opened) root.closeRequested()
     })
   }
@@ -152,6 +169,17 @@ Flickable {
           : "N · the script of this course"
         onClicked: root.openNotes()
       }
+
+      SmallButton {
+        visible: root.decks.length > 0
+        look: root.look
+        iconText: root.decks.length > 1 ? (root.decksShown ? Glyphs.chevronDown : Glyphs.chevronRight)
+                                        : Glyphs.slides
+        text: root.decks.length > 1 ? "Slides · " + root.decks.length : "Slides"
+        tooltipText: root.decks.length > 1 ? "S · the slide decks of this course, to open one"
+                                           : "S · the slide deck of this course"
+        onClicked: root.toggleDecks()
+      }
     }
 
     Flow {
@@ -170,7 +198,30 @@ Flickable {
           enabled: !root.busy
           tooltipText: (modelData.sheets === 1 ? "1 sheet" : modelData.sheets + " sheets")
             + (modelData.hasNotes ? " · lecture notes read in" : " · no lecture notes")
-          onClicked: if (!selected) root.request("select_course", { slug: modelData.slug })
+          onClicked: if (!selected) {
+            root.decksShown = false
+            root.request("select_course", { slug: modelData.slug })
+          }
+        }
+      }
+    }
+
+    Flow {
+      width: parent.width
+      spacing: Style.space(6)
+      visible: root.decksShown && root.decks.length > 1
+
+      Repeater {
+        model: root.decksShown ? root.decks : []
+
+        Chip {
+          required property var modelData
+          look: root.look
+          iconText: Glyphs.slides
+          text: modelData.title
+          dot: modelData.newest
+          tooltipText: modelData.path.split("/").pop() + (modelData.newest ? " · the newest" : "")
+          onClicked: root.openDeck(modelData.path)
         }
       }
     }
