@@ -29,6 +29,9 @@ Flickable {
   readonly property bool busy: !!(service && service.busy !== "")
   readonly property var tasks: st ? st.tasks : []
   readonly property var decks: st && st.course ? (st.course.decks || []) : []
+  // Not notesButton.visible: a child is invisible while its row is, so a row
+  // shown by its child's visible stays hidden once it was hidden.
+  readonly property bool hasNotes: !!(st && st.course && st.course.notesPdf)
   readonly property var parts: currentTask && currentTask.parts ? currentTask.parts : []
   readonly property string part: st && st.part ? st.part : ""
   readonly property var chosenPart: {
@@ -185,11 +188,11 @@ Flickable {
     FieldRow {
       look: root.look
       text: "Material"
-      visible: notesButton.visible || root.decks.length > 0
+      visible: root.hasNotes || root.decks.length > 0
 
       SmallButton {
         id: notesButton
-        visible: !!(root.st && root.st.course && root.st.course.notesPdf)
+        visible: root.hasNotes
         look: root.look
         iconText: Glyphs.book
         text: root.currentTask && root.currentTask.page ? "Lecture notes · p. " + root.currentTask.page
@@ -201,7 +204,7 @@ Flickable {
       }
 
       // A gap between the script and the slides.
-      Item { width: Style.space(6); height: 1; visible: notesButton.visible && root.decks.length > 0 }
+      Item { width: Style.space(6); height: 1; visible: root.hasNotes && root.decks.length > 0 }
 
       Repeater {
         model: root.decks
@@ -264,11 +267,12 @@ Flickable {
       text: "Jev"
       readonly property var extraNames: root.st && root.st.summary ? (root.st.summary.extraNames || []) : []
       readonly property bool hasSlides: !!(root.st && root.st.summary && root.st.summary.hasSlides)
-      visible: planButton.visible || extraNames.length > 0 || hasSlides
+      readonly property bool canPlan: !!(root.st && root.st.sheet && root.st.jev.configured)
+      visible: canPlan || extraNames.length > 0 || hasSlides
 
       SmallButton {
         id: planButton
-        visible: !!(root.st && root.st.sheet && root.st.jev.configured)
+        visible: jevRow.canPlan
         look: root.look
         iconText: Glyphs.sparkle
         text: root.st && root.st.sheet && root.st.sheet.plan ? "Plan again" : "Plan with Jev"
