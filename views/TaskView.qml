@@ -9,7 +9,7 @@ import "../controls"
 // what the prompt carries - with the buttons that change each right beside it.
 //
 // Keys: ↑↓ task, ←→ sheet, O open the sheet, N open the lecture notes,
-// S the newest slide deck, A ask Jev, E edit the context, P preview the
+// S the newest slide deck, L every script of every semester, A ask Jev, E edit the context, P preview the
 // prompt, R read my attempt again, W copy only my attempt. A line of the
 // context opens the script or slide deck at its page when clicked, an
 // earlier task its sheet; its box takes it out of the prompt.
@@ -73,6 +73,7 @@ Flickable {
     if (t === "o" || t === "O") openSheet()
     else if (t === "n" || t === "N") openNotes()
     else if (t === "s" || t === "S") openNewestDeck()
+    else if (t === "l" || t === "L") navigate("scripts")
     else if (t === "a" || t === "A") askJev()
     else if (t === "e" || t === "E") navigate("context")
     else if (t === "p" || t === "P") { if (currentTask) navigate("prompt") }
@@ -184,11 +185,11 @@ Flickable {
     }
 
     // What there is to read for the course: the script, and every slide deck
-    // by its number - one click each, the newest in the accent colour.
+    // by its number - one click each, the newest in the accent colour. Last,
+    // every other script, of any course and semester.
     FieldRow {
       look: root.look
       text: "Material"
-      visible: root.hasNotes || root.decks.length > 0
 
       SmallButton {
         id: notesButton
@@ -219,6 +220,16 @@ Flickable {
             + (modelData.newest ? " · the newest (S)" : "")
           onClicked: root.openDeck(modelData.path)
         }
+      }
+
+      Item { width: Style.space(6); height: 1; visible: root.hasNotes || root.decks.length > 0 }
+
+      SmallButton {
+        look: root.look
+        iconText: Glyphs.search
+        text: "All scripts"
+        tooltipText: "L · every script of every semester, to search and open"
+        onClicked: root.navigate("scripts")
       }
     }
 

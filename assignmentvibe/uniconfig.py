@@ -116,6 +116,10 @@ class Config:
     # up in an old script long after the course is over. Slides, sheets and
     # folders would only be noise, so those stay limited to the active semester.
     alte_skripte_im_launcher: bool = True
+    # Scripts of courses uni.json never knew - earlier semesters, filed by
+    # hand: (name, pdf). Only for finding them again (launcher, the panel's
+    # list of scripts); nothing is filed or read in.
+    weitere_skripte: list[tuple[str, Path]] = field(default_factory=list)
 
     def active_courses(self) -> list[Course]:
         return [c for c in self.courses if c.semester == self.active]
@@ -133,8 +137,9 @@ class Config:
         return self.course_dir(course) / sub if sub else self.course_dir(course)
 
 
-def _extra_scripts(value, where: str) -> list[tuple[str, Path]]:
-    """"zusatzskript": a path, {"name": ..., "pfad": ...}, or a list of them."""
+def _extra_scripts(value, where: str, key: str = "zusatzskript") -> list[tuple[str, Path]]:
+    """"zusatzskript" (and "weitere_skripte"): a path, {"name": ..., "pfad": ...},
+    or a list of them."""
     if not value:
         return []
     out = []
@@ -142,7 +147,7 @@ def _extra_scripts(value, where: str) -> list[tuple[str, Path]]:
         if isinstance(item, str):
             item = {"pfad": item}
         if not isinstance(item, dict) or not item.get("pfad"):
-            raise ConfigError(f'{where}: "zusatzskript" needs a path - '
+            raise ConfigError(f'{where}: "{key}" needs a path - '
                               '"~/Uni/s5/stochastik 2/Stochastik.pdf" or '
                               '{"name": "Stochastik I+II", "pfad": "..."}.')
         pdf = Path(item["pfad"]).expanduser().resolve()
@@ -207,6 +212,7 @@ def parse(raw: dict, path: Path) -> Config:
         path=path,
         pdf_viewer=raw.get("pdf_viewer", "firefox"),
         alte_skripte_im_launcher=bool(raw.get("alte_skripte_im_launcher", True)),
+        weitere_skripte=_extra_scripts(raw.get("weitere_skripte"), "uni.json", "weitere_skripte"),
     )
 
 

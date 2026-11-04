@@ -13,6 +13,9 @@ import "views"
 //   Follow-ups  canned replies for the chat, one click each
 //   Setup       read in new PDFs, config files, Jev's costs, keys
 //
+// Reached from the Task tab and left with Esc: the prompt's preview (P), and
+// every script of every semester (L).
+//
 // "Copy prompt" sits at the bottom of the first two, where the eye ends up
 // once the setup is right. Keys: 1-4 or Tab switch tabs, Enter copies, Esc
 // closes; each tab adds its own (see SetupView's list).
@@ -103,7 +106,7 @@ KeyboardPanel {
     anchors.fill: parent
     blocked: panel.editing
     onCloseRequested: {
-      if (panel.tab === "prompt") panel.tab = "task"
+      if (panel.tab === "prompt" || panel.tab === "scripts") panel.tab = "task"
       else panel.closeRequested()
     }
     onTabRequested: function(direction) { panel.switchTab(direction) }
@@ -146,7 +149,8 @@ KeyboardPanel {
             required property int index
             text: modelData.label
             iconText: modelData.icon
-            selected: panel.tab === modelData.key || (modelData.key === "task" && panel.tab === "prompt")
+            selected: panel.tab === modelData.key
+              || (modelData.key === "task" && (panel.tab === "prompt" || panel.tab === "scripts"))
             foreground: panel.theme.fg
             fontFamily: panel.theme.font
             tooltipText: "Key " + (index + 1)
@@ -273,6 +277,7 @@ KeyboardPanel {
       anchors.bottomMargin: panel.showFooter ? Style.space(10) : 0
       active: panel.service !== null && panel.visible
       sourceComponent: {
+        if (panel.tab === "scripts") return panel.scriptsView
         if (panel.st && panel.st.error && panel.tab !== "setup") return panel.problemView
         if (panel.tab === "context") return panel.contextView
         if (panel.tab === "followups") return panel.followUpsView
@@ -467,6 +472,15 @@ KeyboardPanel {
       service: panel.service
       look: panel.theme
       onBack: panel.tab = "task"
+    }
+  }
+
+  property Component scriptsView: Component {
+    ScriptsView {
+      service: panel.service
+      look: panel.theme
+      onBack: panel.tab = "task"
+      onCloseRequested: panel.closeRequested()
     }
   }
 

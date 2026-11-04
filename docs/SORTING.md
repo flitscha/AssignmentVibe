@@ -124,6 +124,22 @@ opens with the same line as the first page and names another sheet number;
 a part without a number (the projects) is left out. A longer re-upload only
 adds the new sheets.
 
+## Scripts of older courses: `weitere_skripte`
+
+Courses from before uni.json - or ones taken out of it - are not filed any
+more, but their scripts are still worth finding. List them at the top level:
+
+```jsonc
+"weitere_skripte": [
+  {"name": "Lineare Algebra I+II", "pfad": "~/Uni/s2/Lineare Algebra/Lineare_Algebra_I_II.pdf"},
+  {"name": "Algebra", "pfad": "~/Uni/s4/Algebra/Algebra.pdf"}
+]
+```
+
+They get a launcher entry each ("Lineare Algebra I+II Notes (s2)", the
+semester from the folder under `uni_root`) and are in the panel's list of
+scripts. Nothing is filed, moved or read in.
+
 ## Subfolders
 
 By default everything goes flat into the course folder. If a course folder is
@@ -147,7 +163,11 @@ Super+Space finds: the script, **every** slide set on its own, the **newest**
 sheet, and the course folder. PDFs open with `pdf_viewer`, the folder in the
 file manager. With `alte_skripte_im_launcher`, scripts of past semesters stay
 findable ("Analysis Skript (s4)") - their slides, sheets and folders do not,
-or the search would drown.
+or the search would drown. Every `zusatzskript` and `weitere_skripte` gets an
+entry too, so every script uni.json names can be found.
+
+In the panel, *All scripts* (Task tab, `L`) is the same list, searchable:
+type a few letters of the course, the semester or the filename, Enter opens.
 
 ```bash
 assignmentvibe config show     # what the config means right now

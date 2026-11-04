@@ -34,6 +34,7 @@ import re
 import sys
 import threading
 import traceback
+from pathlib import Path
 
 from . import context, hub
 
@@ -379,6 +380,20 @@ def handle(cmd: str, args: dict):
             raise ApiError(f"No course '{args['slug']}' this semester.")
         context.set(course=args["slug"])
         return None
+
+    # Every script of every semester, to open one - no course needed.
+    if cmd in ("scripts", "open_script"):
+        from .integrations import launcher
+
+        cfg, error = _config()
+        if cfg is None:
+            raise ApiError(error)
+        scripts = launcher.all_scripts(cfg)
+        if cmd == "scripts":
+            return {"scripts": scripts}
+        if not any(s["path"] == args["path"] for s in scripts):
+            raise ApiError(f"{Path(args['path']).name} is no script uni.json knows.")
+        return {"opened": hub.open_pdf(Path(args["path"]))}
 
     course, course_name, cfg = _course_or_fail()
     state = hub.resolve_state(course)

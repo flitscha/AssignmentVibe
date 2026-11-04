@@ -120,7 +120,8 @@ themselves: the service watches `~/.local/state/assignmentvibe/context.json`.
 
 In the panel: `1`–`4` or Tab switch tabs, Enter copies the prompt, Esc
 closes. Task tab: ↑↓ task, ←→ sheet, `O` open the sheet, `N` open the
-lecture notes (at the page of the exercise the task points at), `A` ask Jev,
+lecture notes (at the page of the exercise the task points at), `L` every
+script of every semester (type to search, Enter opens), `A` ask Jev,
 `E` edit the context, `P` preview, `R` read my attempt again, `W` copy
 only my attempt. Context tab: ↑↓ move, →/← open/close, Space
 tick, `P` tick the proof, `O` open the script or slides at that page, `/`
@@ -130,7 +131,7 @@ For a keybinding, the service is an IPC target:
 
 ```bash
 qs ipc -p "$OMARCHY_PATH/shell" call assignmentvibe toggle
-qs ipc -p "$OMARCHY_PATH/shell" call assignmentvibe open context   # task, context, followups, setup
+qs ipc -p "$OMARCHY_PATH/shell" call assignmentvibe open context   # task, context, followups, setup, scripts
 qs ipc -p "$OMARCHY_PATH/shell" call assignmentvibe copy
 ```
 

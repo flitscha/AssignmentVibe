@@ -57,7 +57,8 @@ proofs, and tasks of earlier sheets:
   step*, *Split into lemmas*, *Check my attempt*, …
 - **Files your downloads.** A per-semester `uni.json` says which PDF belongs
   to which course; `sort` files new downloads into `~/Uni/<semester>/<course>`,
-  and the launcher (Super+Space) finds every script and slide set. See
+  and the launcher (Super+Space) finds every script and slide set - old
+  semesters' scripts too, also searchable in the panel (*All scripts*). See
   [docs/SORTING.md](docs/SORTING.md).
 
 Bar button: left click opens the panel, right click the follow-ups, middle

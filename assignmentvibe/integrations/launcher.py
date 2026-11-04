@@ -12,7 +12,10 @@ Per course of the ACTIVE semester:
 
 Scripts of PAST semesters are added too (config: alte_skripte_im_launcher),
 labelled "<Kurs> Skript (s4)", because a lecture script stays a reference long
-after the course ends. Their slides, sheets and folders are left out.
+after the course ends. Their slides, sheets and folders are left out. So are
+the scripts named nowhere but in "zusatzskript" and "weitere_skripte" (older
+courses uni.json never knew): every script there is, one entry each - the
+same list the panel's "All scripts" searches (all_scripts).
 
 Entries are only written for files that exist, so a course with no sheets yet
 simply has no "Blatt" entry instead of a dead launcher item.
@@ -23,6 +26,7 @@ previous runs without touching the user's own hand-written .desktop files.
 """
 
 import fnmatch
+import os
 import re
 import shutil
 import subprocess
@@ -134,12 +138,76 @@ def entries_for(cfg: Config, course: Course, scripts_only: bool = False
     return out
 
 
+def _semester_of(cfg: Config, pdf: Path) -> str:
+    """"s2" for ~/Uni/s2/Lineare Algebra/…, "" outside the uni folder."""
+    try:
+        return pdf.relative_to(cfg.uni_root).parts[0]
+    except (ValueError, IndexError):
+        return ""
+
+
+def all_scripts(cfg: Config) -> list[dict]:
+    """Every lecture script uni.json knows: of every course of every semester,
+    every "zusatzskript", and "weitere_skripte". The active semester first,
+    then the newest; a file named twice comes once, by its first name.
+    {name, semester, path, active}."""
+    found: list[tuple[str, str, Path]] = []
+    for course in cfg.courses:
+        scripts = _matching(cfg.category_dir(course, "skript"),
+                            course.patterns.get("skript", []))
+        # Two scripts of a course by what tells their names apart:
+        # "Modellierung", "Modellierung (annotated)".
+        common = os.path.commonprefix([s.stem for s in scripts]) if len(scripts) > 1 else ""
+        for script in scripts:
+            rest = script.stem[len(common):].strip("-_ ")
+            name = f"{course.name} ({rest})" if rest else course.name
+            found.append((name, course.semester, script))
+    extras = [x for c in cfg.courses for x in c.zusatzskripte] + cfg.weitere_skripte
+    found += [(name, _semester_of(cfg, pdf), pdf) for name, pdf in extras if pdf.is_file()]
+
+    out, seen = [], set()
+    for name, semester, pdf in found:
+        key = pdf.resolve()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({"name": name, "semester": semester, "path": str(pdf),
+                    "active": semester == cfg.active})
+    # Stable: within a semester, the order of uni.json.
+    out.sort(key=lambda s: s["semester"], reverse=True)
+    out.sort(key=lambda s: not s["active"])
+    return out
+
+
+def _extra_entries(cfg: Config, skip: set[Path]) -> list[tuple[str, dict]]:
+    """Scripts that are no course's own: "zusatzskript", "weitere_skripte"."""
+    out = []
+    for script in all_scripts(cfg):
+        pdf = Path(script["path"])
+        if pdf.resolve() in skip:
+            continue
+        semester = script["semester"]
+        suffix = f" ({semester})" if semester and not script["active"] else ""
+        out.append((f"{PREFIX}{semester or 'x'}-skript-{_slug(script['name'])}.desktop", {
+            "name": f"{script['name']} Notes{suffix}",
+            "comment": f"{pdf.name}" + (f" ({semester})" if semester else ""),
+            "exec_line": _exec_line(cfg, pdf),
+            "icon": "application-pdf",
+            "keywords": f"Uni;{semester};{script['name']};Skript;",
+        }))
+    return out
+
+
 def _all_entries(cfg: Config) -> list[tuple[str, dict]]:
     entries = [e for c in cfg.active_courses() for e in entries_for(cfg, c)]
     if cfg.alte_skripte_im_launcher:
         entries += [e for c in cfg.past_courses()
                     for e in entries_for(cfg, c, scripts_only=True)]
-    return entries
+    # Every course's scripts, offered or not: a past course's script left out
+    # (alte_skripte_im_launcher off) must not come back as an "extra".
+    own = {p.resolve() for c in cfg.courses
+           for p in _matching(cfg.category_dir(c, "skript"), c.patterns.get("skript", []))}
+    return entries + _extra_entries(cfg, own)
 
 
 def sync(cfg: Config, directory: Path | None = None) -> tuple[list[str], list[str]]:
