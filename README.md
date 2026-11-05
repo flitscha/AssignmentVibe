@@ -50,9 +50,9 @@ proofs, and tasks of earlier sheets:
   each is (the bar beside it, green to red), and which task builds on which.
 - **One part at a time.** For a task with a), b), c): ask for one part; the
   whole task stays in the prompt for reference.
-- **Asks for a model solution.** The prompt asks for the direct route, every
-  step justified, the hard ones in full - no padding - and to name and quote
-  any result it uses that is not in the notes.
+- **Asks for a solution you can follow.** The idea first, then every step
+  justified, with one sentence on why it comes now; the hard ones in full -
+  no padding - and any result not in the notes named and quoted.
 - **Follow-ups** for the chat, one click each: *Just a hint*, *Only the next
   step*, *Split into lemmas*, *Check my attempt*, …
 - **Files your downloads.** A per-semester `uni.json` says which PDF belongs

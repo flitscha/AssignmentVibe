@@ -24,19 +24,34 @@ from pathlib import Path
 # step, see the idea, and stop. What the modes were really for lives on in
 # FOLLOW_UPS below, where it costs one click at the moment you know you need it.
 #
-# How it asks. Chat models tend to pad (restating the task, general remarks, a
-# summary) and still wave through the one step the argument rests on with
-# "clearly". So: the direct route, every step justified, and the care spent
-# where the difficulty is. The lines about definitions, theorems and earlier
-# exercises only appear when the prompt carries such things - "use the
-# definitions below" above a prompt without any is noise.
-SOLVE_HEAD = "Solve {what} the way a model solution would."
+# How it asks. A bare model solution - the direct route, every step checked -
+# was the first version, and it reads badly when you are learning: each step
+# is correct, but nothing says why it is the step to take now, so you can
+# check the proof and still not see how anyone would find it. So the answer
+# opens with the idea, and every step that is not routine says what it is
+# for before it is done. Padding stays out all the same: chat models restate
+# the task, make general remarks, summarise at the end - and still wave
+# through the one step the argument rests on with "clearly". Motivation is
+# not padding: one sentence on why, at the point where it is needed. The bare
+# write-up is one click away (FOLLOW_UPS, "Write it up").
+#
+# The lines about definitions, theorems and earlier exercises only appear
+# when the prompt carries such things - "use the definitions below" above a
+# prompt without any is noise.
+SOLVE_HEAD = ("Solve {what} so that I can follow it: a complete, rigorous solution "
+              "that also shows where it comes from.")
 SOLVE_RULES = [
-    "Go straight to the result: no restating the task, no general remarks, no "
-    "summary at the end, no alternative approaches.",
+    "Open with the idea in two or three sentences: the strategy, and the key "
+    "observation that makes it work.",
+    "Then carry it out. Before each step that is not routine, say in one sentence "
+    "why it comes now: what it is for, what it sets up, or what the goal requires "
+    "at this point. Where a choice looks pulled out of thin air (an auxiliary "
+    "function, an epsilon, a case split, a clever estimate), say what led to it.",
     "Justify every step. Routine steps get a line; the steps the argument rests "
     "on are carried out in full - never skipped or covered by \"clearly\" or "
     "\"similarly\".",
+    "No padding: no restating the task, no general remarks, no alternative "
+    "approaches, no summary of what was just shown.",
 ]
 DEFINITIONS_RULE = "Use the definitions below exactly as stated there, in their notation."
 RESULTS_RULE = ("The {what} below may be cited where they help - they are offered, "

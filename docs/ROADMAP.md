@@ -130,6 +130,10 @@ use yet. Concretely:
       offered, not required; other results only well-known ones, named and
       quoted; the language of the task. Lines about notes only when the prompt
       carries notes.
+- [x] The instruction explains, not only proves (2026-11-05): the bare model
+      solution was correct but said nothing about why a step is taken, which
+      made it hard to learn from. Now it opens with the idea and motivates
+      every non-routine step in a sentence; padding stays out.
 - [x] The `FOLLOW_UPS` reworked (2026-09-29): out "Step by step", "Stick to
       the notes", "Shorter" (the instruction covers them); in "Split into
       lemmas", "Check my attempt" (for a pasted screenshot), "Write it up".

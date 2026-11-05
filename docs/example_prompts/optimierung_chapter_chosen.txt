@@ -1,6 +1,8 @@
-Solve the task below the way a model solution would.
-- Go straight to the result: no restating the task, no general remarks, no summary at the end, no alternative approaches.
+Solve the task below so that I can follow it: a complete, rigorous solution that also shows where it comes from.
+- Open with the idea in two or three sentences: the strategy, and the key observation that makes it work.
+- Then carry it out. Before each step that is not routine, say in one sentence why it comes now: what it is for, what it sets up, or what the goal requires at this point. Where a choice looks pulled out of thin air (an auxiliary function, an epsilon, a case split, a clever estimate), say what led to it.
 - Justify every step. Routine steps get a line; the steps the argument rests on are carried out in full - never skipped or covered by "clearly" or "similarly".
+- No padding: no restating the task, no general remarks, no alternative approaches, no summary of what was just shown.
 - Use the definitions below exactly as stated there, in their notation.
 - The theorems below may be cited where they help - they are offered, not required. Do not force them in.
 - Any other result must be well known (standard Bachelor material): name it and quote, right below, the exact statement you use.
