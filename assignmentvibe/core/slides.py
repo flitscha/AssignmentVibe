@@ -45,12 +45,33 @@ OUTLINE_TITLES = {"outline", "overview", "agenda", "contents", "table of content
 FOOTER_SHARE = 0.6
 # A title starts in the top fifth of the slide.
 HEADING_TOP = 0.2
+# The number right after a word that names the deck's place in the course wins
+# over everything else in the name: "ML-Theory-Lec06_FreeEnergies_v2" is
+# lecture 6, whatever other digits the lecturer adds. The word may be glued to
+# what precedes it ("TheoryLec06") but not be the tail of another word
+# ("Evolution3" is not "VO 3" - hence no letter directly before the short ones).
+DECK_MARKER_RE = re.compile(
+    r"(?:lectures?|lec|vorlesung|vl|vo|kapitel|kap|chapter|chap|ch|week|woche"
+    r"|unit|einheit|teil|part|folien|foliensatz|slides?|deck|session)"
+    r"[\s._#-]*(\d+)", re.IGNORECASE)
+SHORT_MARKERS = {"vl", "vo", "ch", "lec", "kap"}
+# Without such a word: the number the name starts with, else the last one.
 DECK_NUMBER_RE = re.compile(r"^(\d+)|(\d+)(?!.*\d)")
 
 
 def deck_number(pdf_path: Path) -> int | None:
-    """01x1.pdf -> 1, 03-opt.pdf -> 3, lecture12.pdf -> 12."""
-    m = DECK_NUMBER_RE.search(pdf_path.stem)
+    """01x1.pdf -> 1, 03-opt.pdf -> 3, lecture12.pdf -> 12,
+    MachineLearning-Theory-Lec06_FreeEnergies_v2.pdf -> 6."""
+    stem = pdf_path.stem
+    for m in DECK_MARKER_RE.finditer(stem):
+        word = re.match(r"[A-Za-z]+", m.group(0)).group(0)
+        before = stem[m.start() - 1] if m.start() else ""
+        # A short marker inside a lowercase run is part of a longer word.
+        if word.lower() in SHORT_MARKERS and before.isalpha() and not (
+                word[0].isupper() and before.islower()):
+            continue
+        return int(m.group(1))
+    m = DECK_NUMBER_RE.search(stem)
     return int(m.group(1) or m.group(2)) if m else None
 
 
